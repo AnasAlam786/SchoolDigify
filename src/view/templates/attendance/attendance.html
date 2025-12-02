@@ -159,24 +159,26 @@
                 </p>
             </div>
 
-            <!-- {% if "mark_holiday" in session['permissions'] %} -->
-            <button id="holidayBtn" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 
-                   text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-900/20 
-                   hover:shadow-blue-900/30 transition-all duration-300 flex items-center gap-2 
-                   transform hover:-translate-y-0.5">
-                <i class="fas fa-plus text-white"></i>
-                Mark Holiday
-            </button>
-            <!-- {% endif %} -->
+            <div class="flex items-center gap-3">
+                {% if has_permission('mark_holiday') %}
+                <button id="holidayBtn" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 
+                       text-white px-5 py-2 rounded-xl font-semibold shadow-lg shadow-blue-900/20 
+                       hover:shadow-blue-900/30 transition-all duration-300 flex items-center gap-2 
+                       transform hover:-translate-y-0.5">
+                    <i class="fas fa-plus text-white"></i>
+                    Mark Holiday
+                </button>
+                {% endif %}
+
+                 {% if has_permission('view_holidays') %}
+                <button id="viewHolidaysBtn" class="bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-xl font-medium transition">
+                    <i class="far fa-calendar-alt mr-2"></i>View Holidays
+                </button>
+                {% endif %}
+            </div>
         </div>
     </header>
-            <button id="holidayBtn" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 
-                   text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-900/20 
-                   hover:shadow-blue-900/30 transition-all duration-300 flex items-center gap-2 
-                   transform hover:-translate-y-0.5">
-                <i class="fas fa-plus text-white"></i>
-                Mark Holiday
-            </button>
+            <!-- duplicate button removed -->
 
     <!-- Modern Filters Section -->
     <section class="w-full mb-10 p-6 rounded-2xl shadow-2xl border border-[#2B2B2B]
@@ -290,6 +292,30 @@
                         required>
                 </div>
             </div>
+
+                <!-- Holidays List Modal -->
+                <div id="holidaysListModal" class="fixed inset-0 flex items-center justify-center z-50 hidden px-4">
+                    <div class="absolute inset-0 bg-black/70"></div>
+                    <div class="relative bg-[#1A1A1A] rounded-2xl p-4 sm:p-6 w-full max-w-3xl mx-auto shadow-2xl border border-[#2A2A2A]">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg sm:text-xl font-semibold">Marked Holidays</h3>
+                            <div class="flex items-center gap-2">
+                                <button id="closeHolidaysList" class="text-gray-400 hover:text-white transition-colors">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="holidaysListContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pb-2 text-gray-300">
+                            <!-- Filled by JS -->
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-[#222] flex items-center justify-between">
+                            <div class="text-sm text-gray-400">Showing holidays added in this session</div>
+                            <button id="refreshHolidaysBtn" class="text-sm px-3 py-2 bg-white/5 rounded-lg hover:bg-white/10">Refresh</button>
+                        </div>
+                    </div>
+                </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">Apply To</label>
@@ -629,6 +655,8 @@
         }
     };
 
+    // (ModalManager will be exposed after it's defined)
+
     /**
      * UI Manager for Attendance Summary
      * Handles real-time updates of the summary card
@@ -804,15 +832,38 @@
          * Initialize all modal event listeners
          */
         init() {
-            // Holiday Modal (supports multiple holiday buttons)
-            const holidayBtnEls = document.querySelectorAll('#holidayBtn');
+            // Holiday Modal
             const holidayModal = document.getElementById('holidayModal');
             const closeHolidayModal = document.getElementById('closeHolidayModal');
             const holidayForm = document.getElementById('holidayForm');
             const holidaySubmit = document.getElementById('holidaySubmit');
 
-            // Open modal from any holiday button (there may be more than one in the UI)
-            holidayBtnEls.forEach(btn => btn && btn.addEventListener('click', () => this.openModal(holidayModal)));
+            // Open modal from holiday button
+            const holidayBtn = document.getElementById('holidayBtn');
+            if (holidayBtn) holidayBtn.addEventListener('click', () => this.openModal(holidayModal));
+
+            // View Holidays button (opens list modal). Use window.HolidayManager so handler still works if HolidayManager
+            // is defined later in the script. We open the modal after the list is loaded.
+            const viewHolidaysBtn = document.getElementById('viewHolidaysBtn');
+            const holidaysListModal = document.getElementById('holidaysListModal');
+            if (viewHolidaysBtn) {
+                viewHolidaysBtn.addEventListener('click', () => {
+                    // load and show when HolidayManager available
+                    const loadAndShow = async () => {
+                        try {
+                            if (window.HolidayManager && typeof window.HolidayManager.loadAndShow === 'function') {
+                                await window.HolidayManager.loadAndShow();
+                            }
+                        } catch (err) {
+                            console.error('Failed to load holidays', err);
+                        } finally {
+                            // open modal regardless (it may show 'No holidays')
+                            this.openModal(holidaysListModal);
+                        }
+                    };
+                    loadAndShow();
+                });
+            }
             if (closeHolidayModal) closeHolidayModal.addEventListener('click', () => this.closeModal(holidayModal));
 
             // Close modal when clicking backdrop
@@ -820,6 +871,9 @@
 
             // Holiday form AJAX submit
             if (holidayForm) {
+                // ensure form is in 'create' mode by default
+                holidayForm.dataset.batchId = '';
+
                 holidayForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const formData = new FormData(holidayForm);
@@ -836,18 +890,32 @@
                         const originalHTML = holidaySubmit.innerHTML;
                         holidaySubmit.innerHTML = '<span class="loader-spin w-5 h-5 border-2 border-current border-t-transparent rounded-full"></span> Saving...';
                         try {
-                            const res = await fetch(holidayForm.action, { method: 'POST', body: formData, credentials: 'same-origin' });
+                            const batchId = holidayForm.dataset.batchId;
+                            let res;
+                            if (batchId) {
+                                // update existing batch
+                                const url = `/api/holidays/${encodeURIComponent(batchId)}`;
+                                res = await fetch(url, { method: 'PUT', body: formData, credentials: 'same-origin' });
+                            } else {
+                                // create new
+                                res = await fetch(holidayForm.action, { method: 'POST', body: formData, credentials: 'same-origin' });
+                            }
+
                             const data = await res.json();
                             if (!res.ok) throw data;
-                            showAlert(200, data.message || 'Holiday added');
+
+                            showAlert(200, data.message || (batchId ? 'Holiday updated' : 'Holiday added'));
                             this.closeModal(holidayModal);
-                            // Optionally trigger a refresh of UI if you have a holidays list
+                            // refresh holidays list if visible
+                            if (!holidaysListModal.classList.contains('hidden') && window.HolidayManager) await window.HolidayManager.load();
                         } catch (err) {
                             console.error('Holiday save error', err);
-                            showAlert(err.status || 500, err.error || 'Failed to add holiday');
+                            showAlert(err.status || 500, err.error || 'Failed to save holiday');
                         } finally {
                             holidaySubmit.disabled = false;
                             holidaySubmit.innerHTML = originalHTML;
+                            // reset batch id (create mode)
+                            holidayForm.dataset.batchId = '';
                         }
                     }
                 });
@@ -1262,6 +1330,127 @@
 
         // Initialize modals
         ModalManager.init();
+    });
+
+    /**
+     * Holiday Manager
+     * Loads holiday batches, renders list, supports edit/delete
+     */
+    const HolidayManager = {
+        async load() {
+            try {
+                const res = await fetch('/api/holidays');
+                const body = await res.json();
+                if (!res.ok) { showAlert(res.status, body.error || 'Failed to load holidays'); return []; }
+                return body.batches || [];
+            } catch (err) { console.error(err); showAlert(500, 'Network error'); return []; }
+        },
+
+        async loadAndShow() {
+            const list = await this.load();
+            this.renderList(list);
+        },
+
+        renderList(batches) {
+            const container = document.getElementById('holidaysListContainer');
+            container.innerHTML = '';
+            if (!batches || batches.length === 0) {
+                container.innerHTML = '<div class="text-gray-400">No holidays found.</div>';
+                return;
+            }
+
+            batches.forEach(b => {
+                const classLabel = b.class_name ? `Class: ${b.class_name}` : 'Entire School';
+                const datesLabel = b.start_date === b.end_date ? b.start_date : `${b.start_date} — ${b.end_date}`;
+                const html = `
+                    <div class="bg-[#1C1C1C] border border-[#2A2A2A] p-4 rounded-xl flex items-start justify-between gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between gap-4">
+                                <div>
+                                    <div class="text-white font-semibold">${b.name}</div>
+                                    <div class="text-gray-400 text-sm mt-1">${classLabel} · <span class="font-medium">${b.days}</span> day(s)</div>
+                                </div>
+                                <div class="text-gray-300 text-sm">${datesLabel}</div>
+                            </div>
+                            <div class="mt-3 text-xs text-gray-400">Dates: ${b.entries.map(e => e.date).join(', ')}</div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <button data-batch="${b.batch_id}" class="edit-holiday-btn px-3 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:opacity-95 text-sm">Edit</button>
+                            <button data-batch="${b.batch_id}" class="delete-holiday-btn px-3 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:opacity-95 text-sm">Delete</button>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+
+            // attach handlers
+            container.querySelectorAll('.edit-holiday-btn').forEach(btn => btn.addEventListener('click', (e) => this.onEditClick(e)));
+            container.querySelectorAll('.delete-holiday-btn').forEach(btn => btn.addEventListener('click', (e) => this.onDeleteClick(e)));
+        },
+
+        async onEditClick(e) {
+            const batchId = e.currentTarget.getAttribute('data-batch');
+            if (!batchId) return;
+            // fetch full batch data
+            const batches = await this.load();
+            const batch = batches.find(b => b.batch_id === batchId);
+            if (!batch) { showAlert(404, 'Batch not found'); return; }
+
+            // populate holidayForm for editing
+            const form = document.getElementById('holidayForm');
+            form.dataset.batchId = batchId;
+            form.querySelector('#holidayName').value = batch.name || '';
+            form.querySelector('#startDate').value = batch.start_date || '';
+            form.querySelector('#endDate').value = batch.end_date || '';
+            if (form.querySelector('#applyTo')) form.querySelector('#applyTo').value = batch.class_id || '';
+
+            // close list modal and open holiday edit modal using ModalManager to keep consistent behavior
+            try {
+                const holidaysListModal = document.getElementById('holidaysListModal');
+                const holidayModal = document.getElementById('holidayModal');
+                if (window.ModalManager && typeof window.ModalManager.closeModal === 'function') {
+                    window.ModalManager.closeModal(holidaysListModal);
+                } else if (holidaysListModal) {
+                    holidaysListModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }
+
+                if (window.ModalManager && typeof window.ModalManager.openModal === 'function') {
+                    window.ModalManager.openModal(holidayModal);
+                } else if (holidayModal) {
+                    holidayModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                }
+            } catch (err) {
+                console.error('Error opening edit modal', err);
+            }
+        },
+
+        async onDeleteClick(e) {
+            const batchId = e.currentTarget.getAttribute('data-batch');
+            if (!batchId) return;
+            if (!confirm('Delete this holiday batch? This will remove all dates in the batch.')) return;
+            try {
+                const res = await fetch(`/api/holidays/${encodeURIComponent(batchId)}`, { method: 'DELETE', credentials: 'same-origin' });
+                const body = await res.json();
+                if (!res.ok) throw body;
+                showAlert(200, body.message || 'Deleted');
+                await this.loadAndShow();
+            } catch (err) {
+                console.error(err);
+                showAlert(err.status || 500, err.error || 'Failed to delete');
+            }
+        }
+    };
+    // expose for handlers that may be wired earlier
+    window.HolidayManager = HolidayManager;
+
+    // hook up close and refresh for holidays list modal
+    document.addEventListener('DOMContentLoaded', () => {
+        const closeHolidaysList = document.getElementById('closeHolidaysList');
+        if (closeHolidaysList) closeHolidaysList.addEventListener('click', () => { document.getElementById('holidaysListModal').classList.add('hidden'); document.body.style.overflow = 'auto'; });
+        const refreshHolidaysBtn = document.getElementById('refreshHolidaysBtn');
+        if (refreshHolidaysBtn) refreshHolidaysBtn.addEventListener('click', async () => { await window.HolidayManager.loadAndShow(); });
     });
 
     /**

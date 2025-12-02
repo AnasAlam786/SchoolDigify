@@ -238,6 +238,7 @@
                 Home
               </a>
             </li>
+            {% if has_permission('student_list') %}
             <li>
               <a href="/student_list" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/student_list">
@@ -245,6 +246,9 @@
                 Students Data
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('attendance') %}
             <li>
               <a href="/attendance" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/attendance">
@@ -252,6 +256,9 @@
                 Attendance
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('fill_marks') %}
             <li class="mb-0">
               <a href="/fill_marks" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/fill_marks">
@@ -259,6 +266,9 @@
                 Update Marks
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('show_marks') %}
             <li class="mb-0">
               <a href="/show_marks" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/show_marks">
@@ -266,6 +276,9 @@
                 Show Marks
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('admission') %}
             <li class="mb-0">
               <a href="/admission" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/admission">
@@ -273,6 +286,9 @@
                 Add Student
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('idcard') %}
             <li class="mb-1">
               <a href="/idcard" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/idcard">
@@ -280,6 +296,9 @@
                 ID Cards
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('promote_student') %}
             <li class="mb-1">
               <a href="/promote_student"
                 class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
@@ -288,6 +307,9 @@
                 Promote Student
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('show_staff') %}
             <li class="mb-1">
               <a href="/show_staff" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/show_staff">
@@ -295,6 +317,9 @@
                 Staff Module
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('create_paper') %}
             <li class="mb-1">
               <a href="/question_paper"
                 class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
@@ -303,6 +328,9 @@
                 Create Paper
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('admit_card') %}
             <li class="mb-1">
               <a href="/admit_and_schema"
                 class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
@@ -311,13 +339,15 @@
                 Admit & Schema
               </a>
             </li>
+            {% endif %}
           </ul>
         </nav>
       </div>
 
       <!-- Session Select and Logout Buttons -->
       <div class="pt-4 mt-4 mb-4 border-t border-gray-700">
-        <!-- Session Select Dropdown -->
+        <!-- Session Select Dropdown (only for users with change_session permission) -->
+        {% if has_permission('change_session') %}
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-300 mb-1">Select Session</label>
           <select
@@ -332,6 +362,7 @@
             {% endfor %}
           </select>
         </div>
+        {% endif %}
 
         <!-- Logout Button -->
         {% if session['school_name'] %}
@@ -379,6 +410,7 @@
                 Home
               </a>
             </li>
+            {% if has_permission('student_list') %}
             <li>
               <a href="/student_list" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/student_list">
@@ -386,6 +418,9 @@
                 Students Data
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('attendance') %}
             <li>
               <a href="/attendance" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/attendance">
@@ -393,6 +428,9 @@
                 Attendance
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('fill_marks') %}
             <li class="mb-0">
               <a href="/fill_marks" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/fill_marks">
@@ -400,6 +438,9 @@
                 Update Marks
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('show_marks') %}
             <li class="mb-0">
               <a href="/show_marks" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/show_marks">
@@ -407,6 +448,9 @@
                 Show Marks
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('admission') %}
             <li class="mb-0">
               <a href="/admission" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/admission">
@@ -414,6 +458,9 @@
                 Add Student
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('idcard') %}
             <li class="mb-1">
               <a href="/idcard" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/idcard">
@@ -421,6 +468,9 @@
                 ID Cards
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('promote_student') %}
             <li class="mb-1">
               <a href="/promote_student"
                 class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
@@ -429,6 +479,9 @@
                 Promote Student
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('show_staff') %}
             <li class="mb-1">
               <a href="/show_staff" class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
                 data-route="/show_staff">
@@ -436,6 +489,9 @@
                 Staff Module
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('create_paper') %}
             <li class="mb-1">
               <a href="/question_paper"
                 class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
@@ -444,6 +500,9 @@
                 Create Paper
               </a>
             </li>
+            {% endif %}
+
+            {% if has_permission('admit_card') %}
             <li class="mb-1">
               <a href="/admit_and_schema"
                 class="nav-link flex items-center p-3 rounded-lg hover:bg-gray-700 text-gray-300"
@@ -452,6 +511,7 @@
                 Admit & Schema
               </a>
             </li>
+            {% endif %}
           </ul>
         </nav>
       </div>
@@ -459,20 +519,22 @@
       <!-- Session Select and Logout Buttons -->
       <div class="pt-4 mt-4 mb-4 border-t border-gray-700">
         <!-- Session Select Dropdown -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-300 mb-1">Select Session</label>
-          <select
-            class="w-full text-gray-300 py-2 px-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            style="background-color: #111111; border: 1px solid #4a5568;" onchange="changeSession(this.value)">
-            {% for year in session['all_sessions'] %}
-            <option value="{{ year }}" {% if year == session['session_id'] %}selected{% endif %}>
+         {% if has_permission('change_session') %}
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-300 mb-1">Select Session</label>
+            <select
+              class="w-full text-gray-300 py-2 px-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              style="background-color: #111111; border: 1px solid #4a5568;" onchange="changeSession(this.value)">
+              {% for year in session['all_sessions'] %}
+              <option value="{{ year }}" {% if year == session['session_id'] %}selected{% endif %}>
 
-              {{ year }} - {{ year|int + 1 }}{% if year|int == session['current_running_session'] %} (Current) {% endif %}
+                {{ year }} - {{ year|int + 1 }}{% if year|int == session['current_running_session'] %} (Current) {% endif %}
 
-            </option>
-            {% endfor %}
-          </select>
-        </div>
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
 
         <!-- Logout Button -->
         {% if session['school_name'] %}
@@ -527,7 +589,7 @@
         if (!response.ok) {
           showAlert(response.status, data.message || 'An unexpected error occurred. Please try again.');
           console.error(data.message || 'An unexpected error occurred. Please try again.');
-          return;
+          return false;
         }
         if (id) {
           const element = document.getElementById(id);
@@ -540,6 +602,8 @@
         return data.html;
       } catch (error) {
         console.error('Error:', error);
+        return false;
+        
       }
     }
 

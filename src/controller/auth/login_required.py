@@ -39,5 +39,6 @@ def login_required(f):
         end_time = time.time()  # end timer
         print(f"login_required decorator took whole {end_time - start_time:.6f} seconds to run")
 
+
         return f(*args, **kwargs)
     return decorated_function

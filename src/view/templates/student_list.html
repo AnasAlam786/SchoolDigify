@@ -514,17 +514,22 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col md:flex-row gap-3 mt-4 md:mt-0">
-      <!-- Add New Student -->
-      <button onclick="window.location.href='/admission'"
-        class="bg-gradient-to-r from-blue-500 to-indigo-700 text-white px-6 py-3 rounded-xl font-medium flex items-center justify-center">
-        <i class="fas fa-plus mr-2"></i> Add New Student
-      </button>
+      {% if has_permission('admission') %}
+        <!-- Add New Student -->
+        <button onclick="window.location.href='/admission'"
+          class="bg-gradient-to-r from-blue-500 to-indigo-700 text-white px-6 py-3 rounded-xl font-medium flex items-center justify-center">
+          <i class="fas fa-plus mr-2"></i> Add New Student
+        </button>
+      {% endif %}
 
-      <!-- Download Students PDF -->
-      <button id="downloadBtn"
-        class="bg-gradient-to-r from-green-500 to-emerald-700 text-white px-6 py-3 rounded-xl font-medium flex items-center justify-center">
-        <i class="fas fa-file-download mr-2"></i> Students Data PDF
-      </button>
+
+      {% if has_permission('export_student_data') %}
+        <!-- Download Students PDF -->
+        <button id="downloadBtn"
+          class="bg-gradient-to-r from-green-500 to-emerald-700 text-white px-6 py-3 rounded-xl font-medium flex items-center justify-center">
+          <i class="fas fa-file-download mr-2"></i> Students Data PDF
+        </button>
+      {% endif %}
     </div>
   </div>
 
@@ -556,6 +561,7 @@
     </div>
   </div>
 
+  {% if has_permission('students_stats') %}
   <div class="stats-accordion px-2 py-3">
 
     <!-- Accordion Header -->
@@ -637,6 +643,7 @@
     </div>
 
   </div>
+  {% endif %}
 
   <!-- Student Cards Grid -->
   <div class="students-grid" id="StudentData">
@@ -659,7 +666,7 @@
       <div class="flex items-center justify-between px-3 py-0.5 bg-gray-800 bg-opacity-40 border-b border-gray-700">
 
           <!-- LEFT: Badges -->
-          <div class="flex space-x-1">
+          <div class="flex space-x-1 p-1">
               {% if row.is_RTE %}
               <span class="bg-yellow-500 text-gray-900 text-[9px] font-bold px-1.5 py-[2px] rounded">RTE</span>
               {% endif %}
@@ -670,7 +677,7 @@
 
           <!-- RIGHT: Quick Actions + Menu -->
           <div class="flex items-center space-x-2">
-
+            {% if has_permission('student_details') %}
               <!-- VIEW ICON -->
               <button onclick="viewStudentDetails('{{ row.id }}', '{{ row.PHONE }}')"
                       class="relative group p-1.5 hover:bg-gray-700 rounded-full">
@@ -682,7 +689,9 @@
                       View
                   </span>
               </button>
+            {% endif %}
 
+              {% if has_permission('update_student') %}
               <!-- EDIT ICON -->
               <button onclick="window.location.href='/update_student_info?id={{ row.id }}'"
                       class="relative group p-1.5 hover:bg-gray-700 rounded-full">
@@ -694,6 +703,7 @@
                       Edit
                   </span>
               </button>
+              {% endif %}
           </div>
       </div>
 
@@ -750,8 +760,8 @@
           <i class="fas fa-user-circle mr-2"></i> Details
         </button>
         <button
-          class="action-button bg-green-800 bg-opacity-20 text-green-400 hover:bg-[rgba(65,233,135,0.2)] hover:text-white rounded-br-lg"
-          onclick="openDrawer( '{{ row.student_session_id }}', '{{ row.PHONE }}')">
+          class="action-button bg-green-800 bg-opacity-20 text-green-400 hover:bg-[rgba(65,233,135,0.2)] hover:text-white rounded-br-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          onclick="openDrawer( '{{ row.student_session_id }}', '{{ row.PHONE }}')" {% if not has_permission('pay_fees') %}disabled{% endif %}>
           <i class="fa-solid fa-indian-rupee-sign mr-2"></i> Pay Fees
         </button>
       </div>
@@ -861,19 +871,27 @@
 
   // Open the fee drawer
   async function openDrawer(studentSessionID, phoneNumber = null) {
+
       document.getElementById('feeDrawer').classList.add('open');
       document.getElementById('overlay').classList.add('open');
       document.body.style.overflow = 'hidden';
       addSkeletonLoader()
-
       try {
           const res = await fetch(
               `/api/get_fee?phone=${phoneNumber}&student_session_id=${studentSessionID}`
           );
           students = await res.json();   // assign data
+          if (!res.ok) {
+            closeDrawer();
+            showAlert(res.status, students.message || "Something went wrong.");
+            return;
+          }
           console.log(students)
       } catch (error) {
           console.error("Error fetching fee:", error);
+          closeDrawer()
+          return;
+
       }
 
       if (students) {

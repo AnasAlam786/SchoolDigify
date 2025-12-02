@@ -20,6 +20,7 @@ def create_app():
     # ——— Make getattr available in Jinja2 templates ———
     app.jinja_env.globals['getattr'] = getattr
 
+
     # ——— App configuration ———
     app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
     app.config['SECRET_KEY'] = os.getenv('SESSION_KEY')
@@ -61,5 +62,11 @@ def create_app():
     # ——— Register blueprints ———
     from .controller import register_blueprints
     register_blueprints(app)
+
+    # ——— Inject permissions for all templates ———
+    from src.controller.permissions.has_permission import has_permission
+    @app.context_processor
+    def inject_permissions():
+        return dict(has_permission=has_permission)
 
     return app

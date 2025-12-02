@@ -42,8 +42,19 @@ function applyFilters() {
 // ---------------- Student Modall Code START ----------------
 
 function viewStudentDetails(studentId, phone) {
-   updatePage('/student_modal_data_api', 'studentsDetailsModalBody',   {student_id: studentId, phone: phone})
-  openModal()
+  try {
+    response = updatePage('/student_modal_data_api', 'studentsDetailsModalBody', {student_id: studentId, phone: phone})
+    if (!response) {
+      console.log("Error fetching student details");
+      return;
+    }
+    openModal()
+  }
+  catch (error) {
+    console.error("Error fetching student details:", error);
+    return;
+  }
+  
 }
 function openModal() {
     document.getElementById('studentDetailsModal').classList.add('active');

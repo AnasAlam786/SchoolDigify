@@ -2,6 +2,7 @@
 
 from flask import session, request, jsonify, Blueprint
 
+from src.controller.permissions.permission_required import permission_required
 from src.model import (FeeHeads, StudentsDB, StudentSessions, ClassData, 
                        FeeStructure, FeeData)
 from src import db
@@ -17,6 +18,7 @@ get_fee_api_bp = Blueprint( 'get_fee_api_bp',   __name__)
 
 @get_fee_api_bp.route('/api/get_fee', methods=["GET"])
 @login_required
+@permission_required('view_fee_data')
 def get_fee_api():
     # data = request.json
 

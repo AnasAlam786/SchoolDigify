@@ -3,6 +3,7 @@
 from flask import request, jsonify, Blueprint, session
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.controller.permissions.permission_required import permission_required
 from src.model import FeeData, StudentSessions, StudentsDB
 from src import db
 from datetime import datetime
@@ -16,6 +17,7 @@ pay_fee_api_bp = Blueprint( 'pay_fee_api_bp',   __name__)
 
 @pay_fee_api_bp.route('/api/pay_fee', methods=["POST"])
 @login_required
+@permission_required('pay_fees')
 def pay_fee_api():
     data = request.get_json()
     if not data:

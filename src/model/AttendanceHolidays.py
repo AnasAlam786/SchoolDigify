@@ -9,7 +9,9 @@ class AttendanceHolidays(db.Model):
     date = Column(Date, nullable=False)
     name = Column(Text, nullable=False)
     class_id = Column(BigInteger, ForeignKey('ClassData.id'), nullable=True)
+    session_id = Column(BigInteger, ForeignKey('Sessions.id'), nullable=False)
     created_at = Column(TIMESTAMP, nullable=True)
 
     school = db.relationship("Schools", back_populates="holidays")
     class_data = db.relationship("ClassData", back_populates="holidays")
+    session = db.relationship("Sessions", back_populates="holidays")

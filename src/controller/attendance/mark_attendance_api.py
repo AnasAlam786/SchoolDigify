@@ -3,13 +3,13 @@
 from datetime import datetime
 from time import time
 from flask import session, request, jsonify, Blueprint
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 
 from src.controller.permissions.has_permission import has_permission
 from src.controller.permissions.permission_required import permission_required
 from src.controller.auth.login_required import login_required
 
-from src.model import Attendance
+from src.model import Attendance, AttendanceHolidays, StudentSessions
 from src import db
 
 mark_attendance_api_bp = Blueprint( 'mark_attendance_api_bp',   __name__)
@@ -57,19 +57,56 @@ def mark_attendance_api():
         if not has_permission("mark_any_day_attendance"):
             return jsonify({"message": "Access denied. You are only authorized to record attendance for today only."}), 403
 
-    # --- Validate student session ---
-    # student_session = (
-    #     db.session.query(StudentSessions.id)
-    #     .filter(
-    #         and_(
-    #             StudentSessions.id == student_session_id,
-    #             StudentSessions.session_id == current_session,
-    #         )
-    #     ).first()
-    # )
-    # if not student_session:
-    #     return jsonify({"message": "Invalid student session"}), 404
+    # --- Validate student session and check holidays/Sundays ---
+    school_id = session.get("school_id")
 
+
+    # Check if the date is a holiday for the school or the specific class
+    holiday = AttendanceHolidays.query.filter(
+        AttendanceHolidays.school_id == school_id,
+        AttendanceHolidays.date == date,
+    ).first()
+
+    if holiday:
+        student_session = (
+            db.session.query(StudentSessions.id, StudentSessions.class_id)
+            .filter(
+                and_(
+                    StudentSessions.id == student_session_id,
+                    StudentSessions.session_id == current_session,
+                )
+            ).first()
+        )
+        if not student_session:
+            return jsonify({"message": "Invalid student session"}), 404
+        
+        holiday_name = getattr(holiday, 'name', None)
+        class_id = student_session.class_id
+
+        # 2. Determine if holiday applies to this student
+        holiday_applies = holiday.class_id is None or holiday.class_id == class_id
+
+        if holiday_applies:
+            # 3. Build a consistent message
+            if holiday_name:
+                msg = (
+                    f"Attendance cannot be recorded on "
+                    f"{date.strftime('%A, %d %B %Y')} because it is a scheduled holiday "
+                    f"({holiday_name}). If you believe this is incorrect, please contact administration."
+                )
+            else:
+                msg = (
+                    "Attendance cannot be recorded on this date because it is a "
+                    "scheduled holiday. If you believe this is incorrect, please contact administration."
+                )
+
+            return jsonify({"message": msg}), 400
+
+
+    # Don't allow marking attendance on Sundays (weekday(): Monday=0 ... Sunday=6)
+    if date.weekday() == 6:
+        return jsonify({"message": "Attendance cannot be recorded for Sundays. If this is an exception, please contact administration."}), 400
+    
     # --- Check Existing Attendance ---
     attendance = Attendance.query.filter_by(
         student_session_id=student_session_id,

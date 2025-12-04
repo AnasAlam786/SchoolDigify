@@ -19,6 +19,7 @@ def add_holiday():
 
     Expects form fields: holiday_name, start_date (YYYY-MM-DD), end_date (YYYY-MM-DD), apply_to (empty for all or class id)
     """
+    current_session_id = session["session_id"]
     holiday_name = request.form.get('holiday_name')
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
@@ -60,6 +61,7 @@ def add_holiday():
     while cur <= e_date:
         exists = db.session.query(AttendanceHolidays).filter(
             AttendanceHolidays.school_id == str(school_id),
+            AttendanceHolidays.session_id == current_session_id,
             AttendanceHolidays.date == cur,
             (AttendanceHolidays.class_id == class_id if class_id is not None else AttendanceHolidays.class_id.is_(None))
         ).first()
@@ -70,6 +72,7 @@ def add_holiday():
                 date=cur,
                 name=holiday_name,
                 class_id=class_id,
+                session_id=current_session_id,
                 created_at=created_at_batch
             )
             db.session.add(holiday)
@@ -79,7 +82,6 @@ def add_holiday():
 
     try:
         if added > 0:
-            
             db.session.commit()
         else:
             # nothing new added, still return success but note 0
@@ -99,11 +101,18 @@ def list_holidays():
 
     Response: { batches: [ { batch_id, name, class_id, class_name, start_date, end_date, days, entries: [{id,date}] } ] }
     """
-    school_id = session.get('school_id') or request.args.get('school_id')
+    school_id = session.get('school_id')
+    current_session_id = session.get('session_id')
     if not school_id:
         return {"error": "Missing school context (school_id)"}, 400
 
-    rows = db.session.query(AttendanceHolidays).filter(AttendanceHolidays.school_id == str(school_id)).order_by(AttendanceHolidays.created_at.desc(), AttendanceHolidays.date.asc()).all()
+    rows = (
+        db.session.query(AttendanceHolidays)
+            .filter(AttendanceHolidays.school_id == str(school_id),
+                    AttendanceHolidays.session_id == current_session_id)
+            .order_by(AttendanceHolidays.created_at.desc(), AttendanceHolidays.date.asc())
+            .all()
+        )
 
     batches = {}
     for r in rows:
@@ -137,6 +146,7 @@ def list_holidays():
 def update_holiday_batch(batch_id):
     """Update a holiday batch identified by batch_id (created_at iso). Recreate rows for provided date range."""
     school_id = session.get('school_id') or request.form.get('school_id')
+    current_session_id = session.get('session_id')
     if not school_id:
         return {"error": "Missing school context (school_id)"}, 400
 
@@ -171,14 +181,25 @@ def update_holiday_batch(batch_id):
             return {"error": "Invalid class id"}, 400
 
     try:
-        # delete existing rows for this batch
-        db.session.query(AttendanceHolidays).filter(AttendanceHolidays.school_id == str(school_id), AttendanceHolidays.created_at == created_at_dt).delete()
+        # delete existing rows for this batch (also filter by session)
+        db.session.query(AttendanceHolidays).filter(
+            AttendanceHolidays.school_id == str(school_id),
+            AttendanceHolidays.session_id == current_session_id,
+            AttendanceHolidays.created_at == created_at_dt
+        ).delete()
 
-        # recreate rows for new range with same created_at
+        # recreate rows for new range with same created_at and proper session_id
         cur = s_date
         added = 0
         while cur <= e_date:
-            holiday = AttendanceHolidays(school_id=str(school_id), date=cur, name=holiday_name, class_id=class_id, created_at=created_at_dt)
+            holiday = AttendanceHolidays(
+                school_id=str(school_id),
+                date=cur,
+                name=holiday_name,
+                class_id=class_id,
+                session_id=current_session_id,
+                created_at=created_at_dt
+            )
             db.session.add(holiday)
             added += 1
             cur = cur + timedelta(days=1)
@@ -197,6 +218,7 @@ def update_holiday_batch(batch_id):
 @permission_required('mark_holiday')
 def delete_holiday_batch(batch_id):
     school_id = session.get('school_id') or request.args.get('school_id')
+    current_session_id = session.get('session_id')
     if not school_id:
         return {"error": "Missing school context (school_id)"}, 400
 
@@ -206,7 +228,11 @@ def delete_holiday_batch(batch_id):
         return {"error": "Invalid batch id"}, 400
 
     try:
-        deleted = db.session.query(AttendanceHolidays).filter(AttendanceHolidays.school_id == str(school_id), AttendanceHolidays.created_at == created_at_dt).delete()
+        deleted = db.session.query(AttendanceHolidays).filter(
+            AttendanceHolidays.school_id == str(school_id),
+            AttendanceHolidays.session_id == current_session_id,
+            AttendanceHolidays.created_at == created_at_dt
+        ).delete()
         db.session.commit()
     except Exception as e:
         current_app.logger.exception('Failed to delete holiday batch')

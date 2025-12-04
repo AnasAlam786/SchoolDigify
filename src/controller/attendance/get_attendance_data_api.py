@@ -64,7 +64,20 @@ def get_attendance_data_api():
 
 
     if holiday:
-        return jsonify({"message": "Holiday"}), 200
+        return jsonify({
+            "message": "There is a Holiday on this date.",
+            "holiday": True,
+            "info": f"Attendance cannot be marked on {date.strftime('%A, %d %B %Y')} as classes are not held on the occasion of {holiday.name}. If you need to record attendance for a special session, please contact your administrator."
+
+        }), 200
+
+    # Don't allow marking attendance on Sundays (weekday(): Monday=0 ... Sunday=6)
+    if date.weekday() == 6:
+        return jsonify({
+            "message": "Sunday — No Classes Scheduled",
+            "holiday": True,
+            "info": "Attendance cannot be marked on Sundays as classes are not held. If you need to record attendance for a special session, please contact your administrator."
+        }), 200
         
     
     # Build query

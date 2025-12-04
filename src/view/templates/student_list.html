@@ -755,8 +755,8 @@
       <!-- Action Buttons at Bottom -->
       <div class="grid grid-cols-2 border-t border-gray-700 mt-auto">
         <button
-          class="action-button bg-blue-800 bg-opacity-20 text-blue-400 hover:text-white hover:bg-[rgba(67,97,238,0.2)] rounded-bl-lg"
-          onclick="viewStudentDetails('{{ row.id }}', '{{ row.PHONE }}')">
+          class="action-button bg-blue-800 bg-opacity-20 text-blue-400 hover:text-white hover:bg-[rgba(67,97,238,0.2)] rounded-bl-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          onclick="viewStudentDetails('{{ row.id }}', '{{ row.PHONE }}')" {% if not has_permission('student_details') %}disabled{% endif %}>
           <i class="fas fa-user-circle mr-2"></i> Details
         </button>
         <button

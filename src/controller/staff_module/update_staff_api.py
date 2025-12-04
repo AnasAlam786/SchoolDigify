@@ -103,6 +103,8 @@ def update_staff_api():
 
     # Update staff data
     try:
+        
+        
         # Class and Permissions Validation
         assigned_classes = data.get("assigned_classes") or []
         permission_ids = data.get('permissions') or []
@@ -140,6 +142,7 @@ def update_staff_api():
         #delete the links with ClassAccess and StaffPermissions
         ClassAccess.query.filter_by(staff_id=staff.id).delete()
         StaffPermissions.query.filter_by(staff_id=staff.id).delete()
+ 
 
         for class_id in assigned_classes:
             db.session.add(ClassAccess(
@@ -158,12 +161,15 @@ def update_staff_api():
             ))
         
         # updating permission no to reflect the permissions in client side instantly
-        permission_no = int(r.get(staff.id))
-        r.set(staff.id, permission_no+1)
+        permission_no = r.get(staff.id)
+        if permission_no:
+            r.set(staff.id, int(permission_no) + 1)
+            
             
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        return jsonify({'message': 'Error occurred while updating staff', 'error': str(e)}), 500
+        print(e)
+        return jsonify({'message': 'Error occurred while updating staff! Please contact support.', 'error': str(e)}), 500
 
     return jsonify({'message': 'Staff updated successfully'}), 200

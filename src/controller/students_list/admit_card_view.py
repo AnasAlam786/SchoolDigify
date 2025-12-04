@@ -10,7 +10,7 @@ admit_card_view_bp = Blueprint('admit_card_view_bp', __name__)
 
 @admit_card_view_bp.route('/admit_and_schema', methods=['GET'])
 @login_required
-@permission_required('admission')
+@permission_required('admit_card')
 def admit_card_preview():
     """Render the admit card preview page and pass class list for the current school."""
     school_id = session.get('school_id')

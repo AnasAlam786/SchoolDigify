@@ -196,7 +196,6 @@
   }
 </style>
 
-
 <!-- Modal CSS -->
 <style>
   .student-modal {
@@ -562,211 +561,16 @@
   </div>
 
   {% if has_permission('students_stats') %}
-  <div class="stats-accordion px-2 py-3">
-
-    <!-- Accordion Header -->
-    <div id="statsAccordion"
-      class="flex justify-between items-center bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-xl p-3 cursor-pointer shadow-md transition-all duration-300 hover:from-[#16213e] hover:to-[#0f3460] hover:border-[#4361ee] hover:shadow-xl">
-      <h2 class="flex items-center text-[#8f94fb] font-semibold text-lg">
-        <i class="fas fa-chart-line mr-3 text-xl"></i> Student Statistics Overview
-      </h2>
-      <span class="accordion-icon text-[#8f94fb] transition-transform duration-300">
-        <i class="fas fa-chevron-down"></i>
-      </span>
-    </div>
-
-    <!-- Accordion Content -->
-    <div class="accordion-content overflow-hidden transition-all duration-500 ease-in-out mt-4 max-h-0">
-      <div class="pb-4">
-
-        <!-- Stats Grid -->
-        <div class="grid gap-6 justify-center" style="grid-template-columns: repeat(auto-fit, minmax(200px, 420px));">
-          <!-- Total Students Card -->
-          <div
-            class="stat-card relative w-full bg-gradient-to-br from-[#1e1e1e] to-[#2a2a2a] rounded-2xl p-6 shadow-md hover:shadow-xl hover:-translate-y-1.5 hover:border-[#4361ee] transition-all duration-300 overflow-hidden">
-            <!-- Purple Top Line -->
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#4e54c8] to-[#8f94fb]"></div>
-
-            <div
-              class="stat-icon w-12 h-12 flex items-center justify-center rounded-full bg-[#4f54c820] text-[#8f94fb] text-2xl mb-4">
-              <i class="fas fa-user-plus"></i>
-            </div>
-
-            <h3 class="stat-title text-[#a0a7ff] font-medium mb-2 text-lg">Total Students</h3>
-            <div class="stat-value text-white text-3xl font-bold mb-2">{{ total_students }}</div>
-
-            <div class="stat-meta flex items-center font-bold text-sm  mb-4 {% if increased_students > 0 %}text-green-500{% else %}text-red-500{% endif %}">
-              <span>{% if increased_students > 0 %}+{% endif %}{{ increased_students }} students YoY</span>
-              <i class="fas fa-chart-line ml-2 {% if increased_students > 0 %}text-green-500{% else %}text-red-500{% endif %}"></i>
-            </div>
-
-            <ul class="stat-details text-[#8a92b2] text-sm border-t border-[#333] pt-4 space-y-2">
-              <li class="flex justify-between"><span>New Admissions:</span> <span class="text-white font-medium">{{
-                  new_students }}</span></li>
-              <li class="flex justify-between"><span>Old Students:</span> <span class="text-white font-medium">{{
-                  old_students }}</span></li>
-            </ul>
-          </div>
-
-          <!-- Student Growth Card -->
-          <div
-            class="stat-card relative w-full bg-gradient-to-br from-[#1e1e1e] to-[#2a2a2a] rounded-2xl p-6 shadow-md hover:shadow-xl hover:-translate-y-1.5 hover:border-[#4361ee] transition-all duration-300 overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#4e54c8] to-[#8f94fb]"></div>
-
-            <div
-              class="stat-icon w-12 h-12 flex items-center justify-center rounded-full bg-[#4f54c820] text-[#8f94fb] text-2xl mb-4">
-              <i class="fas fa-chart-bar"></i>
-            </div>
-
-            <h3 class="stat-title text-[#a0a7ff] font-medium mb-2 text-lg">Student Growth</h3>
-            <div class="stat-value text-white text-3xl font-bold mb-2">{% if total_growth_percentage > 0 %}+{% endif %}{{ total_growth_percentage | round(1) }}%</div>
-
-            <div class="stat-meta flex items-center text-sm font-bold {% if new_students_growth_percentage > 0 %}text-green-500{% else %}text-red-500{% endif %} mb-4">
-              <span>{% if new_students_growth_percentage > 0 %}+{% endif %}{{ new_students_growth_percentage | round(1) }}% from last year</span>
-              <i class="f ml-2 {% if new_students_growth_percentage > 0 %}text-green-500 fas fa-arrow-up {% else %}text-red-500 fas fa-arrow-down{% endif %}"></i>
-            </div>
-
-
-
-            <ul class="stat-details text-[#8a92b2] text-sm border-t border-[#333] pt-4 space-y-2">
-               <li class="flex justify-between"><span>Last Year New Admissions:</span> <span
-                  class="text-white font-medium">{{ new_students_prev }}</span></li>
-              <li class="flex justify-between"><span>Last Year Students:</span> 
-                <span class="text-white font-medium">{{ previous_year_students_total }}</span>
-              </li>
-             
-            </ul>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
+  <div id="statsContainer" class="stats-accordion px-2 py-3">
+    <!-- Stats will be rendered here by JavaScript -->
   </div>
   {% endif %}
 
   <!-- Student Cards Grid -->
   <div class="students-grid" id="StudentData">
     
-    {% if not data %}
-    <div class="col-span-3">
-      <div class="bg-yellow-900 bg-opacity-30 border border-yellow-700 rounded-xl p-6 text-center">
-        <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-        <h3 class="text-xl font-bold text-white mb-2">No Students Found</h3>
-        <p class="text-gray-400">Try adjusting your search criteria or add new students</p>
-      </div>
-    </div>
-    {% endif %}
-
-    {% for row in data %}
-    <div class="student-card overflow-hidden" data-name="{{ row.STUDENTS_NAME }}" data-class="{{ row.CLASS }}"
-      data-father="{{ row.FATHERS_NAME }}" data-PEN="{{ row.PEN }}" data-roll="{{ row.ROLL }}">
-
-      <!-- TOP BAR -->
-      <div class="flex items-center justify-between px-3 py-0.5 bg-gray-800 bg-opacity-40 border-b border-gray-700">
-
-          <!-- LEFT: Badges -->
-          <div class="flex space-x-1 p-1">
-              {% if row.is_RTE %}
-              <span class="bg-yellow-500 text-gray-900 text-[9px] font-bold px-1.5 py-[2px] rounded">RTE</span>
-              {% endif %}
-              {% if row.is_new %}
-              <span class="bg-green-500 text-white text-[9px] font-bold px-1.5 py-[2px] rounded">NEW</span>
-              {% endif %}
-          </div>
-
-          <!-- RIGHT: Quick Actions + Menu -->
-          <div class="flex items-center space-x-2">
-            {% if has_permission('student_details') %}
-              <!-- VIEW ICON -->
-              <button onclick="viewStudentDetails('{{ row.id }}', '{{ row.PHONE }}')"
-                      class="relative group p-1.5 hover:bg-gray-700 rounded-full">
-                  <i class="fas fa-eye text-blue-400 text-lg"></i>
-
-                  <!-- Tooltip -->
-                  <span class="absolute right-1/2 translate-x-1/2 -top-7 hidden group-hover:block 
-                              bg-black text-white text-xs px-2 py-1 rounded shadow-lg">
-                      View
-                  </span>
-              </button>
-            {% endif %}
-
-              {% if has_permission('update_student') %}
-              <!-- EDIT ICON -->
-              <button onclick="window.location.href='/update_student_info?id={{ row.id }}'"
-                      class="relative group p-1.5 hover:bg-gray-700 rounded-full">
-                  <i class="fas fa-edit text-green-400 text-lg"></i>
-
-                  <!-- Tooltip -->
-                  <span class="absolute right-1/2 translate-x-1/2 -top-7 hidden group-hover:block 
-                              bg-black text-white text-xs px-2 py-1 rounded shadow-lg">
-                      Edit
-                  </span>
-              </button>
-              {% endif %}
-          </div>
-      </div>
-
-
-      <!-- Student Card Content - Updated layout -->
-      <div class="p-4">
-        <div class="flex items-start">
-          <!-- Student Image on LEFT -->
-          <div class="relative mr-4 flex-shrink-0">
-            <img src="{% if row.IMAGE %}
-                        {{ 'https://lh3.googleusercontent.com/d/' + row.IMAGE + '=s200' }}
-                    {% else %}
-                        {{ url_for('static', filename=('no-student-boy-image.png' if row.GENDER == 'Male' else 'no-student-girl-image.png')) }}
-                    {% endif %}" alt="Student Image" class="student-image" loading="lazy">
-            <div
-              class="absolute -bottom-0 -right-1 roll-badge rounded-full w-8 h-8 flex items-center justify-center border-2 border-gray-800">
-              <span class="text-xl font-bold text-white">{{ row.ROLL }}</span>
-            </div>
-          </div>
-
-          <!-- Student Details on RIGHT -->
-          <div class="flex-1 min-w-0">
-            <h3 class="text-xl font-bold text-blue-400 mb-0 truncate">
-              <a class="cursor-pointer hover:text-blue-300"
-                onclick="viewStudentDetails('{{ row.id }}', '{{ row.PHONE }}')">{{ row.STUDENTS_NAME }}</a>
-            </h3>
-            <p class="text-gray-400 text-md mb-2 truncate"> C/O Mr. {{ row.FATHERS_NAME }}</p>
-
-            <!-- Larger class badge -->
-            <div
-              class="bg-blue-900 bg-opacity-50 text-blue-400 px-2 py-1 rounded text-base font-medium mb-1 inline-block">
-              {{ row.CLASS }}
-            </div>
-
-            <div class="text-gray-400 text-sm truncate mb-2">
-              <span class="text-lg">🎂</span>
-              {{ row.DOB }}
-            </div>
-
-            <!-- Contact -->
-            <a href="tel:{{ row.PHONE }}" class="phone-badge">
-              <i class="fas fa-phone text-blue-400 mr-2"></i>
-              <span class="text-white text-sm font-semibold">{{ row.PHONE }}</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Buttons at Bottom -->
-      <div class="grid grid-cols-2 border-t border-gray-700 mt-auto">
-        <button
-          class="action-button bg-blue-800 bg-opacity-20 text-blue-400 hover:text-white hover:bg-[rgba(67,97,238,0.2)] rounded-bl-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          onclick="viewStudentDetails('{{ row.id }}', '{{ row.PHONE }}')" {% if not has_permission('student_details') %}disabled{% endif %}>
-          <i class="fas fa-user-circle mr-2"></i> Details
-        </button>
-        <button
-          class="action-button bg-green-800 bg-opacity-20 text-green-400 hover:bg-[rgba(65,233,135,0.2)] hover:text-white rounded-br-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          onclick="openDrawer( '{{ row.student_session_id }}', '{{ row.PHONE }}')" {% if not has_permission('pay_fees') %}disabled{% endif %}>
-          <i class="fa-solid fa-indian-rupee-sign mr-2"></i> Pay Fees
-        </button>
-      </div>
-    </div>
-    {% endfor %}
+    <!-- Skeleton loaders will be inserted here by JavaScript -->
+    
   </div>
 </div>
 
@@ -833,6 +637,7 @@
 
 <!-- Optional JavaScript for interaction -->
 <script src="{{ url_for('static', filename='students.js') }}"></script>
+<script src="{{ url_for('static', filename='load_students.js') }}"></script>
 <script src="{{ url_for('static', filename='watsappMessage.js') }}"></script>
 <script>
 

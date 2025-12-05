@@ -43,8 +43,8 @@
       <label class="block text-sm font-medium text-gray-300 mb-3">Select Output Type</label>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div class="flex items-center bg-gray-700/30 rounded-lg p-3 border border-gray-600/50 hover:border-indigo-500/30 transition-colors duration-200">
-          <input id="examSchemaOnly" type="radio" name="outputType" value="schemaOnly" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700">
-          <label for="examSchemaOnly" class="ml-3 block text-sm text-gray-300">Exam Schema Only</label>
+          <input id="examSchemeOnly" type="radio" name="outputType" value="SchemeOnly" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700">
+          <label for="examSchemeOnly" class="ml-3 block text-sm text-gray-300">Exam Scheme Only</label>
         </div>
         <div class="flex items-center bg-gray-700/30 rounded-lg p-3 border border-gray-600/50 hover:border-indigo-500/30 transition-colors duration-200">
           <input id="admitCardOnly" type="radio" name="outputType" value="admitOnly" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700">
@@ -57,8 +57,8 @@
       </div>
     </div>
 
-    <!-- Exam Schema Inputs (Conditional) -->
-    <div id="examSchemaContainer" class="border-t border-gray-700 pt-6 mt-6 hidden">
+    <!-- Exam Scheme Inputs (Conditional) -->
+    <div id="examSchemeContainer" class="border-t border-gray-700 pt-6 mt-6 hidden">
       <div class="flex flex-col mb-6">
         <!-- Exam Schedule Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
@@ -78,7 +78,7 @@
             <div class="col-span-2 text-xs font-medium text-gray-400 uppercase tracking-wider text-center">Actions</div>
           </div>
           
-          <div id="examSchemaInputs" class="space-y-3">
+          <div id="examSchemeInputs" class="space-y-3">
             <div class="exam-row bg-gray-700/30 rounded-lg border border-gray-600/30 p-4 grid grid-cols-12 gap-4 items-center transition-all duration-200 hover:border-gray-500/50 hover:bg-gray-700/40">
               <div class="col-span-1 flex justify-center">
                 <span class="text-sm font-medium text-gray-300 order-display">1</span>
@@ -115,7 +115,7 @@
 
         <!-- Mobile/Tablet Layout -->
         <div class="lg:hidden">
-          <div id="examSchemaInputsMobile" class="space-y-4">
+          <div id="examSchemeInputsMobile" class="space-y-4">
             <div class="exam-row-mobile bg-gray-700/30 rounded-xl border border-gray-600/30 p-4 transition-all duration-200 hover:border-gray-500/50 hover:bg-gray-700/40">
               <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-600/30">
                 <div class="flex items-center space-x-3">
@@ -218,9 +218,9 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const previewStatus = document.getElementById('previewStatus');
     const previewContainer = document.getElementById('AdmitPreview');
-    const examSchemaContainer = document.getElementById('examSchemaContainer');
-    const examSchemaInputs = document.getElementById('examSchemaInputs');
-    const examSchemaInputsMobile = document.getElementById('examSchemaInputsMobile');
+    const examSchemeContainer = document.getElementById('examSchemeContainer');
+    const examSchemeInputs = document.getElementById('examSchemeInputs');
+    const examSchemeInputsMobile = document.getElementById('examSchemeInputsMobile');
     const addExamRowBtn = document.getElementById('addExamRow');
     const outputTypeRadios = document.querySelectorAll('input[name="outputType"]');
     
@@ -231,13 +231,13 @@
       // Load saved data from localStorage
       loadSavedData();
       
-      // Show/hide exam schema inputs based on output type selection
+      // Show/hide exam Scheme inputs based on output type selection
       outputTypeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
           if (this.value === 'admitOnly') {
-            examSchemaContainer.classList.add('hidden');
+            examSchemeContainer.classList.add('hidden');
           } else {
-            examSchemaContainer.classList.remove('hidden');
+            examSchemeContainer.classList.remove('hidden');
           }
           saveFormData();
         });
@@ -251,10 +251,10 @@
       });
       
       // Event delegation for remove buttons and move buttons (Desktop)
-      examSchemaInputs.addEventListener('click', function(e) {
+      examSchemeInputs.addEventListener('click', function(e) {
         if (e.target.closest('.remove-exam-row')) {
           // Don't remove if it's the last row
-          if (examSchemaInputs.querySelectorAll('.exam-row').length > 1) {
+          if (examSchemeInputs.querySelectorAll('.exam-row').length > 1) {
             e.target.closest('.exam-row').remove();
             updateMobileLayout();
             saveFormData();
@@ -274,10 +274,10 @@
       });
       
       // Event delegation for remove buttons and move buttons (Mobile)
-      examSchemaInputsMobile.addEventListener('click', function(e) {
+      examSchemeInputsMobile.addEventListener('click', function(e) {
         if (e.target.closest('.remove-exam-row')) {
           // Don't remove if it's the last row
-          if (examSchemaInputsMobile.querySelectorAll('.exam-row-mobile').length > 1) {
+          if (examSchemeInputsMobile.querySelectorAll('.exam-row-mobile').length > 1) {
             e.target.closest('.exam-row-mobile').remove();
             updateDesktopLayout();
             saveFormData();
@@ -347,7 +347,7 @@
     // Function to update the order numbers displayed
     function updateOrderNumbers() {
       // Update desktop view
-      const rows = examSchemaInputs.querySelectorAll('.exam-row');
+      const rows = examSchemeInputs.querySelectorAll('.exam-row');
       rows.forEach((row, index) => {
         const orderDisplay = row.querySelector('.order-display');
         if (orderDisplay) {
@@ -356,7 +356,7 @@
       });
       
       // Update mobile view
-      const mobileRows = examSchemaInputsMobile.querySelectorAll('.exam-row-mobile');
+      const mobileRows = examSchemeInputsMobile.querySelectorAll('.exam-row-mobile');
       mobileRows.forEach((row, index) => {
         const orderDisplay = row.querySelector('.order-display');
         if (orderDisplay) {
@@ -389,7 +389,7 @@
       newRow.className = 'exam-row bg-gray-700/30 rounded-lg border border-gray-600/30 p-4 grid grid-cols-12 gap-4 items-center transition-all duration-200 hover:border-gray-500/50 hover:bg-gray-700/40';
       newRow.innerHTML = `
         <div class="col-span-1 flex justify-center">
-          <span class="text-sm font-medium text-gray-300 order-display">${examSchemaInputs.querySelectorAll('.exam-row').length + 1}</span>
+          <span class="text-sm font-medium text-gray-300 order-display">${examSchemeInputs.querySelectorAll('.exam-row').length + 1}</span>
         </div>
         <div class="col-span-3">
           <input type="text" class="exam-date w-full rounded-lg border border-gray-600 bg-gray-700/50 text-white py-2.5 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all duration-200" placeholder="DD/MM/YYYY" />
@@ -419,7 +419,7 @@
         </div>
       `;
       
-      examSchemaInputs.appendChild(newRow);
+      examSchemeInputs.appendChild(newRow);
       setupInputListenersForRow(newRow);
     }
     
@@ -427,7 +427,7 @@
     function addMobileRow() {
       const newRow = document.createElement('div');
       newRow.className = 'exam-row-mobile bg-gray-700/30 rounded-xl border border-gray-600/30 p-4 transition-all duration-200 hover:border-gray-500/50 hover:bg-gray-700/40';
-      const position = examSchemaInputsMobile.querySelectorAll('.exam-row-mobile').length + 1;
+      const position = examSchemeInputsMobile.querySelectorAll('.exam-row-mobile').length + 1;
       
       newRow.innerHTML = `
         <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-600/30">
@@ -468,14 +468,14 @@
         </div>
       `;
       
-      examSchemaInputsMobile.appendChild(newRow);
+      examSchemeInputsMobile.appendChild(newRow);
       setupInputListenersForRowMobile(newRow);
     }
     
     // Update mobile layout when desktop changes
     function updateMobileLayout() {
-      examSchemaInputsMobile.innerHTML = '';
-      const desktopRows = examSchemaInputs.querySelectorAll('.exam-row');
+      examSchemeInputsMobile.innerHTML = '';
+      const desktopRows = examSchemeInputs.querySelectorAll('.exam-row');
       
       desktopRows.forEach((desktopRow, index) => {
         const date = desktopRow.querySelector('.exam-date').value;
@@ -483,7 +483,7 @@
         const examName = desktopRow.querySelector('.exam-name').value;
         
         addMobileRow();
-        const newMobileRow = examSchemaInputsMobile.querySelector('.exam-row-mobile:last-child');
+        const newMobileRow = examSchemeInputsMobile.querySelector('.exam-row-mobile:last-child');
         newMobileRow.querySelector('.exam-date').value = date;
         newMobileRow.querySelector('.exam-day').value = day;
         newMobileRow.querySelector('.exam-name').value = examName;
@@ -492,8 +492,8 @@
     
     // Update desktop layout when mobile changes
     function updateDesktopLayout() {
-      examSchemaInputs.innerHTML = '';
-      const mobileRows = examSchemaInputsMobile.querySelectorAll('.exam-row-mobile');
+      examSchemeInputs.innerHTML = '';
+      const mobileRows = examSchemeInputsMobile.querySelectorAll('.exam-row-mobile');
       
       mobileRows.forEach((mobileRow, index) => {
         const date = mobileRow.querySelector('.exam-date').value;
@@ -501,7 +501,7 @@
         const examName = mobileRow.querySelector('.exam-name').value;
         
         addDesktopRow();
-        const newDesktopRow = examSchemaInputs.querySelector('.exam-row:last-child');
+        const newDesktopRow = examSchemeInputs.querySelector('.exam-row:last-child');
         newDesktopRow.querySelector('.exam-date').value = date;
         newDesktopRow.querySelector('.exam-day').value = day;
         newDesktopRow.querySelector('.exam-name').value = examName;
@@ -602,22 +602,22 @@
           const radio = document.querySelector(`input[name="outputType"][value="${data.outputType}"]`);
           if (radio) {
             radio.checked = true;
-            // Trigger change event to show/hide exam schema inputs
+            // Trigger change event to show/hide exam Scheme inputs
             radio.dispatchEvent(new Event('change'));
           }
         }
         
-        // Load exam schema data
-        if (data.examSchema && data.examSchema.length > 0) {
+        // Load exam Scheme data
+        if (data.examScheme && data.examScheme.length > 0) {
           // Clear existing rows
-          examSchemaInputs.innerHTML = '';
-          examSchemaInputsMobile.innerHTML = '';
+          examSchemeInputs.innerHTML = '';
+          examSchemeInputsMobile.innerHTML = '';
           
-          // Add rows for each exam schema entry
-          data.examSchema.forEach((exam, index) => {
+          // Add rows for each exam Scheme entry
+          data.examScheme.forEach((exam, index) => {
             addExamRow();
-            const newDesktopRow = examSchemaInputs.querySelector('.exam-row:last-child');
-            const newMobileRow = examSchemaInputsMobile.querySelector('.exam-row-mobile:last-child');
+            const newDesktopRow = examSchemeInputs.querySelector('.exam-row:last-child');
+            const newMobileRow = examSchemeInputsMobile.querySelector('.exam-row-mobile:last-child');
             
             if (newDesktopRow) {
               newDesktopRow.querySelector('.exam-date').value = exam.date || '';
@@ -632,14 +632,14 @@
             }
           });
           
-          // If no exam schema data, ensure we have at least one row
-          if (data.examSchema.length === 0) {
+          // If no exam Scheme data, ensure we have at least one row
+          if (data.examScheme.length === 0) {
             addExamRow();
           }
         }
       } else {
         // Ensure we have at least one exam row
-        if (examSchemaInputs.querySelectorAll('.exam-row').length === 0) {
+        if (examSchemeInputs.querySelectorAll('.exam-row').length === 0) {
           addExamRow();
         }
       }
@@ -666,9 +666,9 @@
         formData.outputType = selectedOutputType.value;
       }
       
-      // Save exam schema data in current order (using desktop view as source)
-      const examRows = examSchemaInputs.querySelectorAll('.exam-row');
-      formData.examSchema = [];
+      // Save exam Scheme data in current order (using desktop view as source)
+      const examRows = examSchemeInputs.querySelectorAll('.exam-row');
+      formData.examScheme = [];
       
       examRows.forEach(row => {
         const date = row.querySelector('.exam-date').value;
@@ -677,7 +677,7 @@
         
         // Only add if at least one field has data
         if (date || day || examName) {
-          formData.examSchema.push({
+          formData.examScheme.push({
             date: date,
             day: day,
             examName: examName
@@ -694,16 +694,16 @@
       const year = document.getElementById('yearInput').value;
       const outputType = document.querySelector('input[name="outputType"]:checked').value;
       
-      // Collect exam schema data in current order (using desktop view)
-      const examSchema = [];
-      const examRows = examSchemaInputs.querySelectorAll('.exam-row');
+      // Collect exam Scheme data in current order (using desktop view)
+      const examScheme = [];
+      const examRows = examSchemeInputs.querySelectorAll('.exam-row');
       examRows.forEach(row => {
         const date = row.querySelector('.exam-date').value;
         const day = row.querySelector('.exam-day').value;
         const examName = row.querySelector('.exam-name').value;
         
         if (date || day || examName) {
-          examSchema.push({
+          examScheme.push({
             date: date,
             day: day,
             examName: examName
@@ -733,7 +733,7 @@
             exam: exam, 
             year: year, 
             outputType: outputType,
-            examSchema: examSchema
+            examScheme: examScheme
           })
         });
 

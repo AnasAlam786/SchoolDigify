@@ -14,7 +14,7 @@ permission_icons = {
     "ID Card": "fa-id-card",  # 🪪 identity cards
     "Student Details": "fa-info-circle",  # ℹ️ detailed info
     "Update Staff": "fa-user-tie",  # 👔 staff update
-    "Admit Card And Schema": "fa-file-invoice",  # 📘 admit cards + schema
+    "Admit Card And Scheme": "fa-file-invoice",  # 📘 admit cards + scheme
 }
 
 ROLE_ICONS = {

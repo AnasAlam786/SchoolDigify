@@ -35,7 +35,8 @@ def get_admit_cards_api():
     exam = data.get('exam', '')
     year = data.get('year', '')
     outputType = data.get('outputType', '')
-    examSchema = data.get('examSchema', '')
+    examScheme = data.get('examScheme', '')
+    print(examScheme)
 
     school_id = session.get('school_id')
     current_session_id = session.get('session_id')
@@ -92,7 +93,7 @@ def get_admit_cards_api():
             obj.DOB = ''
         student_objs.append(obj)
 
-    # Group students into pages of 2 (1x1 layout for both admit and schema) 
+    # Group students into pages of 2 (1x1 layout for both admit and scheme) 
     if outputType == 'both':
         page_size = 2
     else:
@@ -109,6 +110,6 @@ def get_admit_cards_api():
 
     html = render_template('admit_card/admit_pdf.html', data=pages, logo=logo, 
                            school=school_name, exam=exam, year=year, outputType=outputType, 
-                           examSchema=examSchema)
+                           examScheme=examScheme)
 
     return jsonify({"html": str(html)})

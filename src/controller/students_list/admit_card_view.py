@@ -8,7 +8,7 @@ from src import db
 admit_card_view_bp = Blueprint('admit_card_view_bp', __name__)
 
 
-@admit_card_view_bp.route('/admit_and_schema', methods=['GET'])
+@admit_card_view_bp.route('/admit_and_scheme', methods=['GET'])
 @login_required
 @permission_required('admit_card')
 def admit_card_preview():

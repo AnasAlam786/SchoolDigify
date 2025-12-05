@@ -14,6 +14,21 @@ from src.model.AttendanceHolidays import AttendanceHolidays
 from src.controller.permissions.permission_required import permission_required
 from src.controller.auth.login_required import login_required
 
+def parse_date(date_str):
+    possible_formats = [
+        "%Y-%m-%d",  # HTML input format
+        "%d/%m/%Y",  # Indian format 1
+        "%d-%m-%Y",  # Indian format 2
+    ]
+
+    for fmt in possible_formats:
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except:
+            continue
+
+    return None
+
 get_attendance_data_api_bp = Blueprint( 'get_attendance_data_api_bp',   __name__)
 
 @get_attendance_data_api_bp.route('/api/get_attendance_data', methods=["GET"])
@@ -29,20 +44,7 @@ def get_attendance_data_api():
     current_date = datetime.today().date()
 
 
-    def parse_date(date_str):
-        possible_formats = [
-            "%Y-%m-%d",  # HTML input format
-            "%d/%m/%Y",  # Indian format 1
-            "%d-%m-%Y",  # Indian format 2
-        ]
 
-        for fmt in possible_formats:
-            try:
-                return datetime.strptime(date_str, fmt).date()
-            except:
-                continue
-
-        return None
 
     date = parse_date(date_str)
     if date is None:
@@ -135,3 +137,80 @@ def get_attendance_data_api():
     }
     
     return jsonify({"attendance_data": attendance_data, "attendance_summary": attendance_summary}), 200
+
+
+@get_attendance_data_api_bp.route('/api/get_absent_students', methods=["GET"])
+@login_required
+@permission_required('attendance')
+def get_absent_students():
+    class_id = request.args.get('classID')
+    date = request.args.get('date')
+
+    if not class_id or not date:
+        return jsonify({"message": "Class ID and date are required"}), 400
+
+    current_session = session["session_id"]
+    school_id = session["school_id"]
+    current_date = datetime.today().date()
+
+    # Parse date
+    date_obj = parse_date(date)
+    if date_obj is None:
+        return jsonify({"message": "Invalid date format. Use DD/MM/YYYY or DD-MM-YYYY"}), 400
+    
+    # Permission check for non-current dates
+    if current_date != date_obj:
+        if not has_permission("mark_any_day_attendance"):
+            return jsonify({"message": "Access denied. You are only authorized to record attendance for today only."}), 403
+
+    try:
+        # Get class name
+        class_record = ClassData.query.filter_by(
+            id=class_id, 
+            school_id=school_id
+        ).first()
+        
+        if not class_record:
+            return jsonify({"message": "Class not found"}), 404
+
+        class_name = class_record.CLASS
+
+        # Get absent students with attendance status ABSENT
+        attendance_query = (
+            db.session.query(
+                StudentsDB.STUDENTS_NAME,
+                # StudentsDB.FATHERS_NAME,
+                StudentSessions.ROLL,
+            )
+            .join(StudentSessions, StudentSessions.student_id == StudentsDB.id)
+            .join(Attendance, and_(
+                Attendance.student_session_id == StudentSessions.id,
+                Attendance.date == date_obj,
+                Attendance.status == "ABSENT"
+            ))
+            .filter(
+                StudentSessions.class_id == class_id,
+                StudentSessions.session_id == current_session
+            )
+            .order_by(StudentSessions.ROLL.asc())
+            .all()
+        )
+
+        absent_students = [dict(row._mapping) for row in attendance_query]
+
+        # Format date for display
+        formatted_date = date_obj.strftime('%A, %d %B %Y')
+
+        return jsonify({
+            'success': True,
+            'class_name': class_name,
+            'date': formatted_date,
+            'absent_students': absent_students
+        })
+
+    except Exception as e:
+        print(f"Error fetching absent students: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error fetching absent students: {str(e)}'
+        }), 500

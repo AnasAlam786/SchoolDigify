@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, Integer, String, Text, Numeric, Date, TIMESTAMP, ForeignKey
+from sqlalchemy import Boolean, Column, BigInteger, String, Text, Numeric, Date, TIMESTAMP, ForeignKey
 from sqlalchemy.sql import text
 from src import db
 
@@ -12,6 +12,7 @@ class FeeTransaction(db.Model):
     payment_mode = Column(String, nullable=True)
     discount = Column(Numeric, nullable=True)
     seq_no = Column(Numeric, nullable=False)
+    is_deleted = Column(Boolean, nullable=True)
     remark = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), nullable=True, server_default=text("now()"))
 

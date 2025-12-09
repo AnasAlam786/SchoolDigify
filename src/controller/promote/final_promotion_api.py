@@ -19,8 +19,6 @@ final_promotion_api_bp = Blueprint('final_promotion_api_bp',   __name__)
 @permission_required('promote_student')
 def final_promotion_api():
 
-    
-
     #get the number of classes in the school
 
 

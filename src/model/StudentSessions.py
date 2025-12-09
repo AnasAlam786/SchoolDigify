@@ -1,9 +1,19 @@
 from sqlalchemy import (
-    Column, Integer, BigInteger, Text, DateTime, Numeric,
+    Column, Date, Integer, BigInteger, Text, DateTime, Numeric, Enum,
     ForeignKey, UniqueConstraint
 )
 from src import db
 
+PromotionStatusEnum = Enum(
+    "promoted",
+    "active",
+    "left",
+    "passed_out",
+    "tc",
+    name="Promotion_Status",
+    create_type=False,          # Important: reuse existing type in DB
+    inherit_schema=True,
+)
 class StudentSessions(db.Model):
     __tablename__ = 'StudentSessions'
     
@@ -19,6 +29,10 @@ class StudentSessions(db.Model):
     Due_Amount = Column(Numeric, nullable=True)
     Section = Column(Text, nullable=True)
 
+    tc_number = Column(Text, nullable=True)
+    tc_date = Column(Date, nullable=True)
+    left_reason = Column(Text, nullable=True)
+    status = Column(PromotionStatusEnum, nullable=False)
 
     class_data = db.relationship("ClassData", back_populates="student_sessions")
     students = db.relationship("StudentsDB", back_populates="student_sessions")

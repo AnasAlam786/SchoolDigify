@@ -123,16 +123,30 @@
         }
 
         @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-3px); }
-            50% { transform: translateX(3px); }
-            75% { transform: translateX(-2px); }
-            100% { transform: translateX(0); }
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-3px);
+            }
+
+            50% {
+                transform: translateX(3px);
+            }
+
+            75% {
+                transform: translateX(-2px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
         }
+
         .animate-shake {
             animation: shake 0.3s ease-in-out;
         }
-
     </style>
 
     <!-- Overlay -->
@@ -159,6 +173,85 @@
 
             <!-- Main Content (Scrollable) -->
             <div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+                <!-- DUE FEE SUMMARY (clean, sharp, responsive) -->
+                <div id="dueFeeSummary"
+                    class="bg-gradient-to-r from-red-900/25 to-red-800/10 border border-red-700/30 px-4 py-4 sm:px-6 sm:py-5 shadow-sm">
+
+                    <div class="flex items-start justify-between gap-4">
+
+                        <!-- Left: icon + title -->
+                        <div class="flex items-start gap-3 min-w-0">
+                            <div class="flex-shrink-0 bg-red-600/20 p-2">
+                                <i class="fas fa-exclamation-triangle text-red-400 text-lg"></i>
+                            </div>
+
+                            <div class="min-w-0 leading-tight">
+                                <h3 class="text-white text-lg font-bold">Due Fee Balance</h3>
+                                <p id="dueFeeSubtitle" class="text-gray-300 text-sm truncate max-w-[18rem] mt-0.5">
+                                    <!-- dynamic -->
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Right: amount + dropdown -->
+                        <div class="flex items-start gap-3">
+
+                            <!-- Grand total -->
+                            <div class="text-right">
+                                <div id="grandTotalDue"
+                                    class="text-3xl font-extrabold text-white leading-none tabular-nums">
+                                    ₹2,100
+                                </div>
+                            </div>
+
+                            <!-- 3-dot dropdown (always on all screens) -->
+                            <div class="relative">
+                                <button id="actionsToggle" type="button" class="p-2 hover:bg-white/20 transition"
+                                    aria-haspopup="true" aria-expanded="false" aria-controls="actionsMenu">
+                                    <i class="fas fa-ellipsis-v text-white"></i>
+                                </button>
+
+                                <div id="actionsMenu"
+                                    class="hidden absolute right-0 mt-2 w-44 bg-slate-900/95 backdrop-blur border border-slate-700/40 py-1 shadow-lg z-50">
+
+                                    <button id="whatsappButton"
+                                        class="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-slate-800/50">
+                                        <i class="fab fa-whatsapp text-green-400 w-4"></i>
+                                        Send WhatsApp
+                                    </button>
+
+                                    <!-- <button id="printButton"
+                                        class="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-slate-800/50">
+                                        <i class="fas fa-print w-4"></i>
+                                        Print Summary
+                                    </button> -->
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- bottom stats -->
+                    <div class="mt-3 pt-3 border-t border-red-700/20">
+                        <div class="flex items-center justify-between text-sm text-gray-300 w-full">
+
+                            <div class="inline-flex items-center gap-2">
+                                <i class="fas fa-users text-gray-400"></i>
+                                <span>Students:</span>
+                                <span id="totalStudentsCount" class="text-white font-semibold">2</span>
+                            </div>
+
+                            <div class="inline-flex items-center gap-2">
+                                <i class="fas fa-calendar-times text-gray-400"></i>
+                                <span>Months:</span>
+                                <span id="totalPendingMonths" class="text-white font-semibold">7</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
                 <div class="p-6">
                     <!-- Current Student Info -->
                     <div class="bg-gradient-to-r from-gray-800 to-gray-700 p-4 rounded-2xl mb-4">
@@ -170,6 +263,9 @@
                                         id="studentClass"></span>
                                     <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded-lg text-sm"
                                         id="studentRoll"></span>
+                                    <span class="bg-red-500/20 text-red-300 px-2 py-1 rounded-lg text-sm" id="dueAmount">
+                                        <i class="fas fa-clock mr-1"></i>
+                                    </span>
                                 </div>
                             </div>
                             <!-- Image circle -->
@@ -213,15 +309,16 @@
                                 <span class="text-gray-300">Selected Fees (Current Student):</span>
                                 <span class="font-medium text-white" id="currentStudentFees">₹0</span>
                             </div>
-                            
+
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-300">Total All Students:</span>
                                 <span class="font-medium text-white" id="totalAllFees">₹0</span>
                             </div>
-                            
+
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-300">Discount:</span>
-                                <div class="flex items-center bg-gray-800/60 border border-gray-700/50 rounded-lg px-3 py-1.5">
+                                <div
+                                    class="flex items-center bg-gray-800/60 border border-gray-700/50 rounded-lg px-3 py-1.5">
                                     <span class="mr-1 text-gray-300">₹</span>
                                     <input type="number" id="discountInput"
                                         class="w-20 bg-transparent text-right text-white placeholder-gray-500"
@@ -244,16 +341,13 @@
                             Payment Date <span class="text-red-500">*</span>
                         </h4>
                         <div class="date-input-container">
-                            <input id="dateInput"
-                                type="text"
-                                maxlength="10"
-                                placeholder="DD/MM/YYYY"
-                                class="w-full px-4 py-3 text-sm bg-gray-800/60 border border-gray-700/50 rounded-xl
+                            <input id="dateInput" type="text" maxlength="10" placeholder="DD/MM/YYYY" class="w-full px-4 py-3 text-sm bg-gray-800/60 border border-gray-700/50 rounded-xl
                                     focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30
                                     text-white placeholder-gray-500" />
                         </div>
                     </div>
-                    <div id="paymentDateError" class="hidden mb-3 text-red-400 text-xs bg-red-900/20 border border-red-500/20 px-3 py-2 rounded-lg">
+                    <div id="paymentDateError"
+                        class="hidden mb-3 text-red-400 text-xs bg-red-900/20 border border-red-500/20 px-3 py-2 rounded-lg">
                         Please enter a valid date.
                     </div>
 
@@ -286,16 +380,26 @@
                             </div>
                         </div>
                     </div>
-                    <div id="paymentModeError" class="hidden mb-2 text-red-400 text-xs bg-red-900/20 border border-red-500/20 px-3 py-2 rounded-lg">
+                    <div id="paymentModeError"
+                        class="hidden mb-2 text-red-400 text-xs bg-red-900/20 border border-red-500/20 px-3 py-2 rounded-lg">
                         Please select a payment mode.
                     </div>
 
-                    <!-- Proceed Button -->
-                    <button id="proceedButton"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all duration-300 glow-hover transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                        disabled>
-                        <i class="fas fa-lock mr-2"></i>Proceed to Pay
-                    </button>
+                    <!-- Buttons Container -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Proceed Button -->
+                        <button id="proceedButton"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all duration-300 glow-hover transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            disabled>
+                            <i class="fas fa-lock mr-2"></i>Pay
+                        </button>
+
+                        <!-- View Transactions Button -->
+                        <button id="viewTransactionsButton"
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold transition-all duration-300 glow-hover transform hover:scale-[1.02]">
+                            <i class="fas fa-history mr-2"></i>Transactions
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -350,11 +454,12 @@
         const studentNameEl = document.getElementById('studentName');
         const studentClass = document.getElementById('studentClass');
         const studentRoll = document.getElementById('studentRoll');
+        const dueAmount = document.getElementById('dueAmount');
         const studentImage = document.getElementById('studentImage');
 
         const monthlyFeesGrid = document.getElementById('monthlyFeesGrid');
         const otherFeesGrid = document.getElementById('otherFeesGrid');
-        
+
         const currentStudentFeesEl = document.getElementById('currentStudentFees');
         const totalAllFeesEl = document.getElementById('totalAllFees');
         const paymentModes = document.querySelectorAll('.payment-mode');
@@ -368,7 +473,7 @@
         const receiptContent = document.getElementById('receiptContent');
         const printReceiptBtn = document.getElementById('printReceipt');
         const sendWhatsappBtn = document.getElementById('sendWhatsapp');
-        
+
 
 
         let discount = 0;
@@ -405,17 +510,26 @@
         //     }
         // ];
         let students = []
+        let currentStudentSessionId = null;
+        let allStudentSessionIds = [];  // Store all sibling student_session_ids
+
         // Initialize the application
-        function init(studentsData) {
+        function init(studentsData, studentSessionId = null) {
             // Application State
             students = studentsData
+            currentStudentSessionId = studentSessionId
+
+            // Extract all student_session_ids from students data
+            allStudentSessionIds = students.map(student => student.student_session_id).filter(id => id);
+            console.log('All sibling student_session_ids:', allStudentSessionIds);
 
             discount = 0;
             currentStudent = 0;
             paymentMode = '';
             paymentDate = ""
             resetFeeDrawerUI()
-
+            
+            handleDueFeeSummary()
             renderSiblingTabs()
             renderStudentData(0);
             updatePaymentSummary();
@@ -458,6 +572,48 @@
             if (proceedButton) proceedButton.addEventListener('click', processPayment);
             if (closeReceiptBtn) closeReceiptBtn.addEventListener('click', closeReceipt);
             if (printReceiptBtn) printReceiptBtn.addEventListener('click', printReceipt);
+
+            // View Transactions
+            const viewTransactionsBtn = document.getElementById('viewTransactionsButton');
+            if (viewTransactionsBtn) {
+                viewTransactionsBtn.addEventListener('click', openTransactionModal);
+            }
+
+            // open send message and print demand dropdown
+            const toggleBtn = document.getElementById("actionsToggle");
+            const menu = document.getElementById("actionsMenu");
+
+            // Toggle dropdown visibility
+            toggleBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                menu.classList.toggle("hidden");
+            });
+
+            // Click outside = close menu
+            document.addEventListener("click", (e) => {
+                if (!menu.classList.contains("hidden")) {
+                if (!menu.contains(e.target) && e.target !== toggleBtn) {
+                    menu.classList.add("hidden");
+                }
+                }
+            });
+        }
+
+        // Open transaction modal
+        function openTransactionModal() {
+            if (!allStudentSessionIds || allStudentSessionIds.length === 0) {
+                alert('Student session IDs not available');
+                return;
+            }
+
+            // Call the global fee transaction modal manager
+            if (typeof feeTransactionModalManager !== 'undefined') {
+                feeTransactionModalManager.open(allStudentSessionIds);
+                // Pass all sibling student_session_ids to load all their transactions
+                // feeTransactionModalManager.loadTransactions(allStudentSessionIds);
+            } else {
+                console.error('Fee transaction modal manager not initialized');
+            }
         }
 
         // Close the fee drawer
@@ -479,13 +635,53 @@
                 paymentModes.forEach(m => m.classList.remove('active'));
             }
 
-            
+
             const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
             const currentDate = new Date().toLocaleDateString('en-IN', options);
             paymentDate = currentDate
             if (dateInput) dateInput.value = currentDate;
 
         }
+
+        async function handleDueFeeSummary() {
+
+            totalDueTerms = 0;
+            totalDueAmount = 0;
+
+            students.forEach((student) => {
+                totalDueTerms += student.total_due_terms;
+                totalDueAmount += student.total_due_amount;
+            });
+
+            document.getElementById("grandTotalDue").textContent = "₹" + totalDueAmount;
+            document.getElementById("totalStudentsCount").textContent = students.length;
+            document.getElementById("totalPendingMonths").textContent = totalDueTerms;
+
+            const sendDemandMessageBTN = document.getElementById("whatsappButton");
+
+            // Attach the click listener
+            sendDemandMessageBTN.addEventListener("click", async () => {
+                try {
+                    const phone = students[0].phone
+                    const response = await fetch(`/api/get_demand_fee_message?phone=${phone}`);
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        showAlert(data.message || "Failed to load message", Constants.STATUS_TYPES.ERROR);
+                        return;
+                    }
+
+                    // Send WhatsApp message after data arrives
+                    sendWhatsAppMessage(data.phone_number, data.whatsapp_message);
+
+                } catch (err) {
+                    console.error("Network/JS error:", err);
+                    showAlert(500, "An error occurred while sending the message.");
+                }
+
+            });
+        }
+
 
         function renderSiblingTabs() {
             const container = document.getElementById("siblingTabsContainer");
@@ -542,6 +738,7 @@
             studentNameEl.textContent = student.name;
             studentClass.textContent = "Class: " + student.class;
             studentRoll.textContent = "Roll No: " + student.rollNo;
+            dueAmount.innerHTML = `<i class="fas fa-clock mr-1"></i>Due: ₹${student.total_due_amount}`;
             studentImage.src = student.image || "https://static.vecteezy.com/system/resources/previews/036/594/092/large_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg";
             // Render monthly fees
             renderMonthlyFees(student);
@@ -717,17 +914,17 @@
                 const cards = document.querySelectorAll(".payment-mode");
 
                 cards.forEach(card => {
-                    card.classList.add("border-red-500","animate-shake","bg-red-900/10");
+                    card.classList.add("border-red-500", "animate-shake", "bg-red-900/10");
                 });
 
                 // Remove red border + shake after 700ms
                 setTimeout(() => {
                     cards.forEach(card => {
-                        card.classList.remove("border-red-500","animate-shake","bg-red-900/10");
+                        card.classList.remove("border-red-500", "animate-shake", "bg-red-900/10");
                     });
                 }, 700);
 
-               hasError = true;
+                hasError = true;
             }
 
             if (!paymentDate.trim()) {
@@ -736,11 +933,11 @@
                 err.textContent = "Payment date is required.";
 
                 // Add shake + red border
-                dateInput.classList.add("border-red-500","animate-shake","bg-red-900/10");
+                dateInput.classList.add("border-red-500", "animate-shake", "bg-red-900/10");
 
                 // Remove styles after 700ms
                 setTimeout(() => {
-                    dateInput.classList.remove("border-red-500","animate-shake","bg-red-900/10");
+                    dateInput.classList.remove("border-red-500", "animate-shake", "bg-red-900/10");
                 }, 700);
 
                 hasError = true;
@@ -790,7 +987,7 @@
             } catch (err) {
                 // Network or JS errors
                 console.error("Network/JS error:", err);
-                showAlert(500, "An error occurred while submitting the form.");               
+                showAlert(500, "An error occurred while submitting the form.");
             }
         }
 
@@ -1037,8 +1234,20 @@
             const studentRoll = document.getElementById("studentRoll");
             studentRoll.innerHTML = `<div class="h-4 w-24 bg-gray-300/40 animate-pulse rounded"></div>`;
 
+            const dueAmount = document.getElementById("dueAmount");
+            dueAmount.innerHTML = `<div class="h-4 w-24 bg-gray-300/40 animate-pulse rounded"></div>`;
+
             const studentImage = document.getElementById("studentImage");
-            studentImage.src = ""
+            studentImage.src = "https://static.vecteezy.com/system/resources/previews/036/594/092/large_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"
+
+            document.getElementById("grandTotalDue").innerHTML =
+                `<div class="h-6 w-24 bg-white/40 rounded animate-pulse"></div>`;
+
+            document.getElementById("totalStudentsCount").innerHTML =
+                `<div class="h-6 w-16 bg-white/40 rounded animate-pulse"></div>`;
+
+            document.getElementById("totalPendingMonths").innerHTML =
+                `<div class="h-6 w-20 bg-white/40 rounded animate-pulse"></div>`;
 
 
         }

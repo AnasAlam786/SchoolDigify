@@ -27,6 +27,10 @@ from .attendance.messages_api import get_message_api_bp
 
 from .fees.pay_fee_api import pay_fee_api_bp
 from .fees.get_fee_api import get_fee_api_bp
+from .fees.get_transactions_api import get_transactions_api_bp
+from .fees.transaction_action_api import transaction_action_api_bp
+from .fees.demand_fee_message_api import demand_fee_message_bp
+from .fees.transaction_watsapp_message_api import transaction_whatsapp_message_bp
 
 from .marks.fill_marks import fill_marks_bp
 from .marks.update_marks_api import update_marks_api_bp
@@ -56,8 +60,6 @@ from .promote.final_update_api import final_update_api_bp
 from .promote.final_depromotion_api import final_depromotion_api_bp
 from .promote.generate_watsapp_message_api import generate_watsapp_message_api_bp
 
-from .tc.tc import tc_bp
-from .tc.tc_student_list_api import tc_student_list_api_bp
 from .tc.generate_tc_form_api import generate_tc_form_api_bp
 
 from .students.add_student.admission import admission_bp
@@ -105,6 +107,10 @@ def register_blueprints(app):
     
     app.register_blueprint(pay_fee_api_bp)
     app.register_blueprint(get_fee_api_bp)
+    app.register_blueprint(get_transactions_api_bp)
+    app.register_blueprint(transaction_action_api_bp)
+    app.register_blueprint(demand_fee_message_bp)
+    app.register_blueprint(transaction_whatsapp_message_bp)
 
     app.register_blueprint(admission_bp)
     app.register_blueprint(pydantic_verification_api_bp)
@@ -140,8 +146,6 @@ def register_blueprints(app):
     app.register_blueprint(final_depromotion_api_bp)
     app.register_blueprint(generate_watsapp_message_api_bp)
 
-    app.register_blueprint(tc_bp)
-    app.register_blueprint(tc_student_list_api_bp)
     app.register_blueprint(generate_tc_form_api_bp)
 
     app.register_blueprint(question_paper_bp)

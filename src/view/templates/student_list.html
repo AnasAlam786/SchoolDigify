@@ -598,8 +598,10 @@
 </div>
 
 {% from "/fee/fees_modal.html" import fee_drawer %}
+{% from "/fee/fee_transaction_modal_modular.html" import fee_transaction_modal %}
 
 {{ fee_drawer() }}
+{{ fee_transaction_modal() }}
 
 
 <div id="studentDetailsModal"
@@ -700,7 +702,7 @@
       }
 
       if (students) {
-          init(students);
+          init(students, studentSessionID);
       }
   }
 

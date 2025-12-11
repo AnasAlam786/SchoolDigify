@@ -4,7 +4,7 @@ from flask import session, render_template, request, jsonify, Blueprint
 from bs4 import BeautifulSoup
 
 from src.controller.permissions.permission_required import permission_required
-from ..auth.login_required import login_required
+from src.controller.auth.login_required import login_required
 
 question_paper_api_bp = Blueprint( 'question_paper_api_bp',   __name__)
 

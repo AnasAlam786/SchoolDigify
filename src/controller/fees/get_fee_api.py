@@ -7,8 +7,8 @@ from src.model import (StudentsDB, StudentSessions)
 from src import db
 
 
-from .utils.fetch_fee_data import fetch_fee_data
-from ..auth.login_required import login_required
+from src.controller.permissions.permission_required import permission_required
+from src.controller.auth.login_required import login_required
 
 get_fee_api_bp = Blueprint( 'get_fee_api_bp',   __name__)
 

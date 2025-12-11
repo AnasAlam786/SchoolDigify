@@ -3,14 +3,14 @@
 from flask import request, jsonify, Blueprint, session
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.controller.permissions.permission_required import permission_required
 from src.model import FeeData, StudentSessions, StudentsDB
 from src import db
 from datetime import datetime
 
 
 from src.model.FeeTransaction import FeeTransaction
-from ..auth.login_required import login_required
+from src.controller.permissions.permission_required import permission_required
+from src.controller.auth.login_required import login_required
 
 pay_fee_api_bp = Blueprint( 'pay_fee_api_bp',   __name__)
 

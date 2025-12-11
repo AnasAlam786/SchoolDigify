@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}Students Data{% endblock %} {% block
+{% extends "base.html" %} {% block title %}Promote Students & TC{% endblock %} {% block
 content %}
 
 <style>
@@ -76,16 +76,15 @@ content %}
     }
 </style>
 
-
 <div class="container" id="student-container">
 
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl md:text-3xl font-bold text-green-400 ">Student Promotion Portal</h1>
-            <p class="text-gray-400 mt-1 md:mt-2 text-sm md:text-base">Manage student promotions to the next academic
-                session with
-                an intuitive interface</p>
+            <p class="text-gray-400 mt-1 md:mt-2 text-sm md:text-base">
+                Manage student promotions to the next academic session with an intuitive interface
+            </p>
         </div>
     </div>
 
@@ -109,7 +108,6 @@ content %}
 
                 <!-- Select -->
                 <select id="classView"
-                    onchange="updatePage('/get_prv_year_students_api', 'StudentData', { 'class_id': event.target.value });"
                     class="w-full appearance-none cursor-pointer text-gray-400 text-sm md:text-base bg-transparent focus:outline-none pr-8">
                     <option class="bg-[#1e1e1e] text-white" selected hidden value="">Select Class</option>
                     {% if classes %}
@@ -125,100 +123,33 @@ content %}
                 class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
         </div>
 
+            <!-- State badges -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 mt-3">
+        <button data-filter-button="ALL"
+            class="bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 shadow hover:bg-gray-600 transition-colors">
+            <span class="font-semibold">All</span>
+            <span class="bg-gray-900 px-3 py-1 rounded-full text-sm" id="badge-all-count">-</span>
+        </button>
+        <button data-filter-button="PROMOTED"
+            class="bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 shadow hover:bg-gray-600 transition-colors">
+            <span class="font-semibold">Promoted</span>
+            <span class="bg-green-900 px-3 py-1 rounded-full text-sm" id="badge-promoted-count">0</span>
+        </button>
+        <button data-filter-button="TC_ISSUED"
+            class="bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 shadow hover:bg-gray-600 transition-colors">
+            <span class="font-semibold">TC Issued</span>
+            <span class="bg-amber-900 px-3 py-1 rounded-full text-sm" id="badge-tc-count">0</span>
+        </button>
+        <button data-filter-button="NOT_PROMOTED_NOT_TC"
+            class="bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 shadow hover:bg-gray-600 transition-colors">
+            <span class="font-semibold">No Action</span>
+            <span class="bg-slate-900 px-3 py-1 rounded-full text-sm" id="badge-none-count">0</span>
+        </button>
     </div>
 
-    <div class="promotion-cards" id="StudentData">
-        {% if not data %}
-        <div class="col-span-full">
-            <div class="flex flex-col items-center justify-center text-center bg-gray-800 rounded-2xl p-6 shadow-lg">
-                <i class="fas fa-info-circle text-blue-400 text-4xl mb-3"></i>
-                <h3 class="text-xl font-semibold text-white mb-1">No Students Loaded</h3>
-                <p class="text-gray-400">Please select a class to view the student list.</p>
-            </div>
-        </div>
-        {% endif %}
-
-
-
-        {% for row in data %}
-        <div class="student-card rounded-2xl overflow-hidden shadow-lg card-hover" data-name="{{ row.STUDENTS_NAME }}"
-            data-class="{{ row.previous_class }}" data-father="{{ row.FATHERS_NAME }}" data-PEN="{{ row.PEN }}"
-            data-roll="{{ row.previous_roll }}" data-phone="{{ row.PHONE }}">
-
-            <div class="p-6">
-                <div class="flex items-start gap-3">
-                    <img src="{% if row.IMAGE %}
-                        {{ 'https://lh3.googleusercontent.com/d/' + row.IMAGE + '=s200' }}
-                        {% else %}
-                            {{ url_for('static', filename=('no-student-boy-image.png' if row.GENDER == 'Male' else 'no-student-girl-image.png')) }}
-                        {% endif %}" alt="Student Image" class="student-image mt-2" loading="lazy">
-
-                    <div class="flex-1 min-w-0">
-                        <h3 class="font-bold text-lg text-green-400 truncate">{{ row.STUDENTS_NAME }}</h3>
-                        <p class="text-sm text-gray-400">
-                            <span class="font-medium">C/O:</span> {{ row.FATHERS_NAME }}
-                        </p>
-
-                        <div class="mt-3 space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">Old Class:</span>
-                                <span class="font-medium text-white">{{ row.previous_class }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">Old Roll No:</span>
-                                <span class="font-medium text-white">{{ row.previous_roll }}</span>
-                            </div>
-                            {% if row.next_class %}
-                            <div class="flex justify-between text-green-300">
-                                <span>Next Class:</span>
-                                <span class="font-medium">{{ row.next_class }}</span>
-                            </div>
-                            {% endif %}
-                            {% if row.promoted_session_id %}
-                            <div class="flex justify-between text-green-300">
-                                <span>Next Roll No:</span>
-                                <span class="font-medium">{{ row.next_roll }}</span>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="mt-6 flex gap-3">
-                    {% if row.promoted_session_id %}
-                    <button
-                        class="update-btn flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
-                        onclick="updateStudentModal('{{ row.promoted_session_id }}')">
-                        <i class="fas fa-edit mr-2"></i> Update
-                    </button>
-                    <button
-                        class="depromote-btn flex-1 bg-red-700 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
-                        onclick="depromoteStudentModal('{{ row.promoted_session_id }}')">
-                        <i class="fas fa-times-circle mr-2"></i> Depromote
-                    </button>
-                    {% else %}
-                    <button
-                        class="promote-btn mt-2 flex-1 bg-green-700 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
-                        onclick="promoteStudentModal('{{ row.id }}')" {% if not row.next_class %} disabled
-                        style="opacity: 0.6; cursor: not-allowed;" {% endif %}>
-                        <i class="fas fa-graduation-cap mr-2"></i> {% if not row.next_class %}No Classes{% else %}
-                        Promote {% endif %}
-                    </button>
-
-                    <button
-                        class="tc-btn mt-2 flex-1 bg-yellow-700 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
-                        onclick="CreateTCModal('{{ row.id }}')">
-                        <i class="fa fa-file-text mr-2"></i> Create TC
-                    </button>
-                    {% endif %}
-                </div>
-
-            </div>
-        </div>
-
-        {% endfor %}
     </div>
+
+    <div class="promotion-cards" id="StudentData"></div>
 </div>
 
 <!-- No Results Section (Initially Hidden) -->
@@ -266,30 +197,29 @@ content %}
                             <span class="text-gray-300 font-medium">Old Class</span>
                             <span id="oldClass" class="text-white font-semibold"></span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-300 font-medium">New Class</span>
-                            <span id="newClass" class="text-accent-green font-semibold"></span>
-                        </div>
                     </div>
                 </div>
 
                 <!-- Input Fields -->
                 <div class="space-y-4">
                     <div>
-                        <label for="newRoll" class="block text-gray-300 mb-2 font-medium">New Roll Number <span
+                        <label for="promotedClass" class="block text-gray-300 mb-2 font-medium">Promote To Class <span
                                 class="text-red-400">*</span></label>
-                        <input type="number" inputmode="numeric" id="newRoll" name="newRoll" required
-                            class="w-full bg-gray-700  rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200"
-                            placeholder="Enter new roll number">
-                        <p id="newRollError" class="error-message hidden" style="color: red;"></p>
+                        <select id="promotedClass" name="promotedClass" required
+                            class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200 appearance-none cursor-pointer">
+
+                        </select>
+                        <p id="promotedClassError" class="error-message hidden mt-1" style="color: red;"></p>
                     </div>
 
                     <div>
-                        <label for="due" class="block text-gray-300 mb-2 font-medium">Due Amount</label>
-                        <input type="number" inputmode="numeric" id="due" name="due" min="0" step="0.01"
-                            class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200"
-                            placeholder="Enter due amount (if any)">
-                        <p id="dueError" class="error-message hidden" style="color: red;"></p>
+                        <label for="newRoll" class="block text-gray-300 mb-2 font-medium">New Roll Number <span
+                                class="text-red-400">*</span></label>
+                         <input type="number" inputmode="numeric" id="newRoll" name="newRoll" required
+-                            class="w-full bg-gray-700  rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200"
+-                            placeholder="Enter new roll number">
+                        <p id="newRollError" class="error-message hidden" style="color: red;"></p>
+                        <p id="availableRolls" class="text-sm text-gray-400 mt-1">Available rolls: Loading...</p>
                     </div>
 
                     <div>
@@ -307,7 +237,7 @@ content %}
                                 type="checkbox" id="depromoteCheckbox">
                             <div>
                                 <label class="text-red-300 font-medium" for="depromoteCheckbox">
-                                    Depromote Student, Due amount will also be cleared.
+                                    Depromote Student, can be risky.
                                 </label>
                                 <p class="text-red-400 text-sm mt-1">
                                     <strong>This action cannot be undone.</strong>
@@ -398,7 +328,7 @@ content %}
                     <img id="studentImageTC" src="" alt="Student Image"
                         class="student-image w-32 h-32 rounded-full mb-2" loading="lazy">
 
-                    <h3 id="studentNameTC" data-id="" class="text-2xl font-bold text-white text-center"></h3>
+                    <h3 id="studentNameTC" data-student-session-id="" class="text-2xl font-bold text-white text-center"></h3>
                     <p id="fatherNameTC" class="text-gray-400 text-center"></p>
                 </div>
 
@@ -407,11 +337,11 @@ content %}
                     <div class="space-y-3">
                         <div class="flex justify-between items-center border-b border-gray-600 pb-2">
                             <span class="text-gray-300 font-medium">Old Class</span>
-                            <span id="oldClassTC" class="text-white font-semibold">10-B (Roll No: 08)</span>
+                            <span id="oldClassTC" class="text-white font-semibold"></span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-300 font-medium">New Class</span>
-                            <span id="newClassTC" class="text-accent-green font-semibold">11-B</span>
+                            <span id="newClassTC" class="text-accent-green font-semibold"></span>
                         </div>
                     </div>
                 </div>
@@ -507,280 +437,458 @@ content %}
 
 <script src="{{ url_for('static', filename='watsappMessage.js') }}"></script>
 <script>
+    const stateLabels = {
+        "PROMOTED": "Promoted",
+        "TC_ISSUED": "TC Issued",
+        "NOT_PROMOTED_NOT_TC": "No Action"
+    };
 
+    const placeholderBoy = "{{ url_for('static', filename='no-student-boy-image.png') }}";
+    const placeholderGirl = "{{ url_for('static', filename='no-student-girl-image.png') }}";
 
+    let students = [];
+    let activeFilter = "ALL";
 
-    async function promoteStudentModal(studentID) {
+    const stateColors = {
+        PROMOTED: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50",
+        TC_ISSUED: "bg-amber-500/20 text-amber-300 border border-amber-500/50",
+        NOT_PROMOTED_NOT_TC: "bg-slate-500/20 text-slate-200 border border-slate-500/50"
+    };
 
+    function updateStateBadgeCounts() {
+        const promoted = students.filter(s => s.state === "PROMOTED").length;
+        const tc = students.filter(s => s.state === "TC_ISSUED").length;
+        const none = students.filter(s => s.state === "NOT_PROMOTED_NOT_TC").length;
+        const all = students.length;
+
+        const promotedBadge = document.getElementById("badge-promoted-count");
+        const tcBadge = document.getElementById("badge-tc-count");
+        const noneBadge = document.getElementById("badge-none-count");
+        const allBadge = document.getElementById("badge-all-count");
+
+        if (promotedBadge) promotedBadge.textContent = promoted;
+        if (tcBadge) tcBadge.textContent = tc;
+        if (noneBadge) noneBadge.textContent = none;
+        if (allBadge) allBadge.textContent = all;
+    }
+
+    function applyStateFilter(state) {
+        activeFilter = state;
+        renderStudentCards();
+        document.querySelectorAll("[data-filter-button]").forEach(btn => {
+            btn.classList.toggle("bg-blue-600", btn.dataset.filterButton === state);
+            btn.classList.toggle("text-white", btn.dataset.filterButton === state);
+            btn.classList.toggle("bg-gray-700", btn.dataset.filterButton !== state);
+        });
+    }
+
+    function updateStudentsList(list) {
+        students = Array.isArray(list) ? list : [];
+        updateStateBadgeCounts();
+        renderStudentCards();
+    }
+
+    function buildStudentStateBadge(state) {
+        const label = stateLabels[state] || "No Action";
+        const color = stateColors[state] || stateColors.NOT_PROMOTED_NOT_TC;
+        return `<span class="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-2 ${color}">
+                    <span class="h-2 w-2 rounded-full bg-current"></span>${label}
+                </span>`;
+    }
+
+    function buildStudentActionButtons(student) {
+        const baseBtn = "flex-1 py-2 rounded-lg font-medium transition-colors flex items-center justify-center text-white";
+        if (student.state === "PROMOTED") {
+            return `
+                <button class="${baseBtn} bg-blue-700 hover:bg-blue-600" onclick="openUpdatePromotionModal('${student.promoted_session_id}')">
+                    <i class="fas fa-sync-alt mr-2"></i> Update
+                </button>
+                <button class="${baseBtn} bg-red-700 hover:bg-red-600" onclick="openDepromotionModal('${student.promoted_session_id}')">
+                    <i class="fas fa-undo mr-2"></i> De-Promote
+                </button>
+            `;
+        }
+        if (student.state === "TC_ISSUED") {
+            return `
+                <button class="${baseBtn} bg-green-700 hover:bg-green-600" onclick="reprintIssuedTC('${student.student_session_id}')">
+                    <i class="fas fa-file-alt mr-2"></i> Get TC
+                </button>
+                <button class="${baseBtn} bg-yellow-700 hover:bg-yellow-600" onclick="submitTCRevert('${student.student_session_id}')">
+                    <i class="fas fa-redo mr-2"></i> Redo
+                </button>
+            `;
+        }
+        const disabled = !student.next_class ? 'disabled style="opacity:0.6;cursor:not-allowed;"' : "";
+        const promoteLabel = student.next_class ? "Promote" : "No Classes";
+        return `
+            <button class="${baseBtn} bg-green-700 hover:bg-green-600" onclick="openPromotionModalForStudent('${student.id}')" ${disabled}>
+                <i class="fas fa-graduation-cap mr-2"></i>${promoteLabel}
+            </button>
+            <button class="${baseBtn} bg-amber-700 hover:bg-amber-600" onclick="openTCCreationModal('${student.id}')">
+                <i class="fas fa-file-alt mr-2"></i> Create TC
+            </button>
+        `;
+    }
+
+    function buildStudentCard(student) {
+        const stateBadge = buildStudentStateBadge(student.state);
+        const promotedInfo = student.state === "PROMOTED" ? `
+            <div class="flex justify-between text-green-300">
+                <span>Class (Now):</span><span class="font-medium">${student.next_class}</span>
+            </div>
+            <div class="flex justify-between text-green-300">
+                <span>Roll (Now):</span><span class="font-medium">${student.next_roll || "-"}</span>
+            </div>` : "";
+        const tcInfo = student.state === "TC_ISSUED" ? `
+            <div class="flex justify-between text-amber-300">
+                <span>TC No:</span><span class="font-medium">${student.tc_number || "-"}</span>
+            </div>
+            <div class="flex justify-between text-amber-300">
+                <span>TC Date:</span><span class="font-medium">${student.tc_date || "-"}</span>
+            </div>` : "";
+
+        const imageSrc = student.IMAGE
+            ? `https://lh3.googleusercontent.com/d/${student.IMAGE}=s200`
+            : (student.GENDER === 'Male' ? placeholderBoy : placeholderGirl);
+
+        return `
+        <div class="student-card rounded-2xl overflow-hidden shadow-lg card-hover" data-name="${student.STUDENTS_NAME}"
+            data-roll="${student.previous_roll || ''}">
+            <div class="p-6 space-y-4">
+                <div class="flex items-start gap-3">
+                    <img src="${imageSrc}"
+                        alt="Student Image" class="student-image mt-2" loading="lazy">
+                    <div class="flex-1 min-w-0 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="font-bold text-lg text-green-400 truncate">${student.STUDENTS_NAME}</h3>
+                            ${stateBadge}
+                        </div>
+                        <p class="text-sm text-gray-400">
+                            <span class="font-medium">C/O:</span> ${student.FATHERS_NAME || "-"}
+                        </p>
+                        <div class="mt-3 space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Old Class:</span>
+                                <span class="font-medium text-white">${student.previous_class}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Old Roll No:</span>
+                                <span class="font-medium text-white">${student.previous_roll || "-"}</span>
+                            </div>
+                            ${promotedInfo}
+                            ${tcInfo}
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2 flex gap-3">
+                    ${buildStudentActionButtons(student)}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function renderStudentCards() {
+        const container = document.getElementById("StudentData");
+        if (!container) return;
+        const term = document.getElementById("search-input").value.trim().toLowerCase();
+        const filtered = students.filter((s) => {
+            const matchesFilter = activeFilter === "ALL" || s.state === activeFilter;
+            const matchesSearch =
+                s.STUDENTS_NAME.toLowerCase().includes(term) ||
+                (s.previous_roll && String(s.previous_roll).toLowerCase().includes(term));
+            return matchesFilter && matchesSearch;
+        });
+
+        container.innerHTML = filtered.map(buildStudentCard).join("");
+        document.getElementById("noResults").classList.toggle("hidden", filtered.length !== 0);
+    }
+
+    async function fetchStudentsByClass(classId) {
+        document.getElementById("search-input").value = "";
+        const res = await fetch('/api/promote/students-by-class', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ class_id: classId })
+        });
+        const data = await res.json();
+        console.log(data)
+        if (res.ok) {
+            updateStudentsList(data.students || []);
+        } else {
+            showAlert(res.status, data.message || "Unable to load students");
+        }
+    }
+
+    function setFooterButtons({ promote = false, update = false, depromote = false, message = false, depromoteCheckbox = false }) {
+        const footer = document.getElementById("modal-footer");
+        footer.querySelector('#promoteButton').classList.toggle("hidden", !promote);
+        footer.querySelector('#updateButton').classList.toggle("hidden", !update);
+        footer.querySelector('#depromoteButton').classList.toggle("hidden", !depromote);
+        footer.querySelector('#messageButton').classList.toggle("hidden", !message);
+        document.getElementById('depromoteCheckboxContainer').classList.toggle('hidden', !depromoteCheckbox);
+    }
+
+    async function updateRollForClass() {
+        const classId = document.getElementById("promotedClass").value;
+        const availableRollsEl = document.getElementById("availableRolls");
+        const newRollEl = document.getElementById("newRoll");
+        if (!classId) {
+            availableRollsEl.textContent = "Available rolls: Select a class first";
+            newRollEl.value = "";
+            return;
+        }
         try {
-            const res = await fetch('/student_data_modal_api', {
+            const res = await fetch('/api/promote/get-available-rolls', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ class_id: classId }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                availableRollsEl.textContent = `Available rolls: ${data.available_rolls.join(', ')}`;
+                newRollEl.value = data.next_roll;
+            } else {
+                availableRollsEl.textContent = "Available rolls: Error loading";
+                newRollEl.value = "";
+            }
+        } catch (err) {
+            console.error(err);
+            availableRollsEl.textContent = "Available rolls: Error loading";
+            newRollEl.value = "";
+        }
+    }
+
+    async function openPromotionModalForStudent(studentID) {
+        try {
+            const res = await fetch('/api/promote/student-promotion-data', {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 'student_id': studentID }),
             });
-
             const data = await res.json();
+            if (!res.ok) return showAlert(res.status, data.message);
 
-            if (res.ok) {
-                //Verify the data before sending the request
-                document.getElementById("modalTitle").innerHTML = "Promote Student";
-                document.getElementById("studentName").innerHTML = data.STUDENTS_NAME;
-                document.getElementById("studentName").setAttribute("data-id", data.id);
-                document.getElementById("oldClass").innerHTML = data.CLASS + " | Roll: " + data.ROLL;
-                document.getElementById("newClass").innerHTML = data.promoted_class;
-                document.getElementById("newRoll").value = data.promoted_roll;
-                document.getElementById("promotion_date").value = data.promoted_date;
-                document.getElementById("father").innerHTML = data.FATHERS_NAME;
-                document.getElementById("due").value = data.due_amount;
+            document.getElementById("modalTitle").innerText = "Promote Student";
+            document.getElementById("studentName").innerText = data.STUDENTS_NAME;
+            document.getElementById("studentName").setAttribute("data-id", data.id);
+            document.getElementById("oldClass").innerText = `${data.CLASS} | Roll: ${data.ROLL}`;
+            document.getElementById("promotion_date").value = data.promoted_date;
+            document.getElementById("father").innerText = data.FATHERS_NAME;
+            document.getElementById("studentImage").src = data.IMAGE
+                ? 'https://lh3.googleusercontent.com/d/' + data.IMAGE + '=s200'
+                : 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
 
-                if (data.IMAGE) {
-                    document.getElementById("studentImage").src = 'https://lh3.googleusercontent.com/d/' + data.IMAGE + '=s200';
-                } else {
-                    document.getElementById("studentImage").src = 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
-                }
-
-                const footer = document.getElementById("modal-footer");
-
-                footer.querySelector("#messageButton").classList.add("hidden");
-                footer.querySelector('#updateButton')?.classList.add("hidden");
-                footer.querySelector('#depromoteButton')?.classList.add("hidden");
-                document.getElementById('depromoteCheckboxContainer').classList.add('hidden');
-
-                promoteButton = footer.querySelector("#promoteButton");
-                promoteButton.setAttribute("onclick", `finalPromote('${data.id}')`);
-                promoteButton.classList.remove("hidden");
-                promoteButton.disabled = false;
-
-                // Show modal and prevent background scrolling
-                openPromotionModal()
-
-            } else {
-                showAlert(res.status, data.message);
-            }
-
-        } catch (err) {
-            console.error(err);
-            showAlert(400, "An unexpected error occurred. Please try again.");
-        }
-    }
-
-    async function updateStudentModal(studentSessionID) {
-
-        try {
-            const res = await fetch('/promoted_student_modal_api', {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 'studentSessionID': studentSessionID }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-
-                //Verify the data before sending the request
-                document.getElementById("modalTitle").innerHTML = "Update Student";
-                document.getElementById("studentName").innerHTML = data.STUDENTS_NAME;
-                document.getElementById("studentName").setAttribute("data-id", data.id);
-                document.getElementById("oldClass").innerHTML = data.CLASS + " | Roll: " + data.ROLL;
-                document.getElementById("newClass").innerHTML = data.promoted_class;
-                document.getElementById("newRoll").value = data.promoted_roll;
-                document.getElementById("promotion_date").value = data.promoted_date;
-                document.getElementById("father").innerHTML = data.FATHERS_NAME;
-                document.getElementById("due").value = data.due_amount;
-
-                if (data.IMAGE) {
-                    document.getElementById("studentImage").src = 'https://lh3.googleusercontent.com/d/' + data.IMAGE + '=s200';
-                } else {
-                    document.getElementById("studentImage").src = 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
-                }
-
-                // Enable required buttons
-
-                const footer = document.getElementById("modal-footer");
-
-                messageButton = footer.querySelector("#messageButton");
-                messageButton.classList.add("hidden");
-                messageButton.disabled = true;
-
-                promoteButton = footer.querySelector('#promoteButton');
-                promoteButton.classList.add("hidden");
-                promoteButton.disabled = true;
-
-                depromoteButton = footer.querySelector('#depromoteButton');
-                depromoteButton.classList.add("hidden");
-                depromoteButton.disabled = true;
-
-                document.getElementById('depromoteCheckboxContainer').classList.add('hidden');
-
-                const updateButton = footer.querySelector("#updateButton");
-                updateButton.setAttribute("onclick", `finalUpdate('${data.promoted_session_id}')`);
-                updateButton.classList.remove("hidden");
-                updateButton.disabled = false;
-
-                // Show modal and prevent background scrolling
-                openPromotionModal();
-
-            } else {
-                showAlert(res.status, data.message);
-            }
-
-        } catch (err) {
-            console.error(err);
-            showAlert(400, "An unexpected error occurred. Please try again.");
-        }
-
-    }
-
-    async function depromoteStudentModal(studentSessionID) {
-
-        try {
-            const res = await fetch('/promoted_student_modal_api', {   //same api is used which we have used in promoted_student_modal_api.py
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 'studentSessionID': studentSessionID }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-
-                //Verify the data before sending the request
-                document.getElementById("modalTitle").innerHTML = "Depromote Student";
-                document.getElementById("studentName").innerHTML = data.STUDENTS_NAME;
-                document.getElementById("studentName").setAttribute("data-id", data.id);
-                document.getElementById("oldClass").innerHTML = data.CLASS + " | Roll: " + data.ROLL;
-                document.getElementById("newClass").innerHTML = data.promoted_class;
-                document.getElementById("father").innerHTML = data.FATHERS_NAME;
-
-                document.getElementById("newRoll").value = data.promoted_roll;
-                document.getElementById("newRoll").disabled = true;
-                document.getElementById("promotion_date").value = data.promoted_date;
-                document.getElementById("promotion_date").disabled = true;
-                document.getElementById("due").disabled = true;
-                if (data.due_amount) {
-                    document.getElementById("due").value = data.due_amount;
-                } else {
-                    document.getElementById("due").value = 0;
-                }
-
-                if (data.IMAGE) {
-                    document.getElementById("studentImage").src = 'https://lh3.googleusercontent.com/d/' + data.IMAGE + '=s200';
-                } else {
-                    document.getElementById("studentImage").src = 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
-                }
-
-                const footer = document.getElementById("modal-footer");
-                footer.querySelector("#messageButton").classList.add("hidden");
-                footer.querySelector('#promoteButton')?.classList.add("hidden");
-                footer.querySelector('#updateButton')?.classList.add("hidden");
-
-                document.getElementById('depromoteCheckboxContainer').classList.remove('hidden');
-                const depromoteButton = footer.querySelector("#depromoteButton");
-                depromoteButton.setAttribute("onclick", `finalDepromote('${data.promoted_session_id}')`);
-                depromoteButton.classList.remove("hidden");
-                depromoteButton.disabled = false;
-
-
-                // Show modal
-                openPromotionModal();
-
-            } else {
-                showAlert(res.status, data.message);
-            }
-
-        } catch (err) {
-            console.error(err);
-            showAlert(400, "An unexpected error occurred. Please try again.");
-        }
-    }
-
-
-    async function CreateTCModal(studentID) {
-
-        try {
-            const res = await fetch('/student_data_modal_api', {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 'student_id': studentID }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                //Verify the data before sending the request
-                document.getElementById("tc-modalTitle").innerHTML = "Generate TC";
-                document.getElementById("studentNameTC").innerHTML = data.STUDENTS_NAME;
-                document.getElementById("studentNameTC").setAttribute("data-id", data.id);
-                document.getElementById("leavingDate").value = data.promoted_date;
-                document.getElementById("oldClassTC").innerHTML = data.CLASS + " | Roll: " + data.ROLL;
-                document.getElementById("newClassTC").innerHTML = data.promoted_class;
-                document.getElementById("fatherNameTC").innerHTML = data.FATHERS_NAME;
-
-                if (data.IMAGE) {
-                    document.getElementById("studentImageTC").src = 'https://lh3.googleusercontent.com/d/' + data.IMAGE + '=s200';
-                } else {
-                    document.getElementById("studentImageTC").src = 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
-                }
-
-                const tc_modal_footer = document.getElementById("tc-modal-footer");
-                tc_modal_footer.querySelector("#tc-messageButton").classList.add("hidden");
-                tc_modal_footer.querySelector("#tc-generateButton").classList.remove("hidden");
-
-                generateTCButton = tc_modal_footer.querySelector("#tc-generateButton");
-                generateTCButton.addEventListener("click", () => {
-                    const leavingReason = document.getElementById("leavingReason").value;
-                    const leavingDate = document.getElementById("leavingDate").value;
-                    const generalConduct = document.getElementById("generalConduct").value;
-                    const otherRemarks = document.getElementById("otherRemark").value;
-                    generateTC(data.id, leavingReason, leavingDate, generalConduct, otherRemarks);
+            // Populate class dropdown
+            const classSelect = document.getElementById("promotedClass");
+            classSelect.innerHTML = '<option value="">Select Class</option>';
+            if (data.available_classes && data.available_classes.length > 0) {
+                data.available_classes.forEach(cls => {
+                    const option = document.createElement("option");
+                    option.value = cls.id;
+                    option.textContent = cls.name;
+                    if (cls.id === data.promoted_class_id) {
+                        option.selected = true;
+                    }
+                    classSelect.appendChild(option);
                 });
-
-                // Show modal and prevent background scrolling
-                const modal = document.getElementById('studenttcModal');
-                modal.classList.remove("modal-hidden");
-                document.body.style.overflow = "hidden"; // 🚫 lock background scroll
-
-            } else {
-                showAlert(res.status, data.message);
             }
 
+            // Add event listener for class change
+            classSelect.addEventListener('change', updateRollForClass);
+
+            // Update roll for initially selected class
+            await updateRollForClass();
+
+            setFooterButtons({ promote: true });
+            const promoteButton = document.getElementById("promoteButton");
+            promoteButton.setAttribute("onclick", `submitPromotion('${data.id}')`);
+            openPromotionModal();
         } catch (err) {
             console.error(err);
             showAlert(400, "An unexpected error occurred. Please try again.");
         }
     }
 
+    async function openUpdatePromotionModal(studentSessionID) {
+        try {
+            const res = await fetch('/api/promote/promoted-student-data', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 'studentSessionID': studentSessionID }),
+            });
+            const data = await res.json();
 
-    async function finalPromote(studentID) {
+            if (!res.ok) return showAlert(res.status, data.message);
 
+            document.getElementById("modalTitle").innerText = "Update Student";
+            document.getElementById("studentName").innerText = data.STUDENTS_NAME;
+            document.getElementById("studentName").setAttribute("data-id", data.id);
+            document.getElementById("oldClass").innerText = `${data.CLASS} | Roll: ${data.ROLL}`;
+            document.getElementById("promotion_date").value = data.promoted_date;
+            document.getElementById("father").innerText = data.FATHERS_NAME;
+            document.getElementById("studentImage").src = data.IMAGE
+                ? 'https://lh3.googleusercontent.com/d/' + data.IMAGE + '=s200'
+                : 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
+
+            // Populate class dropdown
+            const classSelect = document.getElementById("promotedClass");
+            classSelect.innerHTML = '<option value="">Select Class</option>';
+            if (data.available_classes && data.available_classes.length > 0) {
+                data.available_classes.forEach(cls => {
+                    const option = document.createElement("option");
+                    option.value = cls.id;
+                    option.textContent = cls.name;
+                    if (cls.id === data.promoted_class_id) {
+                        option.selected = true;
+                    }
+                    classSelect.appendChild(option);
+                });
+            }
+
+            // Add event listener for class change
+            classSelect.addEventListener('change', updateRollForClass);
+
+            // Set current roll as selected (will be updated if class changes)
+            document.getElementById("newRoll").value = data.promoted_roll;
+
+            // Update available rolls for current class
+            await updateRollForClass();
+
+            setFooterButtons({ update: true });
+            document.getElementById("updateButton").setAttribute("onclick", `submitPromotionUpdate('${data.promoted_session_id}')`);
+            openPromotionModal();
+        } catch (err) {
+            console.error(err);
+            showAlert(400, "An unexpected error occurred. Please try again.");
+        }
+    }
+
+    async function openDepromotionModal(studentSessionID) {
+        try {
+            const res = await fetch('/api/promote/promoted-student-data', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 'studentSessionID': studentSessionID }),
+            });
+            const data = await res.json();
+            if (!res.ok) return showAlert(res.status, data.message);
+
+            document.getElementById("modalTitle").innerText = "Depromote Student";
+            document.getElementById("studentName").innerText = data.STUDENTS_NAME;
+            document.getElementById("studentName").setAttribute("data-id", data.id);
+            document.getElementById("oldClass").innerText = `${data.CLASS} | Roll: ${data.ROLL}`;
+            document.getElementById("father").innerText = data.FATHERS_NAME;
+
+            // Hide and disable class dropdown for depromotion
+            const classSelect = document.getElementById("promotedClass");
+            classSelect.innerHTML = '<option value="">N/A</option>';
+            classSelect.disabled = true;
+            classSelect.style.display = 'none';
+            classSelect.closest('div').style.display = 'none';
+
+            document.getElementById("newRoll").value = data.promoted_roll;
+            document.getElementById("newRoll").disabled = true;
+            document.getElementById("promotion_date").value = data.promoted_date;
+            document.getElementById("promotion_date").disabled = true;
+
+            document.getElementById("studentImage").src = data.IMAGE
+                ? 'https://lh3.googleusercontent.com/d/' + data.IMAGE + '=s200'
+                : 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
+
+            setFooterButtons({ depromote: true, depromoteCheckbox: true });
+            document.getElementById("depromoteButton").setAttribute("onclick", `submitDepromotion('${data.promoted_session_id}')`);
+            openPromotionModal();
+        } catch (err) {
+            console.error(err);
+            showAlert(400, "An unexpected error occurred. Please try again.");
+        }
+    }
+
+    async function openTCCreationModal(studentID) {
+        try {
+            const res = await fetch('/api/promote/student-promotion-data', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 'student_id': studentID }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) return showAlert(res.status, data.message);
+
+            document.getElementById("tc-modalTitle").innerText = "Generate TC";
+            document.getElementById("studentNameTC").innerText = data.STUDENTS_NAME;
+            document.getElementById("studentNameTC").setAttribute("data-student-session-id", data.student_session_id);
+            document.getElementById("leavingDate").value = data.promoted_date;
+            document.getElementById("oldClassTC").innerText = `${data.CLASS} | Roll: ${data.ROLL}`;
+            document.getElementById("newClassTC").innerText = data.promoted_class;
+            document.getElementById("fatherNameTC").innerText = data.FATHERS_NAME;
+
+            document.getElementById("studentImageTC").src = data.IMAGE
+                ? 'https://lh3.googleusercontent.com/d/' + data.IMAGE + '=s200'
+                : 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
+
+            const tc_modal_footer = document.getElementById("tc-modal-footer");
+            tc_modal_footer.querySelector("#tc-messageButton").classList.add("hidden");
+            tc_modal_footer.querySelector("#tc-generateButton").classList.remove("hidden");
+
+            const generateTCButton = tc_modal_footer.querySelector("#tc-generateButton");
+            generateTCButton.onclick = () => {
+                const leavingReason = document.getElementById("leavingReason").value;
+                const leavingDate = document.getElementById("leavingDate").value;
+                const generalConduct = document.getElementById("generalConduct").value;
+                const otherRemarks = document.getElementById("otherRemark").value;
+                submitTCGeneration(data.student_session_id, leavingReason, leavingDate, generalConduct, otherRemarks);
+            };
+
+            const modal = document.getElementById('studenttcModal');
+            modal.classList.remove("modal-hidden");
+            document.body.style.overflow = "hidden";
+        } catch (err) {
+            console.error(err);
+            showAlert(400, "An unexpected error occurred. Please try again.");
+        }
+    }
+
+    async function submitPromotion(studentID) {
         const form = document.getElementById("promotionForm");
         const formData = new FormData(form);
 
         const btn = document.getElementById("promoteButton");
         const spinner = document.getElementById("promoteSpinner");
 
+        const promoted_class_id = document.getElementById("promotedClass").value;
+        if (!promoted_class_id) {
+            showAlert(400, "Please select a class to promote to.");
+            return;
+        }
+
         btn.disabled = true;
-        spinner.classList.remove("d-none");
+        spinner.classList.remove("hidden");
 
         const promoted_date = formData.get("promotion_date");
         const promoted_roll = formData.get("newRoll");
-        const due_amount = formData.get("due");
 
         try {
-            const res = await fetch("/final_promotion_api", {
+            const res = await fetch("/api/promote/student", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     'student_id': studentID, 'promoted_date': promoted_date,
-                    'promoted_roll': promoted_roll, 'due_amount': due_amount
+                    'promoted_roll': promoted_roll, 'promoted_class_id': promoted_class_id,
                 }),
             });
 
             const data = await res.json();
 
             if (res.ok) {
+                updateStudentInLocalState(studentID, {
+                    state: "PROMOTED",
+                    promoted_session_id: data.promoted_session_id,
+                    next_roll: data.next_roll,
+                    promoted_date: data.created_at
+                });
 
-                const response = await fetch('/generate_watsapp_message_api', {
+                const response = await fetch('/api/promote/promotion-message', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 'student_id': studentID }),
@@ -789,256 +897,266 @@ content %}
                 const generate_message = await response.json();
 
                 if (generate_message.PHONE && generate_message.whatsappMessage && response.ok) {
-
                     const footer = document.getElementById("modal-footer");
                     const messageButton = document.getElementById("messageButton");
-                    const phone = document.getElementById("messageButton").getAttribute("data-phone");
 
-                    footer.querySelector('#promoteButton')?.classList.add("hidden");
-                    footer.querySelector('#updateButton')?.classList.add("hidden");
-                    footer.querySelector('#depromoteButton')?.classList.add("hidden");
-                    document.getElementById('depromoteCheckboxContainer').classList.add('hidden');
-
-                    console.log("WhatsApp message generated successfully.");
-
+                    setFooterButtons({ message: true });
                     messageButton.setAttribute("onclick", `sendWhatsAppMessage('${generate_message.PHONE}', \`${generate_message.whatsappMessage}\`)`);
-                    messageButton.classList.remove("hidden");
                     messageButton.disabled = false;
-                }
-                else {
-                    console.log("WhatsApp message not generated successfully.");
-                    closeModal()
+                } else {
+                    closeModal();
                 }
             }
             showAlert(res.status, data.message);
-
+            renderStudentCards();
         } catch (err) {
             console.error(err);
             showAlert(400, "An unexpected error occurred. Please try again.");
         } finally {
-            spinner.classList.add("d-none");
+            spinner.classList.add("hidden");
             btn.disabled = false;
         }
     }
 
-    async function finalUpdate(studentSessionID) {
-
+    async function submitPromotionUpdate(studentSessionID) {
         const form = document.getElementById("promotionForm");
         const formData = new FormData(form);
 
         const btn = document.getElementById("promoteButton");
         const spinner = document.getElementById("promoteSpinner");
 
+        const promoted_class_id = document.getElementById("promotedClass").value;
+        if (!promoted_class_id) {
+            showAlert(400, "Please select a class.");
+            return;
+        }
+
         btn.disabled = true;
-        spinner.classList.remove("d-none");
+        spinner.classList.remove("hidden");
 
         const promoted_date = formData.get("promotion_date");
         const promoted_roll = formData.get("newRoll");
-        const due_amount = formData.get("due");
 
         try {
-            const res = await fetch("/final_update_api", {
+            const res = await fetch("/api/promote/update-promotion", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    'student_session_ID': studentSessionID, 'promoted_date': promoted_date,
-                    'promoted_roll': promoted_roll, 'due_amount': due_amount
+                    'student_session_id': studentSessionID, 'promoted_date': promoted_date,
+                    'promoted_roll': promoted_roll, 'promoted_class_id': promoted_class_id,
                 }),
             });
 
             const data = await res.json();
 
             if (res.ok) {
-                closeModal()
+                const studentId = document.getElementById("studentName").getAttribute("data-id");
+                updateStudentInLocalState(studentId, {
+                    next_roll: data.next_roll,
+                    promoted_date: data.created_at,
+                    next_class: data.new_class
+                });
+                closeModal();
             }
 
             showAlert(res.status, data.message);
-
+            renderStudentCards();
         } catch (err) {
             console.error(err);
             showAlert(400, "An unexpected error occurred. Please try again.");
         } finally {
-            spinner.classList.add("d-none");
+            spinner.classList.add("hidden");
             btn.disabled = false;
         }
     }
 
-    async function finalDepromote(studentSessionID) {
-
+    async function submitDepromotion(studentSessionID) {
         const isChecked = document.getElementById('depromoteCheckbox').checked;
         if (!isChecked) {
             showAlert(400, "Please check the checkbox to confirm depromotion.");
             return;
         }
 
-        const form = document.getElementById("promotionForm");
-        const formData = new FormData(form);
-
         const btn = document.getElementById("depromoteButton");
         const spinner = document.getElementById("depromoteSpinner");
 
         btn.disabled = true;
-        spinner.classList.remove("d-none");
+        spinner.classList.remove("hidden");
 
         try {
-            const res = await fetch("/final_depromotion_api", {
+            const res = await fetch("/api/promote/depromote-student", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 'student_session_id': studentSessionID }),
+                body: JSON.stringify({ 'promoted_session_id': studentSessionID }),
             });
 
             const data = await res.json();
 
             if (res.ok) {
+                const studentId = document.getElementById("studentName").getAttribute("data-id");
+                updateStudentInLocalState(studentId, {
+                    state: "NOT_PROMOTED_NOT_TC",
+                    promoted_session_id: null,
+                    next_roll: null
+                });
                 closeModal();
             }
             showAlert(res.status, data.message);
-
+            renderStudentCards();
         } catch (err) {
             console.error(err);
             showAlert(400, "An unexpected error occurred. Please try again.");
         } finally {
-            spinner.classList.add("d-none");
+            spinner.classList.add("hidden");
             btn.disabled = false;
         }
     }
 
-
-
-
-    async function generateTC(studentId, leavingReason, leavingDate, generalConduct, otherRemarks = "") {
-
-        if (!leavingReason) {
-            showAlert(400, "Please select a reason for leaving.");
-            return;
-        }
-        if (!leavingDate) {
-            showAlert(400, "Please select a leaving date.");
-            return;
-        }
-        if (!generalConduct) {
-            showAlert(400, "Please provide general conduct remarks.");
-            return;
-        }
+    async function submitTCGeneration(studentSessionId, leavingReason, leavingDate, generalConduct, otherRemarks = "") {
+        if (!leavingReason) return showAlert(400, "Please select a reason for leaving.");
+        if (!leavingDate) return showAlert(400, "Please select a leaving date.");
+        if (!generalConduct) return showAlert(400, "Please provide general conduct remarks.");
 
         try {
-            // 1. Send the request
-            const resp = await fetch("/generate_tc_form_api", {
+            const resp = await fetch("/api/tc/generate-and-save", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    student_id: studentId,
-                    leavingReason: leavingReason,
-                    leavingDate: leavingDate,
-                    generalConduct: generalConduct,
-                    otherRemarks: otherRemarks
+                    student_session_id: studentSessionId,
+                    leavingReason,
+                    leavingDate,
+                    generalConduct,
+                    otherRemarks
                 }),
             });
 
-            // 2. Get the HTML text
             const content = await resp.json();
 
             if (!resp.ok) {
                 showAlert(resp.status, content.message);
-                console.error(`Server error: ${content.message}`);
                 return;
             }
 
-            // 3. Open a new window/tab
-            const printWindow = window.open("", "_blank");
+            updateStudentInLocalState(studentSessionId, {
+                state: "TC_ISSUED",
+                tc_date: content.tc_date,
+                tc_number: content.tc_number,
+                left_reason: content.left_reason
+            });
+            renderStudentCards();
+            closeTCModal();
 
+            const printWindow = window.open("", "_blank");
             if (!printWindow) {
                 showAlert(400, "Unable to open print window");
-                throw new Error("Unable to open print window");
+                return;
             }
 
-            // 4. Write the HTML into the new window
             printWindow.document.open();
             printWindow.document.write(content.html);
             printWindow.document.close();
-
-            // 5. Wait for resources (CSS/images) to load, then print
             printWindow.onload = () => {
                 printWindow.focus();
                 printWindow.print();
             };
         } catch (err) {
             console.error(err);
+            showAlert(400, "Unable to generate TC.");
         }
     }
 
-    // Form validation function
-    function validateForm() {
-        let isValid = true;
-
-        // Error messages
-        let newRollError = document.getElementById('newRollError');
-        let dueError = document.getElementById('dueError');
-        let dateError = document.getElementById('dateError');
-
-        // Reset error states
-        newRoll.classList.remove('input-error');
-        due.classList.remove('input-error');
-        promotionDate.classList.remove('input-error');
-        newRollError.style.display = 'none';
-        dueError.style.display = 'none';
-        dateError.style.display = 'none';
-
-        // Validate new roll number
-        if (!newRoll.value || isNaN(newRoll.value) || newRoll.value <= 0) {
-            newRoll.classList.add('input-error');
-            newRollError.style.display = 'block';
-            isValid = false;
+    async function submitTCRevert(studentSessionId) {
+        try {
+            const res = await fetch("/api/tc/revert", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ student_session_id: studentSessionId })
+            });
+            const data = await res.json();
+            if (!res.ok) return showAlert(res.status, data.message);
+            updateStudentInLocalState(studentSessionId, {
+                state: "NOT_PROMOTED_NOT_TC",
+                tc_date: null,
+                tc_number: null,
+                left_reason: null
+            });
+            renderStudentCards();
+            showAlert(res.status, data.message);
+        } catch (error) {
+            console.error(error);
+            showAlert(400, "Unable to revert TC.");
         }
-
-        // Validate due amount (optional)
-        if (due.value && (isNaN(due.value) || due.value < 0)) {
-            due.classList.add('input-error');
-            dueError.style.display = 'block';
-            isValid = false;
-        }
-
-        // Validate promotion date
-        if (!promotionDate.value) {
-            promotionDate.classList.add('input-error');
-            dateError.style.display = 'block';
-            isValid = false;
-        }
-
-        return isValid;
     }
 
+    async function reprintIssuedTC(studentSessionId) {
+        try {
+            const resp = await fetch("/api/tc/reprint", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ student_session_id: studentSessionId }),
+            });
 
-    // Example: function to open modal
+            const content = await resp.json();
+
+            if (!resp.ok) {
+                showAlert(resp.status, content.message);
+                return;
+            }
+
+            const printWindow = window.open("", "_blank");
+            if (!printWindow) {
+                showAlert(400, "Unable to open print window");
+                return;
+            }
+
+            printWindow.document.open();
+            printWindow.document.write(content.html);
+            printWindow.document.close();
+            printWindow.onload = () => {
+                printWindow.focus();
+                printWindow.print();
+            };
+        } catch (err) {
+            console.error(err);
+            showAlert(400, "Unable to reprint TC.");
+        }
+    }
+
+    function updateStudentInLocalState(studentSessionId, payload) {
+        const idx = students.findIndex(s => String(s.student_session_id) === String(studentSessionId) || String(s.id) === String(studentSessionId));
+        if (idx === -1) return;
+        students[idx] = { ...students[idx], ...payload };
+        updateStateBadgeCounts();
+    }
+
     function openPromotionModal() {
         const modal = document.getElementById('studentPromotionModal');
         modal.classList.remove("modal-hidden");
-        document.body.style.overflow = "hidden"; // 🚫 lock background scroll
+        document.body.style.overflow = "hidden";
     }
 
     function closeModal() {
         const modal = document.getElementById('studentPromotionModal');
         modal.classList.add("modal-hidden");
-        document.body.style.overflow = ""; // ✅ restore scroll
-
-        // we disable the form elements in de-promotion modal, enable them after closing
+        document.body.style.overflow = "";
         document.getElementById("promotionForm").reset();
         document.getElementById("newRoll").disabled = false;
-        document.getElementById("due").disabled = false;
         document.getElementById("promotion_date").disabled = false;
+        const classSelect = document.getElementById("promotedClass");
+        classSelect.innerHTML = '<option value="">Select Class</option>';
+        classSelect.disabled = false;
+        classSelect.style.display = '';
+        classSelect.closest('div').style.display = '';
+        classSelect.removeEventListener('change', updateRollForClass);
     }
 
     function closeTCModal() {
         const modal = document.getElementById('studenttcModal');
         modal.classList.add("modal-hidden");
-        document.body.style.overflow = ""; // ✅ restore scroll
+        document.body.style.overflow = "";
     }
 
     document.getElementById('closeModal').addEventListener("click", closeModal);
-
-    // Click outside modal closes it
     document.getElementById('studentPromotionModal').addEventListener("click", (e) => {
         if (!document.getElementById('modalContent').contains(e.target)) {
             closeModal();
@@ -1046,33 +1164,24 @@ content %}
     });
 
     function applyFilters() {
-        const term = document
-            .getElementById("search-input")
-            .value.trim()
-            .toLowerCase();
-
-        console.log("Search Term:", term);
-
-        // Grab all student cards
-        const cards = document.querySelectorAll(".student-card");
-
-        cards.forEach((card) => {
-            // Read the relevant data attributes
-            const name = card.getAttribute("data-name").toLowerCase();
-            const roll = card.getAttribute("data-roll").toLowerCase();
-
-            // Check if any field contains the search term
-            const matches = name.includes(term) || roll.includes(term);
-
-            // Show/hide card
-            card.style.display = matches ? "" : "none";
-        });
+        renderStudentCards();
     }
 
     document.getElementById("classView").addEventListener("change", () => {
         document.getElementById("search-input").value = "";
-        applyFilters();
+        const classId = document.getElementById("classView").value;
+        if (classId) {
+            fetchStudentsByClass(classId);
+        }
     });
+
+    document.querySelectorAll("[data-filter-button]").forEach(btn => {
+        btn.addEventListener("click", () => applyStateFilter(btn.dataset.filterButton));
+    });
+
+    // Set default filter visual state
+    applyStateFilter("ALL");
+    updateStateBadgeCounts();
 </script>
 
 {% endblock %}

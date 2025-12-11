@@ -1,6 +1,6 @@
 # src/controller/promoted_student_modal_api.py
 
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, session
 
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
@@ -10,19 +10,20 @@ from src.model import StudentsDB
 from src.model import StudentSessions
 from src.model import ClassData
 
-from ..auth.login_required import login_required
-from ..permissions.permission_required import permission_required
+from src.controller.permissions.permission_required import permission_required
+from src.controller.auth.login_required import login_required
+from src.controller.utils.get_gapped_rolls import get_gapped_rolls
 
 
-promoted_student_modal_api_bp = Blueprint('promoted_student_modal_api_bp',   __name__)
+get_promoted_student_data_api_bp = Blueprint('get_promoted_student_data_api_bp', __name__)
 
 
-@promoted_student_modal_api_bp.route('/promoted_student_modal_api', methods=["POST"])
+@get_promoted_student_data_api_bp.route('/api/promote/promoted-student-data', methods=["POST"])
 @login_required
 @permission_required('promote_student')
-def promoted_student_modal_api():
+def get_promoted_student_data():
     """
-    Fetch a single student's data including promotion details based on
+    Fetch a single already promoted student's data including promotion details based on
     the previous session data.
     
     Expected JSON payload:
@@ -44,7 +45,9 @@ def promoted_student_modal_api():
         return jsonify({"message": "Invalid parameter format."}), 400
     
     try:
-        #session_data = db.session.query(StudentSessions.student_id).filter_by(id=promoted_session_id).scalar()
+        school_id = session.get("school_id")
+        if not school_id:
+            return jsonify({"message": "School information not found."}), 400
 
         # Create aliases for self-join
         PromotedSession = aliased(StudentSessions)
@@ -58,13 +61,14 @@ def promoted_student_modal_api():
             # Promoted (current) session
             ClassData.CLASS.label("promoted_class"),
             PromotedSession.ROLL.label("promoted_roll"),
-            PromotedSession.Due_Amount.label("due_amount"),
             PromotedSession.id.label("promoted_session_id"),
+            PromotedSession.class_id.label("promoted_class_id"),
             func.to_char(PromotedSession.created_at, 'YYYY-MM-DD').label("promoted_date"),
 
             # Previous session
             PreviousClass.CLASS.label("CLASS"),
             PreviousSession.ROLL.label("ROLL"),
+            PreviousClass.display_order.label("previous_display_order"),
 
         ).join(
             PromotedSession, PromotedSession.student_id == StudentsDB.id
@@ -87,4 +91,22 @@ def promoted_student_modal_api():
     if student_row is None:
         return jsonify({"message": "Student not found"}), 404
 
-    return jsonify(student_row._asdict()), 200
+    # Get available classes (previous class and above) for update
+    previous_display_order = student_row.previous_display_order
+    available_classes = (
+        db.session.query(ClassData.id, ClassData.CLASS, ClassData.display_order)
+        .filter(
+            ClassData.school_id == school_id,
+            ClassData.display_order >= previous_display_order
+        )
+        .order_by(ClassData.display_order.asc())
+        .all()
+    )
+    
+    result = student_row._asdict()
+    result["available_classes"] = [
+        {"id": c[0], "name": c[1], "display_order": c[2]}
+        for c in available_classes
+    ]
+
+    return jsonify(result), 200

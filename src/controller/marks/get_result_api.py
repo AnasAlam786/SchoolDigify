@@ -12,8 +12,8 @@ from src.model.TeachersLogin import TeachersLogin
 
 from .utils.calc_grades import get_grade
 from .utils.marks_processing import result_data
-from ..auth.login_required import login_required
-from ..permissions.permission_required import permission_required
+from src.controller.permissions.permission_required import permission_required
+from src.controller.auth.login_required import login_required
 
 # import time
 

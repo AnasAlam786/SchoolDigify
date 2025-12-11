@@ -2,12 +2,13 @@ from flask import session, request, jsonify, Blueprint
 from sqlalchemy import desc
 from decimal import Decimal
 
-from src.controller.permissions.permission_required import permission_required
+
 from src.model import StudentSessions, StudentsDB, FeeTransaction, FeeData, ClassData, FeeStructure, FeeHeads
 from src import db
 from src.model.FeeSessionData import FeeSessionData
 
-from ..auth.login_required import login_required
+from src.controller.auth.login_required import login_required
+from src.controller.permissions.permission_required import permission_required
 
 get_transactions_api_bp = Blueprint('get_transactions_api_bp', __name__)
 

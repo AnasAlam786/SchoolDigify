@@ -567,6 +567,8 @@
   async function updateRollForClass(classId) {
     if (!classId) {
       if (rollInput) rollInput.value = '';
+      const existingHint = document.getElementById('rollHint');
+      if (existingHint) existingHint.remove();
       return;
     }
 
@@ -585,12 +587,28 @@
         return;
       }
 
-      if (rollInput) rollInput.value = result.next_roll;
+      const gapped_rolls = result.gapped_rolls;
+      const next_roll = result.next_roll;
+
+      if (rollInput) rollInput.value = next_roll;
+
+      // Check if hint element exists, otherwise create it
+      let rollHint = document.getElementById('rollHint');
+      if (!rollHint) {
+        rollHint = document.createElement('div');
+        rollHint.id = 'rollHint';
+        rollHint.className = 'text-sm text-gray-200 px-2 py-1 rounded mt-1'; 
+        rollInput.parentNode.insertBefore(rollHint, rollInput.nextSibling);
+      }
+      // Update hint text
+      const allowedRolls = [...gapped_rolls, next_roll].join(', ');
+      rollHint.textContent = `You can assign these rolls: ${allowedRolls}`;
 
     } catch (err) {
       console.error('Error fetching next roll:', err);
     }
   }
+
 
   // wire the visible CLASS select change to update roll
   if (classSelect) {

@@ -15,8 +15,8 @@ from src.controller.staff_module.utils import hash_password
 from src.controller.staff_module.utils.pydantic_verification import StaffVerification
 
 from src import db
-from ..auth.login_required import login_required
-from ..permissions.permission_required import permission_required
+from src.controller.permissions.permission_required import permission_required
+from src.controller.auth.login_required import login_required
 
 
 update_staff_bp = Blueprint( 'update_staff_bp',   __name__)

@@ -9,6 +9,7 @@ PromotionStatusEnum = Enum(
     "active",
     "left",
     "passed_out",
+    "archived",
     "tc",
     name="Promotion_Status",
     create_type=False,          # Important: reuse existing type in DB
@@ -26,7 +27,6 @@ class StudentSessions(db.Model):
     session_id = Column(BigInteger, ForeignKey('Sessions.id', onupdate="CASCADE"), nullable=False)
     Attendance = Column(Integer, nullable=True)
     created_at = Column(DateTime)
-    Due_Amount = Column(Numeric, nullable=True)
     Section = Column(Text, nullable=True)
 
     tc_number = Column(Text, nullable=True)

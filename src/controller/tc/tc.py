@@ -7,8 +7,8 @@ from src.model.ClassAccess import ClassAccess
 from src.model.TeachersLogin import TeachersLogin
 from src import db
 
-from ..auth.login_required import login_required
-from ..permissions.permission_required import permission_required
+from src.controller.permissions.permission_required import permission_required
+from src.controller.auth.login_required import login_required
 
 tc_bp = Blueprint( 'tc_bp',   __name__)
 

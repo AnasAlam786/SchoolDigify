@@ -9,6 +9,7 @@ from src import db
 
 from src.controller.auth.login_required import login_required
 from src.controller.permissions.permission_required import permission_required
+from src.controller.utils.get_gapped_rolls import get_gapped_rolls
 
 get_new_roll_api_bp = Blueprint( 'get_new_roll_api_bp',   __name__)
 
@@ -19,25 +20,11 @@ get_new_roll_api_bp = Blueprint( 'get_new_roll_api_bp',   __name__)
 def get_new_roll_api():
     data = request.json
     class_id = data.get('class_id')
-    school_id = session["school_id"]
-    current_session = session["session_id"]
+    session_id = data.get('session_id')
 
-    # Build subquery to calculate the next available roll number in the next class
-    next_roll_query = (
-        select(func.coalesce(func.max(StudentSessions.ROLL), 0) + 1)
-        .join(StudentsDB, StudentsDB.id == StudentSessions.student_id)
-        .where(
-            StudentSessions.class_id   == class_id,
-            StudentSessions.session_id == current_session,
-            StudentsDB.school_id       == school_id
-        )
-    )
-    # next_roll now holds the next available roll (1 if none exist)
-    try:
-        next_roll: int = db.session.execute(next_roll_query).scalar_one()
-    except Exception as e:
-        return jsonify({"message": e}), 404
+    if not session_id:
+        session_id = session["session_id"]
 
+    available_rolls = get_gapped_rolls(class_id, session_id)
 
-    return jsonify({ "next_roll": next_roll })
-
+    return jsonify({ 'gapped_rolls': available_rolls['gapped_rolls'], 'next_roll': available_rolls['next_roll'] })

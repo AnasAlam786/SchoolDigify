@@ -51,16 +51,19 @@ from .sessions.change_session import change_session_bp
 from .RTE.RTE_students import RTE_students_bp
 
 from .promote.promote_student import promote_student_bp
-from .promote.prv_year_students_api import prv_year_student_api_bp
-from .promote.student_data_modal_api import student_data_modal_api_bp
-from .promote.promoted_student_modal_api import promoted_student_modal_api_bp
+from .promote.get_students_by_class_api import get_students_by_class_api_bp
+from .promote.get_promotion_student_data_api import get_student_promotion_data_api_bp
+from .promote.get_promoted_student_data_api import get_promoted_student_data_api_bp
 
-from .promote.final_promotion_api import final_promotion_api_bp
-from .promote.final_update_api import final_update_api_bp
-from .promote.final_depromotion_api import final_depromotion_api_bp
-from .promote.generate_watsapp_message_api import generate_watsapp_message_api_bp
+from .promote.promote_student_api import promote_student_api_bp
+from .promote.update_promotion_api import update_promotion_api_bp
+from .promote.depromote_student_api import depromote_student_api_bp
+from .promote.promotion_message_api import generate_promotion_message_api_bp
+from .promote.get_available_rolls_for_class_api import get_available_rolls_for_class_api_bp
 
-from .tc.generate_tc_form_api import generate_tc_form_api_bp
+from .tc.generate_tc_form_api import generate_and_save_tc_api_bp
+from .tc.redo_tc_api import revert_tc_api_bp
+from .tc.reprint_tc_api import reprint_tc_api_bp
 
 from .students.add_student.admission import admission_bp
 from .students.add_student.pydantic_verification_api import pydantic_verification_api_bp
@@ -137,16 +140,19 @@ def register_blueprints(app):
     app.register_blueprint(idcard_bp)
 
     app.register_blueprint(promote_student_bp)
-    app.register_blueprint(prv_year_student_api_bp)
-    app.register_blueprint(student_data_modal_api_bp)
-    app.register_blueprint(promoted_student_modal_api_bp)
+    app.register_blueprint(get_students_by_class_api_bp)
+    app.register_blueprint(get_student_promotion_data_api_bp)
+    app.register_blueprint(get_promoted_student_data_api_bp)
 
-    app.register_blueprint(final_promotion_api_bp)
-    app.register_blueprint(final_update_api_bp)
-    app.register_blueprint(final_depromotion_api_bp)
-    app.register_blueprint(generate_watsapp_message_api_bp)
+    app.register_blueprint(promote_student_api_bp)
+    app.register_blueprint(update_promotion_api_bp)
+    app.register_blueprint(depromote_student_api_bp)
+    app.register_blueprint(generate_promotion_message_api_bp)
+    app.register_blueprint(get_available_rolls_for_class_api_bp)
 
-    app.register_blueprint(generate_tc_form_api_bp)
+    app.register_blueprint(generate_and_save_tc_api_bp)
+    app.register_blueprint(revert_tc_api_bp)
+    app.register_blueprint(reprint_tc_api_bp)
 
     app.register_blueprint(question_paper_bp)
     app.register_blueprint(question_paper_api_bp)
@@ -158,4 +164,3 @@ def register_blueprints(app):
 
 
     app.register_blueprint(RTE_students_bp)
-    

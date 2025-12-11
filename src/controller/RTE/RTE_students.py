@@ -11,7 +11,8 @@ from src.model import StudentSessions
 from src.model import ClassData
 from src import db
 
-from ..auth.login_required import login_required
+from src.controller.permissions.permission_required import permission_required
+from src.controller.auth.login_required import login_required
 
 RTE_students_bp = Blueprint( 'RTE_students_bp',   __name__)
 

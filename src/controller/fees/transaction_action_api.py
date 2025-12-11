@@ -3,11 +3,11 @@
 from flask import session, request, jsonify, Blueprint
 from sqlalchemy import and_
 
-from src.controller.permissions.permission_required import permission_required
 from src.model import FeeTransaction, FeeData
 from src import db
 
-from ..auth.login_required import login_required
+from src.controller.permissions.permission_required import permission_required
+from src.controller.auth.login_required import login_required
 
 transaction_action_api_bp = Blueprint('transaction_action_api_bp', __name__)
 

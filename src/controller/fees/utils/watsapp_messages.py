@@ -1,78 +1,82 @@
 
+from datetime import datetime
+
 def fee_demand_message(data):
-    msg_lines = []
+    student = data[0]
 
-    msg_lines.append("🏫 *स्कूल शुल्क की सूचना*\n")
-    msg_lines.append("प्रिय अभिभावक जी,\n")
-    msg_lines.append("आपके बच्चे/बच्चों का *कुछ शुल्क अभी बकाया* है।")
-    msg_lines.append("कृपया इसे *जल्द जमा कर दें*, ताकि कोई दिक्कत न हो.\n")
+    today = datetime.now().strftime("%d %B %Y")
 
-    overall_total = 0
+    name = student["name"]
+    class_name = student["class"]
+    roll = student["rollNo"]
+    phone = student["phone"]
 
-    msg_lines.append("====================================")
+    total_due = student["total_due_amount"]
+    total_terms = student["total_due_terms"]
 
-    for student in data:
-        name = student['name']
-        class_ = student['class']
-        roll = student['rollNo']
+    due_months = [
+        f["period_name"]
+        for f in student["monthlyFees"]
+        if f["status"] == "due"
+    ]
 
-        msg_lines.append(f"👧 *नाम: {name}*")
-        msg_lines.append(f"📚 कक्षा: {class_} | 🎫 रोल नं.: {roll}")
-        msg_lines.append("------------------------------------")
+    other_due_fees = [
+        f for f in student["otherFees"] if f["status"] == "due"
+    ]
 
-        # -----------------------------
-        # Monthly Fees (due only)
-        # -----------------------------
-        due_monthly = []
-        for fee in student['monthlyFees']:
-            if fee['status'] == 'due':
-                due_monthly.append((fee['period_name'], fee['amount']))
+    message = f"""
+📌 *Fee Due Notice*
 
-        msg_lines.append("📌 *बकाया मासिक शुल्क:*")
-        if due_monthly:
-            for month, amount in due_monthly:
-                msg_lines.append(f"{month} – ₹{amount}")
-        else:
-            msg_lines.append("कोई बकाया नहीं")
+📅 *Date:* {today}
 
-        # -----------------------------
-        # Other Fees (due only)
-        # -----------------------------
-        due_other = []
-        for fee in student['otherFees']:
-            if fee['status'] == 'due':
-                due_other.append((fee['period_name'], fee['amount']))
+Dear Parent/Guardian,
 
-        msg_lines.append("\n📌 *अन्य बकाया शुल्क:*")
-        if due_other:
-            for name_other, amount in due_other:
-                msg_lines.append(f"{name_other} – ₹{amount}")
-        else:
-            msg_lines.append("सब जमा")
+This is to inform you regarding the *pending school fee* for your ward:
 
-        # -----------------------------
-        # Student total
-        # -----------------------------
-        student_total = sum(amount for _, amount in due_monthly) + \
-                        sum(amount for _, amount in due_other)
+👦 *Student Name:* {name}
+🏫 *Class:* {class_name}
+🎓 *Roll No:* {roll}
+📞 *Registered Mobile:* {phone}
 
-        overall_total += student_total
+────────────────────
 
-        msg_lines.append(f"\n💰 *कुल बकाया:* **₹{student_total}**")
-        msg_lines.append("====================================")
+💰 *Fee Summary (Academic Session 2025–26)*
 
-    # ---------------------------------
-    # Final Total
-    # ---------------------------------
-    msg_lines.append(f"🟦 *कुल बकाया (सभी बच्चों का):* **₹{overall_total}**\n")
-    msg_lines.append("कृपया *शुल्क जल्द से जल्द जमा करें*।")
-    msg_lines.append("किसी भी सवाल के लिए स्कूल से संपर्क करें.\n")
-    msg_lines.append("धन्यवाद।")
-    msg_lines.append("🏫 *SchoolDigify*")
+🔴 *Total Due Amount:* ₹{total_due:.0f}/-
+📆 *Total Pending Months / Terms:* {total_terms}
 
-    # Join all lines into final message
-    return "\n".join(msg_lines)
+────────────────────
 
+📚 *Monthly Tuition Fee (₹300 per month) – Due*
+"""
+
+    for month in due_months:
+        message += f"• {month}\n"
+
+    message += "\n🧾 *Other Due Fees*\n"
+
+    for fee in other_due_fees:
+        message += (
+            f"• {fee['fee_type']} – {fee['period_name']}: "
+            f"₹{fee['amount']:.0f} (Due Date: {fee['dueDate']})\n"
+        )
+
+    message += """
+────────────────────
+
+⚠️ *Important Note:*
+Kindly clear the pending dues at the earliest to avoid inconvenience related to examinations, results, or other academic activities.
+
+For any clarification, please contact the school office.
+
+🙏 Thank you for your cooperation.
+
+Warm regards,  
+🏫 *School Administration*  
+*SchoolDigify*
+"""
+
+    return message.strip()
 
 def transaction_whatsapp_message(data):
     message = "✅ *फीस भुगतान की पुष्टि*\n\n"

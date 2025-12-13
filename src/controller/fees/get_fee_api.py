@@ -2,6 +2,7 @@
 
 from flask import session, request, jsonify, Blueprint
 
+from src.controller.fees.utils.fetch_fee_data import fetch_fee_data
 from src.controller.permissions.permission_required import permission_required
 from src.model import (StudentsDB, StudentSessions)
 from src import db
@@ -35,6 +36,10 @@ def get_fee_api():
     current_session = session["session_id"]
     school_id = session["school_id"]
 
-    students_data = fetch_fee_data(phone, current_session, school_id)
+    try:
+        students_data = fetch_fee_data(session_id=current_session, school_id=school_id, phone=phone)
+    except Exception as e:
+        print(e)
+        jsonify({"message": e}), 400
     
     return jsonify(students_data)

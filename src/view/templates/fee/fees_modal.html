@@ -203,31 +203,6 @@
                                     ₹2,100
                                 </div>
                             </div>
-
-                            <!-- 3-dot dropdown (always on all screens) -->
-                            <div class="relative">
-                                <button id="actionsToggle" type="button" class="p-2 hover:bg-white/20 transition"
-                                    aria-haspopup="true" aria-expanded="false" aria-controls="actionsMenu">
-                                    <i class="fas fa-ellipsis-v text-white"></i>
-                                </button>
-
-                                <div id="actionsMenu"
-                                    class="hidden absolute right-0 mt-2 w-44 bg-slate-900/95 backdrop-blur border border-slate-700/40 py-1 shadow-lg z-50">
-
-                                    <button id="whatsappButton"
-                                        class="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-slate-800/50">
-                                        <i class="fab fa-whatsapp text-green-400 w-4"></i>
-                                        Send WhatsApp
-                                    </button>
-
-                                    <!-- <button id="printButton"
-                                        class="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-slate-800/50">
-                                        <i class="fas fa-print w-4"></i>
-                                        Print Summary
-                                    </button> -->
-
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -266,6 +241,10 @@
                                     <span class="bg-red-500/20 text-red-300 px-2 py-1 rounded-lg text-sm" id="dueAmount">
                                         <i class="fas fa-clock mr-1"></i>
                                     </span>
+                                    <button id="sendWhatsAppMessageBtn" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-1 transition-colors">
+                                        <i class="fab fa-whatsapp"></i>
+                                        Send Message
+                                    </button>
                                 </div>
                             </div>
                             <!-- Image circle -->
@@ -579,24 +558,30 @@
                 viewTransactionsBtn.addEventListener('click', openTransactionModal);
             }
 
-            // open send message and print demand dropdown
-            const toggleBtn = document.getElementById("actionsToggle");
-            const menu = document.getElementById("actionsMenu");
+            // Send WhatsApp Message for current student
+            const sendWhatsAppMessageBtn = document.getElementById('sendWhatsAppMessageBtn');
+            if (sendWhatsAppMessageBtn) {
+                sendWhatsAppMessageBtn.addEventListener('click', async () => {
+                    try {
+                        const student = students[currentStudent];
+                        const studentSessionId = student.student_session_id;
+                        const response = await fetch(`/api/get_demand_fee_message?student_session_id=${studentSessionId}`);
+                        const data = await response.json();
 
-            // Toggle dropdown visibility
-            toggleBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                menu.classList.toggle("hidden");
-            });
+                        if (!response.ok) {
+                            showAlert(data.message || "Failed to load message", Constants.STATUS_TYPES.ERROR);
+                            return;
+                        }
 
-            // Click outside = close menu
-            document.addEventListener("click", (e) => {
-                if (!menu.classList.contains("hidden")) {
-                if (!menu.contains(e.target) && e.target !== toggleBtn) {
-                    menu.classList.add("hidden");
-                }
-                }
-            });
+                        // Send WhatsApp message
+                        sendWhatsAppMessage(data.phone_number, data.whatsapp_message);
+
+                    } catch (err) {
+                        console.error("Network/JS error:", err);
+                        showAlert("An error occurred while sending the message.", Constants.STATUS_TYPES.ERROR);
+                    }
+                });
+            }
         }
 
         // Open transaction modal
@@ -656,30 +641,6 @@
             document.getElementById("grandTotalDue").textContent = "₹" + totalDueAmount;
             document.getElementById("totalStudentsCount").textContent = students.length;
             document.getElementById("totalPendingMonths").textContent = totalDueTerms;
-
-            const sendDemandMessageBTN = document.getElementById("whatsappButton");
-
-            // Attach the click listener
-            sendDemandMessageBTN.addEventListener("click", async () => {
-                try {
-                    const phone = students[0].phone
-                    const response = await fetch(`/api/get_demand_fee_message?phone=${phone}`);
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                        showAlert(data.message || "Failed to load message", Constants.STATUS_TYPES.ERROR);
-                        return;
-                    }
-
-                    // Send WhatsApp message after data arrives
-                    sendWhatsAppMessage(data.phone_number, data.whatsapp_message);
-
-                } catch (err) {
-                    console.error("Network/JS error:", err);
-                    showAlert(500, "An error occurred while sending the message.");
-                }
-
-            });
         }
 
 

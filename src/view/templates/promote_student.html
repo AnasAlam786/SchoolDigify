@@ -552,40 +552,47 @@ content %}
             : (student.GENDER === 'Male' ? placeholderBoy : placeholderGirl);
 
         return `
-        <div class="student-card rounded-2xl overflow-hidden shadow-lg card-hover" data-name="${student.STUDENTS_NAME}"
-            data-roll="${student.previous_roll || ''}">
-            <div class="p-6 space-y-4">
-                <div class="flex items-start gap-3">
-                    <img src="${imageSrc}"
-                        alt="Student Image" class="student-image mt-2" loading="lazy">
-                    <div class="flex-1 min-w-0 space-y-2">
-                        <div class="flex items-center justify-between gap-2">
-                            <h3 class="font-bold text-lg text-green-400 truncate">${student.STUDENTS_NAME}</h3>
-                            ${stateBadge}
-                        </div>
-                        <p class="text-sm text-gray-400">
-                            <span class="font-medium">C/O:</span> ${student.FATHERS_NAME || "-"}
-                        </p>
-                        <div class="mt-3 space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">Old Class:</span>
-                                <span class="font-medium text-white">${student.previous_class}</span>
+            <div class="student-card rounded-2xl overflow-hidden shadow-lg card-hover" data-name="${student.STUDENTS_NAME}"
+                data-roll="${student.previous_roll || ''}">
+
+                <!-- Top Bar -->
+                <div class="flex items-center justify-end px-4 py-2 bg-transparent relative">
+                    ${stateBadge}
+                    <div class="absolute left-4 right-4 bottom-0 h-px bg-gray-600/50"></div>
+                </div>
+
+                <div class="p-6 space-y-4">
+                    <div class="flex items-start gap-3">
+                        <img src="${imageSrc}"
+                            alt="Student Image" class="student-image mt-2" loading="lazy">
+                        <div class="flex-1 min-w-0 space-y-2">
+                            <h3 class="font-bold text-green-400 text-lg text-dark-400">${student.STUDENTS_NAME}</h3>
+
+                            <p class="text-sm text-gray-400">
+                                <span class="font-medium">C/O:</span> ${student.FATHERS_NAME || "-"}
+                            </p>
+
+                            <div class="mt-3 space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Old Class:</span>
+                                    <span class="font-medium text-white">${student.previous_class}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Old Roll No:</span>
+                                    <span class="font-medium text-white">${student.previous_roll || "-"}</span>
+                                </div>
+                                ${promotedInfo}
+                                ${tcInfo}
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">Old Roll No:</span>
-                                <span class="font-medium text-white">${student.previous_roll || "-"}</span>
-                            </div>
-                            ${promotedInfo}
-                            ${tcInfo}
                         </div>
                     </div>
+
+                    <div class="mt-2 flex gap-3">
+                        ${buildStudentActionButtons(student)}
+                    </div>
                 </div>
-                <div class="mt-2 flex gap-3">
-                    ${buildStudentActionButtons(student)}
-                </div>
-            </div>
-        </div>`;
-    }
+            </div>`;
+        }
 
     function renderStudentCards() {
         const container = document.getElementById("StudentData");

@@ -26,6 +26,8 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
 
+        session.clear()
+
         user = ( TeachersLogin.query .join(Roles, Roles.id == TeachersLogin.role_id) .filter(TeachersLogin.email == email) .first() )
         if not user:
             return render_template('login.html', error="No user found with this email")
@@ -48,19 +50,13 @@ def login():
     return redirect(url_for('student_list_bp.student_list'))
     
 
-    
-
-
-
 def save_sessions(user = None, user_id = None):
-
-    print("Save session called")
 
     if not user and not user_id:
         return False
 
     if not user:
-        user = ( TeachersLogin.query .join(Roles, Roles.id == TeachersLogin.role_id).filter(TeachersLogin.id == user_id) .first() )
+        user = TeachersLogin.query.join(Roles, Roles.id == TeachersLogin.role_id).filter(TeachersLogin.id == user_id) .first()
     if not user:
         return False
 
@@ -101,7 +97,7 @@ def save_sessions(user = None, user_id = None):
             current_running_session = s.id
             break
 
-    session["session_id"]      = current_running_session
+    session["session_id"] = current_running_session
     session['current_running_session'] = current_running_session  # can be changed if user switches  to another session
 
 

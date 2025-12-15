@@ -54,8 +54,8 @@ function viewStudentDetails(studentId, phone) {
     console.error("Error fetching student details:", error);
     return;
   }
-  
 }
+
 function openModal() {
     document.getElementById('studentDetailsModal').classList.add('active');
     document.body.style.overflow = 'hidden';

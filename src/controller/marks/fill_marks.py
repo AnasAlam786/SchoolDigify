@@ -11,10 +11,10 @@ from src import db
 from bs4 import BeautifulSoup
 from src.controller.auth.login_required import login_required
 from src.controller.permissions.permission_required import permission_required
+from src.controller.permissions.has_permission import has_permission
 
 
 fill_marks_bp = Blueprint( 'fill_marks_bp',   __name__)
-
 
 @fill_marks_bp.route('/fill_marks', methods=["GET", "POST"])
 @login_required
@@ -55,7 +55,7 @@ def fill_marks():
 
 
     exams = (
-        db.session.query(Exams.exam_name, Exams.id)
+        db.session.query(Exams.exam_name, Exams.id, Exams.is_enabled)
         .join(ClassExams, ClassExams.exam_id == Exams.id)
         .filter(ClassExams.class_id.in_(class_ids),
                 Exams.school_id == school_id
@@ -74,6 +74,12 @@ def fill_marks():
         class_id = payload.get('class')
         exam_id = payload.get('exam')
         current_session_id = session["session_id"]
+
+        exam = Exams.query.filter_by(id=exam_id, school_id=school_id).first()
+        if not exam:
+            return jsonify({"error": "Exam not found"}), 404
+        if not exam.is_enabled and not has_permission('override_marks_lock'):
+            return jsonify({"error": "This exam is disabled. You do not have permission to fill marks for disabled exams."}), 403
 
 
         marks_data = (
@@ -135,3 +141,27 @@ def fill_marks():
         return jsonify({"html":str(content)})
         
     return render_template('fill_marks.html', data=data, classes=classes, exams = exams, subjects = unique_subjects)
+
+
+@fill_marks_bp.route('/get_all_exams', methods=['GET'])
+@login_required
+@permission_required('lock_marks')
+def get_all_exams():
+    school_id = session["school_id"]
+    exams = Exams.query.filter_by(school_id=school_id).order_by(Exams.display_order).all()
+    return jsonify([{'id': e.id, 'name': e.exam_name, 'enabled': e.is_enabled} for e in exams])
+
+
+@fill_marks_bp.route('/update_exam_status', methods=['POST'])
+@login_required
+@permission_required('lock_marks')
+def update_exam_status():
+    data = request.json
+    exam_id = data.get('exam_id')
+    is_enabled = data.get('is_enabled')
+    exam = Exams.query.filter_by(id=exam_id, school_id=session["school_id"]).first()
+    if not exam:
+        return jsonify({'error': 'Exam not found'}), 404
+    exam.is_enabled = is_enabled
+    db.session.commit()
+    return jsonify({'message': 'Updated successfully'})

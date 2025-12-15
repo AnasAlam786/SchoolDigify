@@ -5,6 +5,8 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from src import db
 from src.model import StudentMarks
+from src.controller.permissions.has_permission import has_permission
+from src.model import Exams
 
 update_marks_api_bp = Blueprint('update_marks_api_bp',   __name__)
 
@@ -26,6 +28,10 @@ def update_marks_api():
 
     if not all([student_id, subject_id, exam_id, current_session_id, school_id]):
         return jsonify({"message": "Missing required fields"}), 400
+
+    exam = Exams.query.filter_by(id=exam_id).first()
+    if not exam.is_enabled and not has_permission('override_marks_lock'):
+        return jsonify({"message": "This exam is disabled. You do not have permission to fill marks for disabled exams."}), 403
 
     # 🟩 CASE 1: Update existing mark
     if marks_id and marks_id != "":

@@ -37,6 +37,7 @@ from .marks.update_marks_api import update_marks_api_bp
 from .marks.show_marks import show_marks_bp
 from .marks.get_marks_api import get_marks_api_bp
 from .marks.get_result_api import get_result_api_bp
+from .marks.bulk_download_results import bulk_download_results_bp
 
 from .staff_module.show_staff import show_staff_bp
 from .staff_module.add_staff import add_staff_bp
@@ -129,6 +130,7 @@ def register_blueprints(app):
     app.register_blueprint(show_marks_bp)
     app.register_blueprint(get_marks_api_bp)
     app.register_blueprint(get_result_api_bp)
+    app.register_blueprint(bulk_download_results_bp)
 
     app.register_blueprint(show_staff_bp)
     app.register_blueprint(add_staff_api_bp)

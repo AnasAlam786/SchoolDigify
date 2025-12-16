@@ -1,63 +1,27 @@
 # src/controller/get_marks_api.py
 
 
-from typing import OrderedDict
-from sqlalchemy import exists
-from flask import session, request, jsonify, Blueprint, render_template 
+from flask import session, request, jsonify, Blueprint, render_template
+from sqlalchemy import exists 
 
-
+from src.controller.auth.login_required import login_required
+from src.controller.permissions.permission_required import permission_required
 from src.model.ClassAccess import ClassAccess
 from src import db
 
-from src.controller.marks.utils.calc_grades import get_grade
 from src.controller.marks.utils.marks_processing import result_data
+from src.controller.marks.utils.process_marks import process_marks
 
 from bs4 import BeautifulSoup
-
-import pandas as pd
 # import time
 
 
 get_marks_api_bp = Blueprint('get_marks_api_bp',   __name__)
 
-def add_grand_total(group):
-    group["student_id"] = group.name
-
-    # --- Step 1: sum numeric marks per subject ---
-    total_subject_marks = OrderedDict()
-    for subj_dict in group["subject_marks_dict"]:
-        for subj, mark in subj_dict.items():
-            try:
-                mark = float(mark)
-                total_subject_marks[subj] = total_subject_marks.get(subj, 0) + mark
-            except:
-                pass
-
-    grand_total_row = group.iloc[0].copy()
-    
-    grand_total_row["exam_name"] = "G. Total"
-    grand_total_row["exam_display_order"] = group["exam_display_order"].max() + 1
-    grand_total_row["exam_total"] = sum(total_subject_marks.values())
-    grand_total_row["weightage"] = group["weightage"].sum()
-    grand_total_row["subject_marks_dict"] = total_subject_marks
-
-    max_marks = int(grand_total_row["weightage"]) * len(grand_total_row["subject_marks_dict"])
-
-    grand_total_row["percentage"] = int(
-        (grand_total_row["exam_total"] / max_marks) * 100 if max_marks > 0 else 0
-    )
-
-    # Concatenate both
-    return pd.concat([group, pd.DataFrame([grand_total_row])], ignore_index=True)
-
 @get_marks_api_bp.route('/get_marks_api', methods=["POST"])
+@login_required
+@permission_required('get_result')  # Assuming same permission as single download
 def get_marks_api():
-
-    
-    if "email" not in session:
-        return jsonify({"message": "Unauthorized access. Login requires!"}), 403
-    
-
     school_id = session["school_id"]
     current_session_id = session["session_id"]
     user_id = session["user_id"]
@@ -84,8 +48,6 @@ def get_marks_api():
         "StudentSessions": ["ROLL", "class_id"]
     }
 
-    # start_time = time.time()  # start timer
-    
     student_marks_data = result_data(school_id, current_session_id, class_id, 
                                      extra_fields=extra_fields)
     
@@ -96,47 +58,7 @@ def get_marks_api():
     if not student_marks_data:
         return jsonify({"message": "No Data Found"}), 400
     
-    # Convert to DataFrame for easier manipulation
-
-
-    student_marks_df = pd.DataFrame(student_marks_data)
-
-
-    # Apply add_grand_total per student
-    student_marks_df = student_marks_df.groupby("student_id", group_keys=False).apply(add_grand_total, include_groups=False).reset_index(drop=True)
-
-
-    student_marks_df['percentage'] = student_marks_df['percentage'].fillna(0).round(1)
-    student_marks_df['exam_total'] = pd.to_numeric(student_marks_df['exam_total'], errors='coerce').fillna(0).round(1)
-
-
-    all_columns = student_marks_df.columns.tolist()
-    non_common_colums = ['exam_name', 'subject_marks_dict', 'exam_total', 'percentage', 'exam_display_order', 'weightage', "exam_term"]
-    common_columns = [col for col in all_columns if col not in non_common_colums]
-
-
-
-    def exam_info_group(df):
-        df_sorted = df.sort_values('exam_display_order', na_position='last')
-        
-        ordered_exams = OrderedDict()
-        for _, row in df_sorted.iterrows():
-            ordered_exams[row['exam_name']] = {
-                'subject_marks_dict': row['subject_marks_dict'],
-                'exam_total': row['exam_total'],
-                'percentage': row['percentage'],
-                'weightage': row['weightage'],
-                'exam_term': row['exam_term'],
-            }
-        return ordered_exams
-
-
-    student_marks_df[common_columns] = student_marks_df[common_columns].fillna("Not Provided")
-    student_marks_df = student_marks_df.groupby(common_columns).apply(exam_info_group, include_groups=False).reset_index(name = "marks")
-    student_marks_df = student_marks_df.sort_values(["CLASS", "ROLL"]).reset_index(drop=True)
-    student_marks = student_marks_df.to_dict(orient='records')
-
-
+    student_marks = process_marks(student_marks_data, add_grades_flag=False, add_grand_total_flag=True)
 
     # # Print the structure of result student_marks_dict
     # import pprint

@@ -679,7 +679,7 @@
                     school-UDISE="{{ school.UDISE }}"
                     school-logo="{{ school.Logo }}"
                     session-logo="{{ session_logo }}"
-                    student-image="{% if student.IMAGE %}https://lh3.googleusercontent.com/d/{{ student.IMAGE }}=s220{% else %}''{% endif %}"
+                    student-image="{% if student.IMAGE %}https://lh3.googleusercontent.com/d/{{ student.IMAGE }}=s220{% else %}/static/no-student-boy-image.png{% endif %}"
                     student-name="{{ student.STUDENTS_NAME }}"
                     student-father="C/O Mr. {{ student.FATHERS_NAME }}"
                     student-class-roll="{{ student.CLASS }} - {{ student.ROLL }}"
@@ -886,10 +886,12 @@
                     try {
                         const rect = card.getBoundingClientRect();
                         const dataUrl = await htmlToImage.toJpeg(card, {
-                            quality: 0.98,
+                            quality: 0.9,
                             width: Math.round(rect.width) || 215,
                             height: Math.round(rect.height) || 332,
-                            pixelRatio: 3
+                            pixelRatio: 3,
+                            useCORS: true,
+                            allowTaint: true
                         });
                         
                         const base64 = dataUrl.split(',')[1];

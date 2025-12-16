@@ -1,37 +1,118 @@
 {% extends "base.html" %}
 {% block content %}
 
+<style>
+  /* Custom Styles */
+  .checkbox-ui {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .student-checkbox:checked + .checkbox-ui {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    border-color: #3b82f6;
+    transform: scale(1.1);
+  }
+  
+  .student-checkbox:checked + .checkbox-ui .check-icon {
+    display: block;
+    animation: checkmark 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes checkmark {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  /* Table row hover effect */
+  tbody tr {
+    transition: background-color 0.2s ease;
+  }
+  
+  tbody tr:hover {
+    background-color: rgba(55, 65, 81, 0.3) !important;
+  }
+  
+  /* Smooth scroll for table */
+  .overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: rgba(75, 85, 99, 0.5);
+    border-radius: 4px;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(75, 85, 99, 0.7);
+  }
+  
+  /* Gradient borders */
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+  }
+  
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 0.75rem;
+    padding: 1px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+</style>
 
 
 <!-- START: Main Container -->
-<div class="mx-auto px-4">
+<div class="mx-auto">
 
   <!-- Page Header -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8">
     <div>
-      <h1 class="text-2xl md:text-3xl font-bold text-white">View Marksheet</h1>
-      <p class="text-gray-400 mt-1 md:mt-2 text-sm md:text-base">View and download marksheet of students</p>
+      <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white">View Marksheet</h1>
+      <p class="text-gray-400 mt-1 md:mt-2 text-sm md:text-base lg:text-lg">View and download marksheet of students</p>
     </div>
   </div>
 
   <!-- Search and Filter Section -->
-  <div class="flex flex-col gap-4 mb-6 md:mb-10">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 md:mb-8">
     
     <!-- Search Box -->
-    <div class="search-box p-3 rounded-lg md:rounded-xl bg-gray-800">
+    <div class="lg:col-span-2 search-box p-3 md:p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 backdrop-blur-sm">
       <div class="flex items-center">
-        <i class="fas fa-search text-gray-400 mr-3"></i>
+        <i class="fas fa-search text-gray-400 mr-3 text-base md:text-lg"></i>
         <input type="text" id="search-input" oninput="searchFunction()"
-          placeholder="Search by Name, Class, or Roll Number"
-          class="w-full bg-transparent border-none text-white placeholder-gray-400 focus:outline-none text-sm md:text-base">
+          placeholder="Search by Name, Father's Name, or Roll Number"
+          class="w-full bg-transparent border-none text-white placeholder-gray-400 focus:outline-none text-sm md:text-base lg:text-lg">
       </div>
     </div>
 
-    <!-- Dropdown -->
+    <!-- Class Dropdown -->
     <div class="relative">
       <select
-        class="w-full p-3 pr-10 rounded-lg md:rounded-xl bg-gray-800 text-gray-200 appearance-none cursor-pointer text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        id="classView" name="selectClass" onchange="updatePageWithLoader('/get_marks_api', 'results', { 'class_id': this.value });">
+        class="w-full p-3 md:p-4 pr-10 rounded-xl bg-gray-800/50 border border-gray-700/50 backdrop-blur-sm text-gray-200 appearance-none cursor-pointer text-sm md:text-base lg:text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        id="classView" name="selectClass" onchange="loadMarksheets(this.value)">
         <option value="" selected disabled hidden>Select Class</option>
         {% if classes %}
           {% for class in classes %}
@@ -40,355 +121,772 @@
         {% endif %}
       </select>
       <i
-        class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-    </div>
-
-  </div>
-
-
-  <!-- START: Results List -->
-  <!-- Loader & skeleton (hidden by default) -->
-  <div id="marks-loader" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-    <div class="w-11/12 max-w-3xl p-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-xl border border-gray-700">
-      <div class="flex items-center gap-4">
-  <div class="w-14 h-14 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center animate-spin shadow-lg" style="animation-duration:1500ms;">
-          <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v4m0 8v4m8-8h-4M4 12H0" />
-          </svg>
-        </div>
-        <div class="flex-1">
-          <div class="h-4 bg-gray-700 rounded w-3/4 mb-3 animate-pulse"></div>
-          <div class="h-3 bg-gray-700 rounded w-1/2 animate-pulse"></div>
-        </div>
-      </div>
-      <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- skeleton cards -->
-        <div class="h-24 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg animate-pulse"></div>
-        <div class="h-24 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg animate-pulse"></div>
-        <div class="h-24 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg animate-pulse"></div>
-        <div class="h-24 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg animate-pulse"></div>
-      </div>
+        class="fas fa-chevron-down absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
     </div>
   </div>
 
-  <div id="results">
+  <!-- Bulk Download Selection Bar - Enhanced Responsive Version -->
+  <div id="bulk-selection-bar" class="top-4 md:top-6 z-40 bg-gradient-to-r from-gray-800/90 to-gray-900/90 backdrop-blur-lg border border-gray-700/30 rounded-xl shadow-2xl transition-all duration-300 mx-3 md:mx-0 mb-6">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 p-3 md:p-4">
+      
+      <!-- Left Section: Selection Info -->
+      <div class="flex items-center justify-between w-full sm:w-auto">
+        <div class="flex items-center gap-3">
+          <!-- Select All Checkbox -->
+          <div class="relative flex items-center">
+            <input type="checkbox" id="select-all" 
+                  class="peer w-5 h-5 sm:w-5 sm:h-5 rounded-lg border-2 border-gray-500/70 bg-gray-800/80 text-blue-500 focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer transition-all duration-200 hover:border-blue-500/50 hover:scale-105 checked:border-blue-500 checked:bg-blue-500/20"
+                  onchange="toggleSelectAll()">
+            <label for="select-all" class="ml-3 text-sm sm:text-base font-medium text-gray-200 cursor-pointer select-none transition-colors duration-200 peer-hover:text-white">
+              Select All
+            </label>
+          </div>
+          
+          <!-- Selected Count Badge -->
+          <div class="px-3 py-1.5 bg-gray-800/70 border border-gray-700/50 rounded-lg backdrop-blur-sm">
+            <span id="selected-count" class="text-sm font-semibold text-gray-300 whitespace-nowrap">
+              <span class="hidden sm:inline">Selected: </span><span>0</span>
+            </span>
+          </div>
+        </div>
+        
+        <!-- Mobile Clear Button -->
+        <button onclick="clearSelection()" 
+                class="sm:hidden text-gray-400 hover:text-gray-300 transition-colors duration-200 p-1.5 hover:bg-gray-700/40 rounded-lg">
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+      
+      <!-- Right Section: Action Buttons -->
+      <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+        <!-- Tablet/Mobile Clear Button -->
+        <button onclick="clearSelection()" 
+                class="hidden sm:flex items-center gap-2 text-gray-400 hover:text-gray-300 transition-colors duration-200 px-4 py-2.5 hover:bg-gray-700/40 rounded-lg text-sm font-medium border border-gray-700/50 hover:border-gray-600/50">
+          <i class="fas fa-times"></i>
+          <span class="whitespace-nowrap">Clear All</span>
+        </button>
+        
+        <!-- Download Button -->
+        <button id="bulk-download-btn" 
+                class="flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:via-blue-400 hover:to-indigo-500 text-white py-3 px-5 sm:px-6 rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg disabled:hover:from-blue-600 disabled:hover:via-blue-500 disabled:hover:to-indigo-600"
+                disabled onclick="bulkDownload()">
+          <i class="fas fa-download text-base sm:text-lg"></i>
+          <span class="whitespace-nowrap">
+            <span class="hidden sm:inline">Download Selected</span>
+            <span class="sm:hidden">Download</span>
+          </span>
+          <span id="download-count" class="bg-white/20 px-2 py-1 rounded-lg text-xs font-bold min-w-[28px] inline-flex justify-center">0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- START: Results Container -->
+  <div id="results-container">
     {% if student_marks %}
-      {% for student in student_marks %}
-        <!-- START: Single Result Card -->
-        <div class="marks-card bg-gray-800 shadow-lg rounded-lg mb-4">
-          <div class="p-4 md:p-6">
-
-            <!-- Student Header Table -->
-            <div class="overflow-x-auto mb-3 border border-gray-700 rounded">
-              <table class="min-w-full text-center text-gray-200 border-collapse">
-                <thead class="bg-gray-700 text-white">
-                  <tr>
-                    <th class="py-2 px-3 border-b border-gray-600">Name</th>
-                    <th class="py-2 px-3 border-b border-gray-600">Roll</th>
-                    <th class="py-2 px-3 border-b border-gray-600">Class</th>
-                    <th class="py-2 px-3 border-b border-gray-600">F's Name</th>
-                    <th class="py-2 px-3 border-b border-gray-600">Rank</th>
-                    <th class="py-2 px-3 border-b border-gray-600 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="bg-gray-800 hover:bg-gray-700">
-                    <td class="name py-2 px-3 border-b border-gray-600">{{ student["STUDENTS_NAME"] }}</td>
-                    <td class="roll py-2 px-3 border-b border-gray-600">{{ student["ROLL"] }}</td>
-                    <td class="py-2 px-3 border-b border-gray-600">{{ student["CLASS"] }}</td>
-                    <td class="f-name py-2 px-3 border-b border-gray-600">{{ student["FATHERS_NAME"] }}</td>
-                    <td class="py-2 px-3 border-b border-gray-600">{{ student["overall_rank"] }}</td>
-                    <td class="py-2 px-3 border-b border-gray-600 text-right">
-                      <button class="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-lg text-base flex items-center gap-2"
-                        onclick="getResult('{{ student['student_id'] }}', '{{ student['class_id'] }}')">
-                        <i class="bi bi-printer-fill"></i> Print Result
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+      <div id="results" class="space-y-6">
+        {% for student in student_marks %}
+          <!-- START: Single Result Card -->
+          <div class="marks-card bg-gray-800/30 backdrop-blur-sm mt-6 border border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300">
+         
+              
+            <!-- Student Header - Modern Design -->
+            <div class="p-5 flex flex-col lg:flex-row lg:items-start justify-between gap-1">
+              <div class="flex-1">
+                <!-- Student Info Row -->
+                <div class="flex items-start gap-4 mb-4">
+                  <!-- Profile Icon -->
+                  <div class="relative mt-1">
+                    <input type="checkbox" class="student-checkbox absolute opacity-0 w-6 h-6 cursor-pointer z-10" 
+                            value="{{ student['student_id'] }}" 
+                            id="student-{{ student['student_id'] }}"
+                            onchange="updateBulkSelection()">
+                    <div class="w-6 h-6 md:w-7 md:h-7 rounded-lg border-2 border-gray-600 bg-gray-700/50 flex items-center justify-center transition-all duration-200 checkbox-ui group hover:border-blue-500">
+                      <svg class="w-4 h-4 text-white hidden check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <!-- Student Details -->
+                  <div class="flex-1">
+                    <div class="mb-2">
+                      <h3 class="text-xl md:text-2xl font-bold text-white mb-1">{{ student["STUDENTS_NAME"] }}</h3>
+                      <p class="text-gray-400 text-sm md:text-base">
+                        <i class="fas fa-user-friends mr-2"></i>Father: {{ student["FATHERS_NAME"] }}
+                      </p>
+                    </div>
+                    
+                    <!-- Info Cards -->
+                    <div class="flex flex-wrap gap-3 mt-4">
+                      <div class="px-4 py-2.5 bg-gradient-to-r from-gray-800/50 to-gray-700/30 rounded-xl border border-gray-700/30">
+                        <p class="text-xs text-gray-400 mb-1">Roll</p>
+                        <p class="text-sm md:text-base font-semibold text-white">{{ student["ROLL"] }}</p>
+                      </div>
+                      
+                      <div class="px-4 py-2.5 bg-gradient-to-r from-gray-800/50 to-gray-700/30 rounded-xl border border-gray-700/30">
+                        <p class="text-xs text-gray-400 mb-1">Class</p>
+                        <p class="text-sm md:text-base font-semibold text-white">{{ student["CLASS"] }}</p>
+                      </div>
+                      
+                      <div class="px-4 py-2.5 bg-gradient-to-r from-blue-900/20 to-blue-800/10 rounded-xl border border-blue-700/20">
+                        <p class="text-xs text-blue-400 mb-1">Rank</p>
+                        <p class="text-sm md:text-base font-bold text-blue-300">#{{ student["overall_rank"] }}</p>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-5 md:px-6 rounded-xl text-sm md:text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 shadow-lg hover:shadow-xl group"
+                  onclick="getResult('{{ student['student_id'] }}', '{{ student['class_id'] }}')">
+                  <i class="fas fa-print text-sm group-hover:scale-110 transition-transform"></i>
+                  <span>Print Result</span>
+                </button>
+              </div>
             </div>
-            <!-- END: Student Header Table -->
+            <!-- END: Student Header -->
 
-            <!-- Subjects Table -->
-            <div class="overflow-x-auto">
-              <table class="min-w-full text-gray-200 border border-gray-700 border-collapse table-auto">
-                {% set marks = student.marks %}
-                {% set exam_names = marks.keys() | list %}
-                {% set subjects = student.marks[exam_names[0]].subject_marks_dict.keys() | list %}
-                {% set special_columns = ["G. Total", "Grades", "Percentage", "Total"] %}
-
-                <thead class="bg-gray-700 text-center font-semibold">
-                  <tr>
-                    <th class="py-2 px-3 border border-gray-600 text-left">Sub.</th>
-                    {% for exam_name, exam_data in student.marks.items() %}
-                      <th class="py-2 px-3 border border-gray-600">
-                        {{ exam_name }}
-                        <div class="text-gray-400 text-xs">{{ exam_data.weightage }}</div>
+            <!-- Marks Table -->
+            <div class="overflow-hidden border border-gray-700/30 bg-gray-800/20">
+              {% set marks = student.marks %}
+              {% set exam_names = marks.keys() | list %}
+              {% set subjects = student.marks[exam_names[0]].subject_marks_dict.keys() | list if exam_names else [] %}
+              
+              {% if exam_names and subjects %}
+             
+              <!-- Table Container -->
+              <div class="overflow-x-auto">
+                <table class="min-w-full text-gray-200 border-collapse">
+                  <thead>
+                    <tr class="bg-gray-800/60">
+                      <th class="py-4 px-4 md:px-6 border-b border-gray-700/30 text-left text-sm md:text-base font-semibold text-gray-300 uppercase tracking-wider">
+                        <div class="flex items-center gap-2">
+                          <i class="fas fa-book text-gray-400"></i>
+                          <span>Subject</span>
+                        </div>
                       </th>
-                    {% endfor %}
-                  </tr>
-                </thead>
+                      {% for exam_name, exam_data in student.marks.items() %}
+                        <th class="py-4 border-b border-gray-700/30 text-center text-sm md:text-base font-semibold text-gray-300 uppercase tracking-wider">
+                          <div class="flex flex-col items-center">
+                            <div class="flex items-center gap-2 mb-1">
+                              <span class="font-bold">{{ exam_name }}</span>
+                            </div>
+                            <span class="text-xs px-3 py-1 bg-blue-900/30 text-blue-300 rounded-full border border-blue-800/30">
+                              {{ exam_data.weightage }}
+                            </span>
+                          </div>
+                        </th>
+                      {% endfor %}
+                    </tr>
+                  </thead>
 
-                <tbody>
-                  {% for subject in subjects %}
-                    <tr class="text-center">
-                      <th class="py-2 px-3 border border-gray-600 text-left">{{ subject }}</th>
+                  <tbody>
+                    {% for subject in subjects %}
+                      <tr class="hover:bg-gray-800/40 transition-colors duration-150 {% if loop.index % 2 == 0 %}bg-gray-800/10{% endif %}">
+                        <td class="py-4 px-2 lg:px-4 border-b border-gray-700/30 text-sm md:text-base font-medium">
+                          <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                            {{ subject }}
+                          </div>
+                        </td>
+                        {% for exam_name in exam_names %}
+                          {% set exam_data = marks[exam_name] %}
+                          {% set mark = exam_data.subject_marks_dict.get(subject, '') %}
+                          <td class="py-4 px-2 border-b border-gray-700/30 text-center text-sm md:text-base font-semibold">
+                            <div class="flex flex-col items-center">
+                              <span class="text-lg text-green-400">
+                                {{ mark }}
+                              </span>
+                            </div>
+                          </td>
+                        {% endfor %}
+                      </tr>
+                    {% endfor %}
+
+                    <!-- Grand Total Row -->
+                    <tr class="bg-gradient-to-r from-gray-800/50 to-gray-900/30 border-t border-gray-700/30">
+                      <td class="py-4 px-2 text-sm md:text-base font-bold">
+                        <div class="flex items-center gap-3">
+                          <i class="fas fa-calculator text-green-400"></i>
+                          <span class="text-white">G Total</span>
+                        </div>
+                      </td>
                       {% for exam_name in exam_names %}
-                        {% set exam_data = marks[exam_name] %}
-                        <td class="py-2 px-3 border border-gray-600 {% if exam_name in special_columns %}font-bold{% endif %}">
-                          {{ exam_data.subject_marks_dict.get(subject, '') }}
+                        <td class="py-4 px-2 text-center text-sm md:text-base font-bold">
+                          <div class="inline-flex items-center gap-2 bg-green-900/20 px-2 py-2 rounded-lg border border-green-700/30">
+                            <span class="text-green-300">{{ marks[exam_name].exam_total }}</span>
+                          </div>
                         </td>
                       {% endfor %}
                     </tr>
-                  {% endfor %}
 
-                  <!-- Grand Total -->
-                  <tr class="bg-gray-700 font-bold text-center">
-                    <th class="py-2 px-3 border border-gray-600 text-left">G.Total</th>
-                    {% for exam_name in exam_names %}
-                      <td class="py-2 px-3 border border-gray-600">
-                        {{ marks[exam_name].exam_total }}
+                    <!-- Percentage Row -->
+                    <tr class="bg-gradient-to-r from-blue-900/10 to-indigo-900/10">
+                      <td class="py-4 px-2 text-sm md:text-base font-bold">
+                        <div class="flex items-center gap-3">
+                          <i class="fas fa-chart-pie text-blue-400"></i>
+                          <span class="text-white">%age</span>
+                        </div>
                       </td>
-                    {% endfor %}
-                  </tr>
-
-                  <!-- Percentage -->
-                  <tr class="bg-gray-700 font-bold text-center">
-                    <th class="py-2 px-3 border border-gray-600 text-left">Percentage</th>
-                    {% for exam_name in exam_names %}
-                      <td class="py-2 px-3 border border-gray-600">
-                        {{ marks[exam_name].percentage }}
-                      </td>
-                    {% endfor %}
-                  </tr>
-                </tbody>
-              </table>
+                      {% for exam_name in exam_names %}
+                        <td class="py-4 px-2 text-center text-sm md:text-base font-bold">
+                          <div class="inline-flex items-center gap-2 bg-blue-900/20 px-2 py-2 rounded-lg border border-blue-700/30">
+                            <span class="text-blue-300">{{ marks[exam_name].percentage }}%</span>
+                          </div>
+                        </td>
+                      {% endfor %}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Table Footer -->
+              <div class="px-2 py-3 border-t border-gray-700/30 bg-gray-800/40">
+                <div class="flex justify-between items-center">
+                  <div class="text-gray-400 text-sm">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    {{ subjects|length }} subjects
+                  </div>
+                </div>
+              </div>
+              {% else %}
+              <div class="py-12 text-center">
+                <div class="inline-block p-6 bg-gray-800/30 rounded-2xl border border-gray-700/30 mb-4">
+                  <i class="fas fa-chart-bar text-4xl text-gray-600"></i>
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">No marks data available</h4>
+                <p class="text-gray-400">This student doesn't have any marks recorded yet.</p>
+              </div>
+              {% endif %}
             </div>
-            <!-- END: Subjects Table -->
+            <!-- END: Marks Table -->
 
+       
           </div>
-        </div>
-        <!-- END: Single Result Card -->
-      {% endfor %}
+          <!-- END: Single Result Card -->
+        {% endfor %}
+      </div>
     {% else %}
-      <!-- Empty State -->
-      <div class="text-center text-gray-400 text-lg py-10">No data available. Please select a class.</div>
+      <!-- Empty State with Selection Prompt -->
+      <div id="results" class="text-center py-12 md:py-16 lg:py-20">
+        <div class="inline-block p-8 bg-gray-800/30 rounded-3xl border border-gray-700/30 mb-8 backdrop-blur-sm">
+          <i class="fas fa-file-alt text-5xl md:text-6xl text-gray-600"></i>
+        </div>
+        <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">No Marksheets Loaded</h3>
+        <p class="text-gray-400 text-lg max-w-md mx-auto mb-8">
+          Select a class from the dropdown above to view student marksheets
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <button onclick="document.getElementById('classView').focus()" 
+                  class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200">
+            <i class="fas fa-graduation-cap"></i>
+            Select Class
+          </button>
+          <button onclick="document.getElementById('search-input').focus()" 
+                  class="px-6 py-3 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 border border-gray-700/50">
+            <i class="fas fa-search"></i>
+            Search Students
+          </button>
+        </div>
+      </div>
     {% endif %}
   </div>
-  <!-- END: Results List -->
+  <!-- END: Results Container -->
 </div>
 <!-- END: Main Container -->
 
+<!-- Skeleton Loader Template -->
+<template id="skeleton-template">
+  <div id="skeleton-loader" class="space-y-6">
+    {% for _ in range(3) %}
+    <div class="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/30 animate-pulse">
+      <div class="p-6">
+        <!-- Student Header Skeleton -->
+        <div class="flex items-start gap-4 mb-8">
+          <div class="w-7 h-7 rounded-lg bg-gray-700/50"></div>
+          <div class="flex-1">
+            <div class="h-8 bg-gray-700/50 rounded-lg w-2/3 mb-4"></div>
+            <div class="h-4 bg-gray-700/50 rounded w-1/2 mb-6"></div>
+            <div class="flex flex-wrap gap-3">
+              <div class="w-32 h-12 bg-gray-700/50 rounded-xl"></div>
+              <div class="w-24 h-12 bg-gray-700/50 rounded-xl"></div>
+              <div class="w-20 h-12 bg-gray-700/50 rounded-xl"></div>
+              <div class="w-28 h-12 bg-gray-700/50 rounded-xl"></div>
+            </div>
+          </div>
+          <div class="w-32 h-12 bg-gray-700/50 rounded-xl"></div>
+        </div>
+        
+        <!-- Table Skeleton -->
+        <div class="space-y-3">
+          <div class="h-6 bg-gray-700/50 rounded w-1/4 mb-4"></div>
+          <div class="grid grid-cols-6 gap-4">
+            <div class="h-10 bg-gray-700/50 rounded-lg col-span-1"></div>
+            {% for _ in range(5) %}
+            <div class="h-10 bg-gray-700/50 rounded-lg"></div>
+            {% endfor %}
+          </div>
+          {% for _ in range(4) %}
+          <div class="grid grid-cols-6 gap-4">
+            <div class="h-12 bg-gray-700/30 rounded-lg col-span-1"></div>
+            {% for _ in range(5) %}
+            <div class="h-12 bg-gray-700/30 rounded-lg"></div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</template>
+
+
 <script>
-  // START: getResult function (unchanged behavior)
+  // Global variables
+  let currentClassId = null;
+  let currentSelection = new Set();
+  let isLoading = false;
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize search functionality
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', debounce(searchFunction, 300));
+    }
+    
+    // Initialize bulk selection bar
+    updateBulkSelectionBar();
+    
+    // Add click handlers for custom checkboxes
+    document.addEventListener('click', function(e) {
+      const checkboxUI = e.target.closest('.checkbox-ui');
+      if (checkboxUI) {
+        const checkbox = checkboxUI.previousElementSibling;
+        if (checkbox && checkbox.classList.contains('student-checkbox')) {
+          checkbox.checked = !checkbox.checked;
+          checkbox.dispatchEvent(new Event('change'));
+        }
+      }
+    });
+  });
+
+  // START: Load Marksheets Function
+  async function loadMarksheets(classId) {
+    if (!classId || isLoading) return;
+    
+    isLoading = true;
+    currentClassId = classId;
+    
+    // Clear current selection
+    currentSelection.clear();
+    updateBulkSelectionBar();
+    
+    // Get results container
+    const resultsContainer = document.getElementById('results-container');
+    if (!resultsContainer) return;
+    
+    // Show skeleton loader
+    const skeletonTemplate = document.getElementById('skeleton-template');
+    const skeletonClone = skeletonTemplate.content.cloneNode(true);
+    resultsContainer.innerHTML = '';
+    resultsContainer.appendChild(skeletonClone);
+    
+    // Scroll to results
+    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    try {
+      // Fetch marks data
+      const response = await fetch('/get_marks_api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ class_id: classId })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();      
+      resultsContainer.innerHTML = data.html;
+      
+      // Re-initialize checkboxes
+      setTimeout(() => {
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        checkboxes.forEach(cb => {
+          cb.checked = currentSelection.has(parseInt(cb.value));
+          // Update event listener
+          cb.onchange = updateBulkSelection;
+        });
+        updateBulkSelection();
+      }, 100);
+    } catch (error) {
+      console.error('Failed to load marksheets:', error);
+      showError('Failed to load marksheets. Please try again.');
+      
+      // Show error state
+      resultsContainer.innerHTML = `
+        <div class="text-center py-16">
+          <div class="inline-block p-8 bg-red-900/20 rounded-3xl border border-red-700/30 mb-8 backdrop-blur-sm">
+            <i class="fas fa-exclamation-triangle text-5xl text-red-500"></i>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-4">Error Loading Data</h3>
+          <p class="text-gray-400 text-lg max-w-md mx-auto mb-8">
+            ${error.message || 'Unable to load marksheets. Please try again.'}
+          </p>
+          <button onclick="loadMarksheets('${classId}')" 
+                  class="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 mx-auto">
+            <i class="fas fa-redo"></i>
+            Retry Loading
+          </button>
+        </div>
+      `;
+    } finally {
+      isLoading = false;
+    }
+  }
+  // END: Load Marksheets Function
+
+  // START: getResult function
   async function getResult(id, classId) {
-    console.log("Fetching result for ID:", id, "Class ID:", classId);
+    if (!id || !classId) return;
+    
     try {
       const response = await fetch('/get_result_api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: id, class_id: classId }),
       });
+      
       const data = await response.json();
+      
       if (!response.ok) {
-        if (typeof showAlert === 'function') showAlert(response.status, data.message);
-        else alert(data.message || 'Failed to fetch result');
-        return;
+        throw new Error(data.message || 'Failed to fetch result');
       }
+      
       const { html } = data;
       const printWindow = window.open('', '_blank');
       printWindow.document.write(html);
       printWindow.document.close();
-      printWindow.onload = () => printWindow.print();
+      
+      // Add a small delay to ensure content is loaded
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+      }, 500);
+      
     } catch (err) {
-      alert('Error printing result: ' + err.message);
+      showError('Failed to generate result: ' + err.message);
+      console.error('Error printing result:', err);
     }
   }
   // END: getResult function
 
-  // START: updatePageWithLoader
-  async function updatePageWithLoader(url, targetId, data = {}) {
-    const loader = document.getElementById('marks-loader');
-    const target = document.getElementById(targetId);
+  // START: Bulk Selection Functions
+  function updateBulkSelection() {
+    const checkboxes = document.querySelectorAll('.student-checkbox');
+    currentSelection.clear();
+    
+    checkboxes.forEach(cb => {
+      if (cb.checked) {
+        currentSelection.add(parseInt(cb.value));
+      }
+    });
+    
+    updateBulkSelectionBar();
+  }
 
-    // Show loader overlay
-    loader.classList.remove('hidden');
+  function toggleSelectAll() {
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.student-checkbox');
+    
+    if (!selectAll) return;
+    
+    checkboxes.forEach(cb => {
+      cb.checked = selectAll.checked;
+    });
+    
+    if (selectAll.checked) {
+      checkboxes.forEach(cb => {
+        currentSelection.add(parseInt(cb.value));
+      });
+    } else {
+      currentSelection.clear();
+    }
+    
+    updateBulkSelectionBar();
+  }
 
-    // Show lightweight skeleton while loading
-    const skeleton = `
-     <div class="space-y-6">
-      <!-- START: Skeleton Marksheet Card -->
-      <div class="bg-gray-800 rounded-xl p-6 animate-pulse space-y-4">
-        
-        <!-- Header Skeleton -->
-        <div class="border border-gray-700 rounded p-4 space-y-3">
-          <div class="flex justify-between items-center">
-            <div class="h-5 bg-gray-700 rounded w-1/5"></div>
-            <div class="h-5 bg-gray-700 rounded w-12"></div>
-          </div>
-          <div class="grid grid-cols-5 gap-3 mt-2">
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-          </div>
-        </div>
-
-        <!-- Table Skeleton -->
-        <div class="border border-gray-700 rounded p-4 space-y-2">
-          <div class="flex justify-between">
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-          </div>
-
-          <!-- Repeat rows -->
-          <div class="space-y-2 mt-3">
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-          </div>
-
-          <div class="h-4 bg-gray-700 rounded mt-4 w-1/3"></div>
-          <div class="h-4 bg-gray-700 rounded w-1/4"></div>
-        </div>
-      </div>
-
-      <!-- Duplicate for multiple cards -->
-      <div class="bg-gray-800 rounded-xl p-6 animate-pulse space-y-4">
-        <div class="border border-gray-700 rounded p-4 space-y-3">
-          <div class="flex justify-between items-center">
-            <div class="h-5 bg-gray-700 rounded w-1/5"></div>
-            <div class="h-5 bg-gray-700 rounded w-12"></div>
-          </div>
-          <div class="grid grid-cols-5 gap-3 mt-2">
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-          </div>
-        </div>
-
-        <div class="border border-gray-700 rounded p-4 space-y-2">
-          <div class="flex justify-between">
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-            <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-          </div>
-
-          <div class="space-y-2 mt-3">
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-            <div class="h-4 bg-gray-700 rounded"></div>
-          </div>
-
-          <div class="h-4 bg-gray-700 rounded mt-4 w-1/3"></div>
-          <div class="h-4 bg-gray-700 rounded w-1/4"></div>
-        </div>
-      </div>
-    </div>
-    `;
-    if (target) target.innerHTML = skeleton;
-
-    try {
-      let response;
-      updatePage(url, targetId, data);
-  
-      // after injecting new content, re-run search to update any visible state
-      searchFunction();
-
-    } catch (err) {
-      if (target) target.innerHTML = `<div class="text-red-400 p-4">Network error: ${err.message}</div>`;
-    } finally {
-      // hide loader
-      loader.classList.add('hidden');
+  function updateBulkSelectionBar() {
+    const bar = document.getElementById('bulk-selection-bar');
+    const selectedCount = document.getElementById('selected-count');
+    const downloadCount = document.getElementById('download-count');
+    const bulkBtn = document.getElementById('bulk-download-btn');
+    const selectAll = document.getElementById('select-all');
+    
+    if (!bar || !selectedCount) return;
+    
+    const count = currentSelection.size;
+    
+    // Update counts
+    selectedCount.textContent = `${count} selected`;
+    downloadCount.textContent = count;
+    
+    // Update select all checkbox
+    if (selectAll) {
+      const totalCheckboxes = document.querySelectorAll('.student-checkbox').length;
+      selectAll.checked = count > 0 && count === totalCheckboxes;
+      selectAll.indeterminate = count > 0 && count < totalCheckboxes;
+    }
+    
+    // Update bulk download button
+    if (bulkBtn) {
+      bulkBtn.disabled = count === 0;
+      if (count === 0) {
+        bulkBtn.title = 'Select at least one student to download';
+      } else {
+        bulkBtn.title = `Download ${count} marksheet${count > 1 ? 's' : ''}`;
+      }
+    }
+    
+    // Animate selection bar on change
+    if (count > 0) {
+      bar.classList.add('border-blue-500/30');
+    } else {
+      bar.classList.remove('border-blue-500/30');
     }
   }
-  // END: updatePageWithLoader
 
-  // START: Fancy No Results UI helper
-  function createNoResultsElement(id = 'no-results-message') {
-    const wrapper = document.createElement('div');
-    wrapper.id = id;
-    wrapper.className = 'flex flex-col items-center justify-center py-8 gap-4 text-center text-gray-200';
-
-    wrapper.innerHTML = `
-      <div class="w-40 h-40 rounded-full bg-gradient-to-tr from-gray-800 to-gray-700 flex items-center justify-center shadow-inner">
-        <svg class="w-20 h-20 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4M7.5 4.5h9a2.5 2.5 0 012.5 2.5v9A2.5 2.5 0 0116.5 19.5h-9A2.5 2.5 0 015 17V8A3.5 3.5 0 018.5 4.5z" />
-        </svg>
-      </div>
-      <div class="max-w-xl">
-        <h3 class="text-2xl font-semibold text-white">No students found</h3>
-        <p class="text-gray-400 mt-2">We couldn't find any marksheets that match your search. Try a different name, roll number, or clear the search.</p>
-      </div>
-      <div class="flex gap-3 mt-3">
-        <button id="clear-search-btn" class="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white">Clear search</button>
-        <button id="choose-class-btn" class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-gray-200">Choose class</button>
-      </div>
-    `;
-
-    // attach events after insertion
-    wrapper.addEventListener('click', (e) => { e.stopPropagation(); });
-    return wrapper;
+  function clearSelection() {
+    currentSelection.clear();
+    const checkboxes = document.querySelectorAll('.student-checkbox');
+    checkboxes.forEach(cb => cb.checked = false);
+    
+    const selectAll = document.getElementById('select-all');
+    if (selectAll) {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+    }
+    
+    updateBulkSelectionBar();
   }
-  // END: Fancy No Results UI helper
+  // END: Bulk Selection Functions
 
-  // START: searchFunction (enhanced)
+  // START: Bulk Download
+  async function bulkDownload() {
+    if (currentSelection.size === 0 || !currentClassId) {
+      showError('Please select at least one student to download');
+      return;
+    }
+
+    const studentIds = Array.from(currentSelection);
+    const bulkBtn = document.getElementById('bulk-download-btn');
+    const originalHTML = bulkBtn.innerHTML;
+
+    try {
+      // Loading state
+      bulkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+      bulkBtn.disabled = true;
+
+      const response = await fetch('/bulk_download_results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_ids: studentIds,
+          class_id: parseInt(currentClassId)
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to generate results');
+      }
+
+      const data = await response.json();
+
+      const newWindow = window.open('', '_blank');
+      console.log(data.html);
+      newWindow.document.open();
+      newWindow.document.write(data.html);
+
+      newWindow.document.close();
+
+      // Wait for full load (HTML + CSS + fonts + images)
+      newWindow.onload = async () => {
+        const images = Array.from(newWindow.document.images);
+
+        await Promise.all(
+          images.map(img =>
+            img.complete
+              ? Promise.resolve()
+              : new Promise(resolve => {
+                  img.onload = img.onerror = resolve;
+                })
+          )
+        );
+
+        newWindow.focus();
+        newWindow.print();
+
+        // Reset button
+        bulkBtn.innerHTML = originalHTML;
+        bulkBtn.disabled = false;
+      };
+
+    } catch (err) {
+      console.error('Bulk download error:', err);
+      showError(err.message || 'Error generating bulk results');
+
+      bulkBtn.innerHTML = '<i class="fas fa-download"></i> Download Selected';
+      bulkBtn.disabled = currentSelection.size === 0;
+    }
+  }
+  
+  // START: Search Function with Debounce
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
   function searchFunction() {
     const inputEl = document.getElementById("search-input");
     const input = inputEl.value.toLowerCase().trim();
     const cards = Array.from(document.querySelectorAll(".marks-card"));
-
+    
+    let visibleCount = 0;
+    let hasResults = false;
+    
     cards.forEach(card => {
-      const name = card.querySelector(".name")?.innerText.toLowerCase() || "";
-      const roll = card.querySelector(".roll")?.innerText.toLowerCase() || "";
-      const father = card.querySelector(".f-name")?.innerText.toLowerCase() || "";
-
-      const isMatch = name.includes(input) || roll.includes(input) || father.includes(input);
-      card.style.display = isMatch ? "block" : "none";
+      const name = card.querySelector("h3")?.innerText.toLowerCase() || "";
+      const father = card.querySelector("p.text-gray-400")?.innerText.toLowerCase() || "";
+      const rollElement = card.querySelector(".bg-gradient-to-r.from-gray-800\\/50");
+      const roll = rollElement ? rollElement.querySelector("p.font-semibold")?.innerText.toLowerCase() : "";
+      
+      const isMatch = name.includes(input) || 
+                     father.includes(input) || 
+                     roll.includes(input) ||
+                     input === "";
+      
+      if (isMatch) {
+        card.style.display = "block";
+        visibleCount++;
+        hasResults = true;
+        
+        // Highlight search terms
+        if (input) {
+          highlightText(card, input);
+        }
+      } else {
+        card.style.display = "none";
+      }
     });
-
-    const visibleCards = cards.filter(c => c.style.display !== "none").length;
+    
+    // Show/hide no results message
     const resultsContainer = document.getElementById("results");
+    if (!resultsContainer) return;
+    
     let emptyMessage = document.getElementById("no-results-message");
-
-    if (visibleCards === 0 && input !== "") {
+    
+    if (!hasResults && input !== "") {
       if (!emptyMessage) {
-        const el = createNoResultsElement('no-results-message');
-        resultsContainer.appendChild(el);
-
-        // wire up the buttons
-        document.getElementById('clear-search-btn').addEventListener('click', () => {
-          inputEl.value = '';
-          searchFunction();
-          inputEl.focus();
-        });
-
-        document.getElementById('choose-class-btn').addEventListener('click', () => {
-          document.getElementById('classView')?.focus();
-        });
+        emptyMessage = document.createElement('div');
+        emptyMessage.id = 'no-results-message';
+        emptyMessage.className = 'text-center py-16';
+        emptyMessage.innerHTML = `
+          <div class="inline-block p-8 bg-gray-800/30 rounded-3xl border border-gray-700/30 mb-8">
+            <i class="fas fa-search text-5xl text-gray-600"></i>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-4">No matching results</h3>
+          <p class="text-gray-400 text-lg mb-8">No students found matching "<span class="text-blue-300">${input}</span>"</p>
+          <button onclick="clearSearch()" 
+                  class="px-6 py-3 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 border border-gray-700/50 mx-auto">
+            <i class="fas fa-times"></i>
+            Clear Search
+          </button>
+        `;
+        resultsContainer.parentNode.insertBefore(emptyMessage, resultsContainer.nextSibling);
       }
     } else {
-      if (emptyMessage) emptyMessage.remove();
+      if (emptyMessage) {
+        emptyMessage.remove();
+      }
     }
   }
-  // END: searchFunction
+
+  function highlightText(element, searchTerm) {
+    // Remove previous highlights
+    const highlights = element.querySelectorAll('.search-highlight');
+    highlights.forEach(h => {
+      const parent = h.parentNode;
+      parent.replaceChild(document.createTextNode(h.textContent), h);
+      parent.normalize();
+    });
+    
+    // Highlight text in headings
+    const headings = element.querySelectorAll('h3, p.text-gray-400, .font-semibold');
+    headings.forEach(heading => {
+      const text = heading.textContent;
+      const regex = new RegExp(`(${searchTerm})`, 'gi');
+      const newText = text.replace(regex, '<span class="search-highlight bg-yellow-500/20 text-yellow-300 px-1 rounded">$1</span>');
+      
+      if (newText !== text) {
+        heading.innerHTML = newText;
+      }
+    });
+  }
+
+  function clearSearch() {
+    const inputEl = document.getElementById("search-input");
+    inputEl.value = "";
+    searchFunction();
+    inputEl.focus();
+  }
+  // END: Search Function
+
+  // START: Helper Functions
+  function showError(message) {
+    // Create error toast
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 z-50 bg-red-600 text-white px-6 py-4 rounded-xl shadow-xl border border-red-700 transform transition-transform duration-300 translate-x-full';
+    toast.innerHTML = `
+      <div class="flex items-center gap-3">
+        <i class="fas fa-exclamation-circle text-xl"></i>
+        <div>
+          <p class="font-medium">${message}</p>
+          <p class="text-red-200 text-sm mt-1">Please try again</p>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-red-200 hover:text-white">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+      toast.classList.remove('translate-x-full');
+    }, 10);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      toast.classList.add('translate-x-full');
+      setTimeout(() => toast.remove(), 300);
+    }, 5000);
+  }
+
 </script>
 
 {% endblock %}

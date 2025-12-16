@@ -639,15 +639,7 @@
 <script src="{{ url_for('static', filename='watsappMessage.js') }}"></script>
 <script>
 
-  const header = document.getElementById('statsAccordion');
-  const content = header.nextElementSibling;
-  const icon = header.querySelector('.accordion-icon');
-
-  header.addEventListener('click', () => {
-    const isOpen = content.style.maxHeight && content.style.maxHeight !== "0px";
-    content.style.maxHeight = isOpen ? "0" : content.scrollHeight + "px";
-    icon.classList.toggle('rotate-180');
-  });
+  
 
   document.getElementById('downloadBtn').addEventListener('click', async function() {
     console.log(document.getElementById('downloadBtn'))

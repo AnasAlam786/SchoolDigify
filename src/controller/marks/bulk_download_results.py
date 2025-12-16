@@ -1,6 +1,6 @@
-# src/controller/get_result_api.py
+# src/controller/marks/bulk_download_results.py
 
-from flask import session, request, jsonify, Blueprint, render_template 
+from flask import session, request, jsonify, Blueprint, render_template
 from sqlalchemy import func
 
 from src.model import StudentsDB
@@ -13,58 +13,46 @@ from .utils.process_marks import process_marks
 from src.controller.permissions.permission_required import permission_required
 from src.controller.auth.login_required import login_required
 
-# import time
-
-get_result_api_bp = Blueprint('get_result_api_bp',   __name__)
+bulk_download_results_bp = Blueprint('bulk_download_results_bp', __name__)
 
 
-@get_result_api_bp.route('/get_result_api', methods=["POST"])
+@bulk_download_results_bp.route('/bulk_download_results', methods=["POST"])
 @login_required
-@permission_required('get_result')
-def get_result_api():
-
+@permission_required('get_result')  # Assuming same permission as single download
+def bulk_download_results():
     current_session_id = session["session_id"]
     user_id = session["user_id"]
     school_id = session["school_id"]
 
     try:
-        student_id = int(request.json.get("id"))
-    except (TypeError, ValueError):
-        return jsonify({"message": "Invalid student ID."}), 400
-    
-    try:
+        student_ids = request.json.get("student_ids", [])
         class_id = int(request.json.get("class_id"))
+        if not isinstance(student_ids, list) or not student_ids:
+            return jsonify({"message": "Invalid student IDs."}), 400
+        student_ids = [int(sid) for sid in student_ids]
     except (TypeError, ValueError):
-        return jsonify({"message": "Invalid class ID."}), 400
+        return jsonify({"message": "Invalid input."}), 400
 
     # Session checks
-    if not student_id or not current_session_id or not user_id:
+    if not student_ids or not current_session_id or not user_id:
         return jsonify({"message": "Session data missing. Please logout and login again!"}), 403
-    
+
     extra_fields = {
-        "StudentsDB": ["STUDENTS_NAME", "FATHERS_NAME", "FATHERS_NAME", "IMAGE",
+        "StudentsDB": ["STUDENTS_NAME", "FATHERS_NAME", "IMAGE",
                        "MOTHERS_NAME", "ADDRESS", "PHONE", 'GENDER', "PEN"],
         "expr": [func.to_char(StudentsDB.DOB, 'Dy, DD Mon YYYY').label("DOB")],
         "ClassData": ["CLASS"],
         "StudentSessions": ["ROLL", "class_id", "Attendance"],
-        
     }
 
-
     student_marks_data = result_data(school_id, current_session_id, 
-                                     class_id, student_ids=[student_id],
+                                     class_id, student_ids=student_ids,
                                      extra_fields=extra_fields)
-
-    # print(student_marks_data)
 
     if not student_marks_data:
         return jsonify({"message": "No Data Found"}), 400
 
     student_marks = process_marks(student_marks_data, add_grades_flag=True, add_grand_total_flag=True)
-
-    # # Print the structure of result student_marks_dict
-    # import pprint
-    # pprint.pprint(student_marks)
 
     # get principal and class teacher sign from database
     principle_sign = (
@@ -92,13 +80,8 @@ def get_result_api():
     principle_sign = principle_sign.Sign if principle_sign else None
     teacher_sign = teacher_sign.Sign if teacher_sign else None
 
-    
-
-    # principle_sign = principle_sign[0] if principle_sign else None
-    # teacher_sign = teacher_sign[0] if teacher_sign else None
-
+    # Generate HTML for bulk results
     html = render_template('pdf-components/tall_result.html', students=student_marks, 
-                            attandance_out_of = '214', 
-                            principle_sign = principle_sign, teacher_sign = teacher_sign)
-    return jsonify({"html":str(html)})
+                            principle_sign=principle_sign, teacher_sign=teacher_sign)
 
+    return jsonify({"html": html})

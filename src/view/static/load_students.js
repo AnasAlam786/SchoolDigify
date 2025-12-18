@@ -68,6 +68,13 @@ async function loadStudentsData() {
             }
             
             renderStudents(result.students);
+            
+            // Set global variables for search/filter/sort functionality
+            window.studentsData = result.students;
+            window.createStudentCard = createStudentCard;
+            
+            // Apply initial filters after data is loaded
+            if (window.applyFilters) window.applyFilters();
         } else {
             showNoDataMessage();
         }
@@ -154,6 +161,14 @@ function createStudentCard(student) {
     card.setAttribute('data-father', student.FATHERS_NAME);
     card.setAttribute('data-PEN', student.PEN);
     card.setAttribute('data-roll', student.ROLL);
+    card.setAttribute('data-status', student.student_status);
+    
+    // Detect new admission based on admission number matching current session
+    // This logic should match the backend logic in get_students_data_api.py
+    const currentSession = student.ADMISSION_SESSION;
+    const isAdmissionFromCurrentSession = student.ADMISSION_NO && 
+        String(student.ADMISSION_NO).startsWith(String(currentSession).slice(-2));
+    student.is_new = isAdmissionFromCurrentSession;
     
     const imageUrl = student.IMAGE 
         ? `https://lh3.googleusercontent.com/d/${student.IMAGE}=s200`
@@ -162,7 +177,7 @@ function createStudentCard(student) {
             : '/static/no-student-girl-image.png');
     
     const rteTag = student.is_RTE ? '<span class="bg-yellow-500 text-gray-900 text-[9px] font-bold px-1.5 py-[2px] rounded">RTE</span>' : '';
-    const newTag = student.is_new ? '<span class="bg-green-500 text-white text-[9px] font-bold px-1.5 py-[2px] rounded">NEW</span>' : '';
+    const newTag = student.student_status === 'new' ? '<span class="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-[2px] rounded">NEW</span>' : '';
     
     card.innerHTML = `
         <!-- TOP BAR -->

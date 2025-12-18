@@ -2,7 +2,7 @@
 
 from collections import Counter
 from flask import jsonify, session, Blueprint
-from sqlalchemy import String, case, cast, func
+from sqlalchemy import String, case, cast, extract, func
 from datetime import datetime
 
 from src.model.RTEInfo import RTEInfo
@@ -55,8 +55,14 @@ def get_students_data():
         StudentsDB.ADMISSION_SESSION, StudentsDB.ADMISSION_DATE,
         StudentSessions.ROLL,
         StudentSessions.id.label("student_session_id"),
-        ClassData.CLASS, ClassData.Section,
+        ClassData.CLASS, ClassData.Section, ClassData.display_order,
         RTEInfo.is_RTE,
+        # NEW / OLD STATUS
+        case(
+            (extract('year', StudentsDB.ADMISSION_DATE) == selected_session, 'new'),
+            else_='old'
+        ).label('student_status')
+
     ).join(
         StudentSessions, StudentSessions.student_id == StudentsDB.id
     ).join(
@@ -68,8 +74,7 @@ def get_students_data():
         StudentSessions.session_id == selected_session,
         ClassData.id.in_(class_ids)
     ).order_by(
-        ClassData.id.asc(),
-        ClassData.Section.asc(),
+        ClassData.display_order.asc(),
         StudentSessions.ROLL.asc()
     ).all()
 
@@ -84,9 +89,6 @@ def get_students_data():
     # Assuming new students have ADMISSION_NO containing selected_session
     old_students = sum(1 for s in data if str(s.ADMISSION_NO)[:2] != str(selected_session)[-2:])
     new_students = total_students - old_students
-
-    # Total students in each class
-    class_counts = Counter(f"{s.CLASS}-{s.Section}" for s in data)
 
     # ---------------------------------------------------
     # 4. Get previous year stats (one small query)

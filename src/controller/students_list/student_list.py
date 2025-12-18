@@ -17,7 +17,6 @@ student_list_bp = Blueprint('student_list_bp', __name__)
 @permission_required('student_list')
 def student_list():
 
-    school_id = session['school_id']
     user_id = session["user_id"]
 
     classes = (
@@ -32,10 +31,8 @@ def student_list():
         data=[],
         classes=classes,
         total_students=0,
-        total_girls=0,
-        total_boys=0,
-        new_students=0,
-        old_students=0,
+        total_girls=0, total_boys=0,
+        new_students=0, old_students=0,
         class_counts={},
         total_growth_percentage=0,
         new_students_growth_percentage=0,

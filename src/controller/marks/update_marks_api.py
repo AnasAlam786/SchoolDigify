@@ -4,6 +4,8 @@ from flask import request, jsonify, Blueprint, session
 from sqlalchemy.orm.attributes import flag_modified
 
 from src import db
+from src.controller.auth.login_required import login_required
+from src.controller.permissions.permission_required import permission_required
 from src.model import StudentMarks
 from src.controller.permissions.has_permission import has_permission
 from src.model import Exams
@@ -12,6 +14,8 @@ update_marks_api_bp = Blueprint('update_marks_api_bp',   __name__)
 
 
 @update_marks_api_bp.route('/update_marks_api', methods=['POST'])
+@login_required
+@permission_required('fill_marks')
 def update_marks_api():
     data = request.json
     
@@ -37,7 +41,6 @@ def update_marks_api():
     if marks_id and marks_id != "":
         
         student_marks = StudentMarks.query.filter_by(id=marks_id).first()
-        print("Received data for update:", data)
         if student_marks:
             student_marks.score = score
             db.session.commit()

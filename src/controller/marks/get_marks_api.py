@@ -20,7 +20,7 @@ get_marks_api_bp = Blueprint('get_marks_api_bp',   __name__)
 
 @get_marks_api_bp.route('/get_marks_api', methods=["POST"])
 @login_required
-@permission_required('get_result')  # Assuming same permission as single download
+@permission_required('show_marks')  # Assuming same permission as single download
 def get_marks_api():
     school_id = session["school_id"]
     current_session_id = session["session_id"]

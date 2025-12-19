@@ -66,7 +66,7 @@ class IDCard extends HTMLElement {
     set("school-name", "school-name");
     set("school-UDISE", "school-UDISE");
     set("school-logo", "school-logo");
-    set("session-logo", "session-logo");
+    set("session-year", "session-year");
 
     set("student-image", "student-image");
     set("student-name", "student-name");

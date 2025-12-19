@@ -6,7 +6,10 @@ from sqlalchemy import func
 from src.model import StudentsDB
 from src.model.ClassAccess import ClassAccess
 from src.model.Roles import Roles
+from src.model.Schools import Schools
 from src.model.TeachersLogin import TeachersLogin
+from src import db
+
 
 from .utils.marks_processing import result_data
 from .utils.process_marks import process_marks
@@ -54,34 +57,54 @@ def bulk_download_results():
 
     student_marks = process_marks(student_marks_data, add_grades_flag=True, add_grand_total_flag=True)
 
-    # get principal and class teacher sign from database
-    principle_sign = (
-        TeachersLogin.query
-        .join(Roles, Roles.id == TeachersLogin.role_id)
-        .filter(
-            TeachersLogin.school_id == school_id,
-            Roles.role_name == 'Principal'
-        ).first()
-    )
-    
-
-    # Teacher sign
-    teacher_sign = (
-        TeachersLogin.query
-        .join(ClassAccess, ClassAccess.staff_id == TeachersLogin.id)
-        .join(Roles, Roles.id == TeachersLogin.role_id)
-        .filter(
-            ClassAccess.class_id == class_id,
-            TeachersLogin.school_id == school_id,
-            Roles.role_name == 'Teacher'
-        ).first()
+    school = (
+        db.session.query(
+            Schools.Logo,
+            Schools.school_heading_image
+        )
+        .filter(Schools.id == school_id)
+        .first()
     )
 
-    principle_sign = principle_sign.Sign if principle_sign else None
-    teacher_sign = teacher_sign.Sign if teacher_sign else None
+    import time
+
+    start = time.perf_counter()
+
+    rows = (
+        db.session.query(
+            TeachersLogin.Sign,
+            Roles.role_name,
+            ClassAccess.class_id
+        )
+        .join(Roles, Roles.id == TeachersLogin.role_id)
+        .outerjoin(ClassAccess, ClassAccess.staff_id == TeachersLogin.id)
+        .filter(
+            TeachersLogin.school_id == school_id,
+            Roles.role_name.in_(["Principal", "Teacher"])
+        )
+        .all()
+    )
+
+    principal_sign = None
+    teacher_sign = None
+
+    for sign, role, cls_id in rows:
+        if role == "Principal":
+            principal_sign = sign
+        elif role == "Teacher" and cls_id == class_id:
+            teacher_sign = sign
+
+    end = time.perf_counter()
+
+    print(f"Total time taken: {(end - start) * 1000:.2f} ms")
+
+    current_session = int(current_session_id)
+    session_year = f"{current_session}-{str(current_session + 1)[-2:]}"
 
     # Generate HTML for bulk results
     html = render_template('pdf-components/tall_result.html', students=student_marks, 
-                            principle_sign=principle_sign, teacher_sign=teacher_sign)
+                            principle_sign=principal_sign, teacher_sign=teacher_sign, 
+                            school_logo=school.Logo, school_heading_image=school.school_heading_image,
+                            sesion_year=session_year)
 
     return jsonify({"html": html})

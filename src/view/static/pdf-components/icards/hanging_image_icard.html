@@ -26,13 +26,21 @@
         
         <!-- Session image -->
         <div style="position: absolute; top: 3%; left: 76.5%; z-index: 7; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; background: #fff;">
-            <img src=""
-                id="session-logo"
-                alt="profile"
-                width="100%"
-                height="100%"
-                style="object-fit: cover; display: block;" 
-                crossorigin="anonymous" />
+            <svg viewBox="0 0 400 400">
+                <circle cx="200" cy="200" r="190" fill="#f8f7f2" stroke="black" stroke-width="8"/>
+                <path id="session-curve" d="M 70,190 A 180,180 0 0,1 330,190" fill="transparent" />
+                <text fill="black" font-size="60" font-weight="950" letter-spacing="2" font-family="Arial Black, sans-serif"
+                    style="transform: scale(1, 1.3); transform-origin: center 220px;">
+                    <textPath xlink:href="#session-curve" startOffset="50%" text-anchor="middle">
+                        SESSION
+                    </textPath>
+                </text>
+
+                <text x="50%" y="270" text-anchor="middle" fill="black" font-size="70" font-weight="900" id="session-year"
+                    style="transform: scale(1, 1.6); transform-origin: center 240px;" font-family="Arial Black, sans-serif">
+                    2025-26
+                </text>
+            </svg>
         </div>
         
         <!-- Larger white hexagon -->

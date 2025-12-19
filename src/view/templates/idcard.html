@@ -33,8 +33,7 @@
 
 <div class="min-h-screen text-white">
     <!-- Header -->
-    <header
-        class="py-8 md:py-10">
+    <header class="py-8 md:py-10">
         <div class="mx-auto px-4">
             <!-- Header Content -->
             <div class="text-center mb-10 md:mb-12">
@@ -121,21 +120,21 @@
                         </div>
                         <div class="space-y-3 pl-10">
                             <label class="flex items-center gap-3 cursor-pointer select-none">
-    <input type="checkbox" id="show-images" class="sr-only peer" checked>
+                                <input type="checkbox" id="show-images" class="sr-only peer" checked>
 
-    <div class="w-5 h-5 rounded-md border-2 border-gray-600
+                                <div class="w-5 h-5 rounded-md border-2 border-gray-600
                 flex items-center justify-center
                 peer-checked:bg-blue-500 peer-checked:border-blue-500
                 transition-all duration-200">
 
-        <span class="w-2.5 h-1.5 border-b-2 border-l-2 border-white
+                                    <span class="w-2.5 h-1.5 border-b-2 border-l-2 border-white
                      rotate-[-45deg] mb-0.5 hidden peer-checked:block"></span>
-    </div>
+                                </div>
 
-    <span class="text-sm text-gray-300 peer-hover:text-gray-200">
-        Show only with images
-    </span>
-</label>
+                                <span class="text-sm text-gray-300 peer-hover:text-gray-200">
+                                    Show only with images
+                                </span>
+                            </label>
 
                             <label class="flex items-center group cursor-pointer">
                                 <input type="checkbox" id="select-all" class="sr-only peer">
@@ -224,7 +223,6 @@
         let selectedStudentIds = new Set();
         let currentClassId = null;
         let schoolData = {};
-        let sessionLogo = '';
         let principalSign = '';
 
         // DOM refs (populated in init)
@@ -299,7 +297,7 @@
                 // normalize ids to Number to avoid type mismatches
                 currentStudents = (data.students || []).map(s => ({ ...s, id: Number(s.id) }));
                 schoolData = data.school || {};
-                sessionLogo = data.session_logo || '';
+                sessionYear = data.session_year || '';
                 principalSign = data.principal_sign || '';
                 selectedStudentIds.clear();
                 renderCards();
@@ -334,7 +332,7 @@
             icard.setAttribute('school-name', schoolData.name || '');
             icard.setAttribute('school-UDISE', `UDISE: ${schoolData.udise || ''}`);
             icard.setAttribute('school-logo', schoolData.logo || '');
-            icard.setAttribute('session-logo', sessionLogo);
+            icard.setAttribute('session-year', sessionYear);
             icard.setAttribute('student-image', student.image ? `https://lh3.googleusercontent.com/d/${student.image}=s220` : '/static/no-student-boy-image.png');
             icard.setAttribute('student-name', student.name);
             icard.setAttribute('student-father', `C/O Mr. ${student.father}`);
@@ -531,7 +529,7 @@
                 setText("school-name", schoolData.name);
                 setText("school-UDISE", `UDISE: ${schoolData.udise}`);
                 setSrc("school-logo", schoolData.logo);
-                setSrc("session-logo", sessionLogo);
+                setText("session-year", sessionYear);
 
                 setSrc("student-image", student.image ? `https://lh3.googleusercontent.com/d/${student.image}=s220` : "/static/no-student-boy-image.png");
                 setText("student-name", student.name);

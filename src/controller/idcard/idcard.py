@@ -109,7 +109,8 @@ def get_students_by_class(class_id):
         TeachersLogin.role_id == 2
     ).scalar()
 
-    session_logo = 'https://lh3.googleusercontent.com/d/1tJnm5i4GgSyb4HIULAb2tvbejXfrz5HZ=s200'
+    current_session = int(current_session)
+    session_year = f"{current_session}-{str(current_session + 1)[-2:]}"
 
     students_data = []
     for student in students_query:
@@ -137,7 +138,7 @@ def get_students_by_class(class_id):
             'logo': school.Logo if school else '',
             'udise': school.UDISE if school else ''
         },
-        'session_logo': session_logo,
+        'session_year': session_year,
         'principal_sign': principal_sign
     })
 

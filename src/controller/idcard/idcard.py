@@ -1,6 +1,6 @@
 # src/controller/idcard/idcard.py
 
-from flask import render_template, session, Blueprint
+from flask import render_template, session, Blueprint, jsonify
 from sqlalchemy import func
 
 from src.model import Schools, TeachersLogin
@@ -25,7 +25,6 @@ idcard_bp = Blueprint( 'idcard_bp',   __name__)
 def idcards_page():
 
     school_id = session['school_id']
-    current_session = session["session_id"]
     user_id = session["user_id"]
 
     classes_query = (
@@ -36,10 +35,38 @@ def idcards_page():
     )
 
     classes = classes_query.all()
-    class_ids = [cls.id for cls in classes]
 
-    # build your query
-    students = db.session.query(
+    school = db.session.query(
+        func.upper(Schools.School_Name).label('School_Name'),
+        Schools.Address,
+        Schools.Phone,
+        Schools.Logo,
+        Schools.UDISE
+    ).filter(
+        Schools.id == school_id
+    ).first()
+
+    return render_template('/idcard.html', school=school, classes=classes)
+
+@idcard_bp.route('/idcard/api/students/<int:class_id>', methods=['GET'])
+@login_required
+@permission_required('idcard')
+def get_students_by_class(class_id):
+    school_id = session['school_id']
+    current_session = session["session_id"]
+    user_id = session["user_id"]
+
+    # Check if user has access to this class
+    has_access = db.session.query(ClassAccess).filter(
+        ClassAccess.staff_id == user_id,
+        ClassAccess.class_id == class_id
+    ).first()
+    
+    if not has_access:
+        return jsonify({'error': 'Access denied'}), 403
+
+    # Query students for the specific class
+    students_query = db.session.query(
         StudentsDB.id,
         StudentsDB.STUDENTS_NAME,
         func.to_char(StudentsDB.DOB, 'Dy, DD Month YYYY').label('dob'),
@@ -52,26 +79,21 @@ def idcards_page():
         ClassData.CLASS,
         ClassData.Section,
         TeachersLogin.Sign.label('teachers_sign')
-        
     ).join(
         StudentSessions, StudentSessions.student_id == StudentsDB.id
     ).join(
-        ClassData,    StudentSessions.class_id == ClassData.id
+        ClassData, StudentSessions.class_id == ClassData.id
     ).outerjoin(
-        TeachersLogin,    ClassData.class_teacher_id == TeachersLogin.id
+        TeachersLogin, ClassData.class_teacher_id == TeachersLogin.id
     ).filter(
-        StudentsDB.school_id    == school_id,
+        StudentsDB.school_id == school_id,
         StudentSessions.session_id == current_session,
-        # ClassData.id == 11
-        ClassData.id.in_(class_ids),
-        #StudentsDB.IMAGE.isnot(None)
+        ClassData.id == class_id
     ).order_by(
-        ClassData.id.asc(),
-        ClassData.Section.asc(),
         StudentSessions.ROLL.asc()
     ).all()
 
-
+    # Get school data
     school = db.session.query(
         func.upper(Schools.School_Name).label('School_Name'),
         Schools.Address,
@@ -82,35 +104,40 @@ def idcards_page():
         Schools.id == school_id
     ).first()
 
-    principal_sign = db.session.query( TeachersLogin.Sign
-        ).filter(
-            TeachersLogin.school_id == school_id,
-            TeachersLogin.role_id == 2  #2 role_id is for principal in database
-        ).scalar()
-
-    # for student in students:
-    #     print({
-    #         "id": student.id,
-    #         "name": student.STUDENTS_NAME,
-    #         "dob": student.dob,
-    #         "father": student.FATHERS_NAME,
-    #         "image": student.IMAGE,
-    #         "phone": student.PHONE,
-    #         "address": student.ADDRESS,
-    #         "roll": student.ROLL,
-    #         "class": student.CLASS,
-    #         "section": student.Section,
-    #         "teacher_sign": student.teachers_sign
-    #     })
-    #     print("")
-
-
-        
-
-    # '/pdf-components/icards/hanging_image_icard.html'
+    principal_sign = db.session.query(TeachersLogin.Sign).filter(
+        TeachersLogin.school_id == school_id,
+        TeachersLogin.role_id == 2
+    ).scalar()
 
     session_logo = 'https://lh3.googleusercontent.com/d/1tJnm5i4GgSyb4HIULAb2tvbejXfrz5HZ=s200'
 
-    return render_template('/idcard.html',
-                           students=students, school = school, classes=classes, session_logo = session_logo, principal_sign = principal_sign)
+    students_data = []
+    for student in students_query:
+        students_data.append({
+            'id': student.id,
+            'name': student.STUDENTS_NAME,
+            'dob': student.dob,
+            'father': student.FATHERS_NAME,
+            'image': student.IMAGE,
+            'phone': student.PHONE,
+            'address': student.ADDRESS,
+            'roll': student.ROLL,
+            'class': student.CLASS,
+            'section': student.Section,
+            'teacher_sign': student.teachers_sign,
+            'class_roll': f"{student.CLASS} - {student.ROLL}"
+        })
+
+    return jsonify({
+        'students': students_data,
+        'school': {
+            'name': school.School_Name if school else '',
+            'address': school.Address if school else '',
+            'phone': school.Phone if school else '',
+            'logo': school.Logo if school else '',
+            'udise': school.UDISE if school else ''
+        },
+        'session_logo': session_logo,
+        'principal_sign': principal_sign
+    })
 

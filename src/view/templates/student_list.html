@@ -622,6 +622,56 @@
             </div>
           </div>
         </div>
+        <!-- === SINGLE COLLAPSIBLE: ADVANCED FILTERING === -->
+<div class="bg-gray-900/40 backdrop-blur-xl border border-gray-800/70 rounded-2xl overflow-hidden">
+
+  <!-- HEADER -->
+  <div
+    id="toggle-advanced-all"
+    role="button"
+    aria-expanded="false"
+    class="group flex items-center justify-between px-6 py-4 cursor-pointer select-none
+           hover:bg-gray-800/40 transition-colors">
+
+    <div class="flex items-center gap-4">
+      <!-- Accent bar -->
+      <div class="w-2 h-10 rounded-full bg-gradient-to-b from-purple-500 via-pink-500 to-amber-400"></div>
+
+      <div>
+        <h3 class="text-lg font-semibold text-white leading-tight">
+          Advanced Filtering
+        </h3>
+        <p class="text-xs text-gray-400">
+          Filters and sorting options (collapsed)
+        </p>
+      </div>
+    </div>
+
+    <!-- Right side affordance -->
+    <div class="flex items-center gap-3">
+      <!-- Hover hint -->
+      <span
+        class="text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+        Click to expand
+      </span>
+
+      <!-- Chevron -->
+      <div
+        class="p-2 rounded-lg bg-gray-900/40 border border-gray-700/40
+               group-hover:border-purple-500/40 transition-all">
+        <svg
+          id="advanced-all-chevron"
+          class="w-5 h-5 text-gray-300 transform transition-transform duration-300"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor">
+          <path d="M6 8l4 4 4-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</div>
 
         <!-- SECOND ROW: Advanced Filters + Sorting -->
         <div class="grid grid-cols-2 gap-6">
@@ -676,8 +726,7 @@
               </div>
 
               <!-- Gender Filter -->
-              <div
-                class="bg-gray-900/50 rounded-xl p-4 border border-gray-700/30 hover:border-purple-500/30 transition-colors">
+              <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-700/30 hover:border-purple-500/30 transition-colors">
                 <div class="mb-1">
                   <div class="text-xs text-gray-400 mb-1">Gender</div>
                   <select id="filter-gender"

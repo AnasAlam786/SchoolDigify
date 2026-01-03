@@ -178,6 +178,12 @@ function createStudentCard(student) {
     
     const rteTag = student.is_RTE ? '<span class="bg-yellow-500 text-gray-900 text-[9px] font-bold px-1.5 py-[2px] rounded">RTE</span>' : '';
     const newTag = student.student_status === 'new' ? '<span class="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-[2px] rounded">NEW</span>' : '';
+    const aadhaarTag = (!student.AADHAAR || student.AADHAAR === '' || student.AADHAAR === '999999999999') 
+        ? '<span class="bg-red-500 text-white text-[9px] font-bold px-1.5 py-[2px] rounded">No Aadhaar</span>' 
+        : '';
+    const penTag = (!student.PEN || student.PEN === '' || student.PEN === '999999999999') 
+        ? '<span class="bg-orange-500 text-white text-[9px] font-bold px-1.5 py-[2px] rounded">No PEN</span>' 
+        : '';
     
     card.innerHTML = `
         <!-- TOP BAR -->
@@ -186,6 +192,8 @@ function createStudentCard(student) {
             <div class="flex space-x-1 p-1">
                 ${rteTag}
                 ${newTag}
+                ${aadhaarTag}
+                ${penTag}
             </div>
 
             <!-- RIGHT: Quick Actions + Menu -->

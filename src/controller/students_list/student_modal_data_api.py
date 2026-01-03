@@ -30,7 +30,8 @@ def student_modal_data_api():
             StudentsDB.id, StudentsDB.STUDENTS_NAME, StudentsDB.AADHAAR,
             StudentsDB.FATHERS_NAME, StudentsDB.MOTHERS_NAME, StudentsDB.PHONE,
             StudentsDB.ADDRESS, StudentsDB.ADMISSION_DATE, StudentsDB.SR, StudentsDB.IMAGE,
-            StudentsDB.GENDER, StudentsDB.PEN,
+            StudentsDB.GENDER, StudentsDB.PEN, StudentsDB.ADMISSION_NO, StudentsDB.EMAIL,
+            StudentsDB.BLOOD_GROUP, StudentsDB.Caste, StudentsDB.Previous_School_Name,
             func.to_char(StudentsDB.ADMISSION_DATE, 'DD-MM-YYYY').label('ADMISSION_DATE'),
             func.to_char(StudentsDB.DOB, 'Dy, DD Month YYYY').label('DOB'),
             ClassData.CLASS,  # Get the class name from the ClassData table
@@ -50,7 +51,32 @@ def student_modal_data_api():
     ).all()
 
     if not student:
-        return jsonify({"message": "Student not found"}), 404
+        return jsonify({"success": False, "message": "Student not found"}), 404
     
-    content = render_template('student_modal.html', student=student)
-    return jsonify({"html":str(content)})
+    # Convert to dict for JSON response
+    students_data = []
+    for s in student:
+        students_data.append({
+            "id": s.id,
+            "STUDENTS_NAME": s.STUDENTS_NAME,
+            "AADHAAR": s.AADHAAR,
+            "FATHERS_NAME": s.FATHERS_NAME,
+            "MOTHERS_NAME": s.MOTHERS_NAME,
+            "PHONE": s.PHONE,
+            "ADDRESS": s.ADDRESS,
+            "ADMISSION_DATE": s.ADMISSION_DATE,
+            "SR": s.SR,
+            "IMAGE": s.IMAGE,
+            "GENDER": s.GENDER,
+            "PEN": s.PEN,
+            "ADMISSION_NO": s.ADMISSION_NO,
+            "EMAIL": s.EMAIL,
+            "BLOOD_GROUP": s.BLOOD_GROUP,
+            "Caste": s.Caste,
+            "Previous_School_Name": s.Previous_School_Name,
+            "DOB": s.DOB,
+            "CLASS": s.CLASS,
+            "ROLL": s.ROLL
+        })
+    
+    return jsonify({"success": True, "students": students_data})

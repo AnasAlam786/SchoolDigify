@@ -1,0 +1,669 @@
+{% macro student_detail_modal() %}
+<!-- 
+  Student Detail Modal Component
+  ==============================
+  
+  This is a self-contained modal component for displaying student details.
+  Features:
+  - Skeleton loader while fetching data
+  - Client-side rendering of student information
+  - Responsive design
+  - Smooth animations
+  - Error handling
+-->
+<!-- Student Detail Modal -->
+<div class="student-modal" id="studentDetailsModal">
+  <div class="student-modal-content">
+    <div class="student-modal-header">
+      <div class="school-info">
+        <i class="fas fa-school school-icon"></i>
+        <div class="school-name">Falak Public School</div>
+      </div>
+      <button class="close-btn" onclick="closeStudentModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="student-modal-body" id='studentModalBody'>
+      <!-- Skeleton Loader -->
+      <div id="studentModalSkeleton" class="student-skeleton">
+        <div class="skeleton-profile">
+          <div class="skeleton-img animate-pulse"></div>
+          <div class="skeleton-name animate-pulse"></div>
+          <div class="skeleton-class animate-pulse"></div>
+        </div>
+        <div class="skeleton-table">
+          {% for i in range(12) %}
+          <div class="skeleton-row">
+            <div class="skeleton-th animate-pulse"></div>
+            <div class="skeleton-td animate-pulse"></div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <!-- Actual content will be loaded here -->
+      <div id="studentModalContent" style="display: none;"></div>
+    </div>
+
+    <div class="student-modal-footer">
+      <button class="action-btn" onclick="closeStudentModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Modal Styles */
+  .student-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+  }
+
+  .student-modal.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .student-modal-content {
+    background: linear-gradient(165deg, #1a1a1a 0%, #242424 100%);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 36rem;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s ease;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(67, 97, 238, 0.3);
+  }
+
+  .student-modal.active .student-modal-content {
+    transform: scale(1) translateY(0);
+  }
+
+  .student-modal-header {
+    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .school-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .school-icon {
+    font-size: 28px;
+    color: white;
+  }
+
+  .school-name {
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+
+  .close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+
+  .student-modal-body {
+    padding: 15px;
+    overflow-y: auto;
+    flex-grow: 1;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .student-modal-body::-webkit-scrollbar {
+    display: none;
+  }
+
+  .student-modal-footer {
+    padding: 20px 28px;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .action-btn {
+    background: linear-gradient(135deg, #374151, #4b5563);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+  }
+
+  .action-btn:hover {
+    background: linear-gradient(135deg, #4b5563, #6b7280);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Skeleton Styles */
+  .student-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .skeleton-profile {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .skeleton-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    margin: 0 auto 16px;
+  }
+
+  .skeleton-name {
+    height: 32px;
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .skeleton-class {
+    height: 24px;
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 8px;
+    width: 150px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .skeleton-table {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .skeleton-row {
+    display: flex;
+    border-bottom: 1px solid #333;
+    padding: 16px 0;
+  }
+
+  .skeleton-th {
+    width: 35%;
+    height: 20px;
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+    margin-right: 12px;
+  }
+
+  .skeleton-td {
+    flex: 1;
+    height: 20px;
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+  }
+
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Content Styles */
+  .student-profile {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .student-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #2563eb;
+    margin: 0 auto 16px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+  }
+
+  .student-img:hover {
+    transform: scale(1.05);
+  }
+
+  .student-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .student-class {
+    color: #a0a0a0;
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+
+  .details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .details-table tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s;
+  }
+
+  .details-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .details-table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .details-table th {
+    text-align: left;
+    padding: 16px 16px;
+    width: 35%;
+    color: #a0a0a0;
+    font-weight: 600;
+    vertical-align: middle;
+    font-size: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .details-table td {
+    padding: 16px 16px;
+    color: #f0f0f0;
+    font-weight: 500;
+    vertical-align: middle;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .sibling-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sibling-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s;
+  }
+
+  .sibling-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(4px);
+  }
+
+  .sibling-info {
+    flex-grow: 1;
+  }
+
+  .sibling-name {
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .sibling-class {
+    color: #a0a0a0;
+    font-size: 0.9rem;
+  }
+
+  .view-btn {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+
+  .view-btn:hover {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  }
+
+  .contact-link {
+    color: #3b82f6;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .contact-link:hover {
+    color: #60a5fa;
+    text-decoration: underline;
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 480px) {
+
+  .details-table,
+  .details-table tbody,
+  .details-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .details-table tr {
+    margin-bottom: 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .details-table th,
+  .details-table td {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+  }
+
+  .details-table th {
+    background: rgba(0,0,0,0.35);
+    font-size: 0.85rem;
+    color: #9ca3af;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .details-table td {
+    background: rgba(255,255,255,0.02);
+    font-size: 1rem;
+    color: #f9fafb;
+    word-break: break-word;
+  }
+
+  .details-table tr:hover {
+    background: none;
+  }
+  .details-table th i {
+    margin-right: 6px;
+    opacity: 0.7;
+  }
+}
+
+
+</style>
+
+<script>
+  /*
+   * Student Detail Modal JavaScript
+   * ================================
+   * 
+   * Functions available:
+   * - loadStudentDetails(studentId, phone): Fetches and displays student data
+   * - openStudentModal(): Opens the modal (internal use)
+   * - closeStudentModal(): Closes the modal
+   * 
+   * The modal fetches data from /student_modal_data_api endpoint
+   * and renders it client-side using the renderStudentData function.
+   */
+
+  // Modal functions
+  function openStudentModal() {
+    document.getElementById('studentDetailsModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeStudentModal() {
+    document.getElementById('studentDetailsModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+
+  // Function to render student data
+  function renderStudentData(students) {
+    if (!students || students.length === 0) {
+      return '<div class="text-center text-gray-400">No student data available</div>';
+    }
+
+    const mainStudent = students[0];
+    const siblings = students.slice(1);
+
+    const imageUrl = mainStudent.IMAGE 
+      ? `https://lh3.googleusercontent.com/d/${mainStudent.IMAGE}=s200`
+      : 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
+
+    let html = `
+      <div class="student-profile">
+        <img src="${imageUrl}" alt="Student" class="student-img" loading="lazy">
+        <h2 class="student-name">${mainStudent.STUDENTS_NAME}</h2>
+        <div class="student-class">Class ${mainStudent.CLASS} | Roll ${mainStudent.ROLL}</div>
+      </div>
+
+      <table class="details-table">
+        <tr>
+          <th><i class="fas fa-user-friends mr-2"></i>Father's Name</th>
+          <td>${mainStudent.FATHERS_NAME || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-user-friends mr-2"></i>Mother's Name</th>
+          <td>${mainStudent.MOTHERS_NAME || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-birthday-cake mr-2"></i>Date of Birth</th>
+          <td>${mainStudent.DOB || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-id-card mr-2"></i>Aadhaar No.</th>
+          <td>${mainStudent.AADHAAR || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-hashtag mr-2"></i>SR</th>
+          <td>${mainStudent.SR || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-graduation-cap mr-2"></i>Admission No</th>
+          <td>${mainStudent.ADMISSION_NO || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-calendar-alt mr-2"></i>Admission Date</th>
+          <td>${mainStudent.ADMISSION_DATE || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-venus-mars mr-2"></i>Gender</th>
+          <td>${mainStudent.GENDER || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-pen mr-2"></i>PEN No.</th>
+          <td>${mainStudent.PEN || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-phone mr-2"></i>Phone No.</th>
+          <td>
+            <a href="tel:+91${mainStudent.PHONE}" class="contact-link">
+              <i class="fas fa-phone"></i> ${mainStudent.PHONE}
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-envelope mr-2"></i>Email</th>
+          <td>${mainStudent.EMAIL || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-tint mr-2"></i>Blood Group</th>
+          <td>${mainStudent.BLOOD_GROUP || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-users mr-2"></i>Caste</th>
+          <td>${mainStudent.Caste || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-school mr-2"></i>Previous School</th>
+          <td>${mainStudent.Previous_School_Name || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-map-marker-alt mr-2"></i>Address</th>
+          <td>${mainStudent.ADDRESS || 'N/A'}</td>
+        </tr>`;
+
+    if (siblings.length > 0) {
+      html += `
+        <tr>
+          <th><i class="fas fa-users mr-2"></i>Siblings</th>
+          <td>
+            <div class="sibling-list">`;
+      
+      siblings.forEach(sib => {
+        html += `
+              <div class="sibling-item">
+                <div class="sibling-info">
+                  <div class="sibling-name">${sib.STUDENTS_NAME}</div>
+                  <div class="sibling-class">Class ${sib.CLASS} - Roll ${sib.ROLL}</div>
+                </div>
+                <button onclick="viewStudentDetails('${sib.id}', '${sib.PHONE}')" class="view-btn">
+                  <i class="fas fa-eye mr-1"></i>View
+                </button>
+              </div>`;
+      });
+      
+      html += `
+            </div>
+          </td>
+        </tr>`;
+    }
+
+    html += `
+      </table>`;
+
+    return html;
+  }
+
+  // Function to load and display student details
+  async function loadStudentDetails(studentId, phone) {
+    const skeleton = document.getElementById('studentModalSkeleton');
+    const content = document.getElementById('studentModalContent');
+    
+    // Show skeleton
+    skeleton.style.display = 'block';
+    content.style.display = 'none';
+    openStudentModal();
+    
+    try {
+      const response = await fetch('/student_modal_data_api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          student_id: studentId,
+          phone: phone
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to fetch student details');
+      }
+      
+      // Render the data
+      const html = renderStudentData(data.students);
+      content.innerHTML = html;
+      
+      // Hide skeleton, show content
+      skeleton.style.display = 'none';
+      content.style.display = 'block';
+      
+    } catch (error) {
+      console.error('Error loading student details:', error);
+      closeStudentModal();
+      alert('Failed to load student details. Please try again.');
+    }
+  }
+
+  // Close modal when clicking outside
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('studentDetailsModal');
+    if (modal) {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeStudentModal();
+        }
+      });
+
+      // Close with Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          closeStudentModal();
+        }
+      });
+    }
+  });
+</script>
+{% endmacro %}
+</content>

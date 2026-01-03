@@ -398,23 +398,4 @@ function openModal() {
     document.body.style.overflow = 'hidden';
 }
 
-function closeModal() {
-    document.getElementById('studentDetailsModal').classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
 
-// Close modal when clicking outside the content
-document.getElementById('studentDetailsModal')
-  .addEventListener('click', function (e) {
-      if (e.target === this) {
-          closeModal();
-      }
-  });
-
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeModal();
-    }
-});

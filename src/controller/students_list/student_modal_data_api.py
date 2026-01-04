@@ -3,12 +3,14 @@
 from flask import render_template, session, request, Blueprint, jsonify
 
 from sqlalchemy import func, case
+from sqlalchemy.orm import aliased
 
 from src.controller.auth.login_required import login_required
 from src.controller.permissions.permission_required import permission_required
 from src.model import StudentsDB
 from src.model import ClassData
 from src.model import StudentSessions
+from src.model import RTEInfo
 
 from src import db
 
@@ -25,21 +27,42 @@ def student_modal_data_api():
     student_id = int(data.get('student_id'))
     phone = data.get('phone')  #replace by familyID
 
+    AdmissionClass = aliased(ClassData)
+    CurrentClass = aliased(ClassData)
 
     student = db.session.query(
             StudentsDB.id, StudentsDB.STUDENTS_NAME, StudentsDB.AADHAAR,
-            StudentsDB.FATHERS_NAME, StudentsDB.MOTHERS_NAME, StudentsDB.PHONE,
-            StudentsDB.ADDRESS, StudentsDB.ADMISSION_DATE, StudentsDB.SR, StudentsDB.IMAGE,
-            StudentsDB.GENDER, StudentsDB.PEN, StudentsDB.ADMISSION_NO, StudentsDB.EMAIL,
-            StudentsDB.BLOOD_GROUP, StudentsDB.Caste, StudentsDB.Previous_School_Name,
-            func.to_char(StudentsDB.ADMISSION_DATE, 'DD-MM-YYYY').label('ADMISSION_DATE'),
+            StudentsDB.IMAGE, StudentsDB.GENDER, StudentsDB.RELIGION,
+            StudentsDB.BLOOD_GROUP, StudentsDB.Caste, StudentsDB.Caste_Type,
+            StudentSessions.Height, StudentSessions.Weight,
             func.to_char(StudentsDB.DOB, 'Dy, DD Month YYYY').label('DOB'),
-            ClassData.CLASS,  # Get the class name from the ClassData table
-            StudentSessions.ROLL
+
+            StudentsDB.FATHERS_NAME, StudentsDB.MOTHERS_NAME, StudentsDB.FATHERS_AADHAR, StudentsDB.MOTHERS_AADHAR,
+            StudentsDB.FATHERS_EDUCATION, StudentsDB.MOTHERS_EDUCATION,
+            StudentsDB.FATHERS_OCCUPATION, StudentsDB.MOTHERS_OCCUPATION,
+
+            StudentsDB.PHONE, StudentsDB.ALT_MOBILE, StudentsDB.Home_Distance, StudentsDB.EMAIL,
+            StudentsDB.ADDRESS, StudentsDB.PIN, 
+
+            func.to_char(StudentsDB.ADMISSION_DATE, 'DD-MM-YYYY').label('ADMISSION_DATE'),
+            StudentsDB.admission_session_id, StudentsDB.SR, StudentsDB.PEN, 
+            StudentsDB.ADMISSION_NO, CurrentClass.CLASS, StudentSessions.ROLL,
+            StudentsDB.APAAR, AdmissionClass.CLASS.label("Admission_Class"),  # StudentsDB.Admission_Class actual value
+
+            StudentsDB.Previous_School_Name, StudentsDB.Previous_School_Attendance, StudentsDB.Previous_School_Marks,
+
+            RTEInfo.is_RTE, RTEInfo.RTE_registered_year, RTEInfo.account_number, 
+            RTEInfo.ifsc, RTEInfo.bank_name, RTEInfo.account_holder, RTEInfo.bank_branch,
+            
+            
         ).join(
             StudentSessions, StudentSessions.student_id == StudentsDB.id  # Join using the foreign key
         ).join(
-            ClassData, StudentSessions.class_id == ClassData.id  # Join using the foreign key
+            CurrentClass, StudentSessions.class_id == CurrentClass.id  # Join using the foreign key
+        ).outerjoin(
+            AdmissionClass, StudentsDB.Admission_Class == AdmissionClass.id
+        ).outerjoin(
+            RTEInfo, StudentsDB.id == RTEInfo.student_id
         ).filter(
             StudentsDB.PHONE == phone,
             StudentSessions.session_id == session["session_id"],
@@ -53,30 +76,71 @@ def student_modal_data_api():
     if not student:
         return jsonify({"success": False, "message": "Student not found"}), 404
     
+    def format_aadhaar(aadhaar: str) -> str:
+        """
+        Formats a 12-digit Aadhaar number into XXXX-XXXX-XXXX.
+        Returns empty string if aadhaar is None or invalid length.
+        """
+        if not aadhaar or len(aadhaar) != 12 or not aadhaar.isdigit():
+            return ""
+        return f"{aadhaar[:4]}-{aadhaar[4:8]}-{aadhaar[8:12]}"
+
+    
     # Convert to dict for JSON response
     students_data = []
     for s in student:
         students_data.append({
             "id": s.id,
             "STUDENTS_NAME": s.STUDENTS_NAME,
-            "AADHAAR": s.AADHAAR,
-            "FATHERS_NAME": s.FATHERS_NAME,
-            "MOTHERS_NAME": s.MOTHERS_NAME,
-            "PHONE": s.PHONE,
-            "ADDRESS": s.ADDRESS,
-            "ADMISSION_DATE": s.ADMISSION_DATE,
-            "SR": s.SR,
+            "DOB": s.DOB,
+            "AADHAAR": format_aadhaar(s.AADHAAR),
             "IMAGE": s.IMAGE,
             "GENDER": s.GENDER,
-            "PEN": s.PEN,
-            "ADMISSION_NO": s.ADMISSION_NO,
-            "EMAIL": s.EMAIL,
             "BLOOD_GROUP": s.BLOOD_GROUP,
             "Caste": s.Caste,
-            "Previous_School_Name": s.Previous_School_Name,
-            "DOB": s.DOB,
+            "CasteType": s.Caste_Type,
+            "Religion": s.RELIGION,
+            "Weight": f"{s.Weight} kg" if s.Weight else None,
+            "Height": f"{s.Height} cm" if s.Height else None,
+
+            "FATHERS_NAME": s.FATHERS_NAME,
+            "MOTHERS_NAME": s.MOTHERS_NAME,
+            "FATHERS_AADHAAR": format_aadhaar(s.FATHERS_AADHAR),
+            "MOTHERS_AADHAAR": format_aadhaar(s.MOTHERS_AADHAR),
+            "FATHERS_EDUCATION": s.FATHERS_EDUCATION,
+            "MOTHERS_EDUCATION": s.MOTHERS_EDUCATION,
+            "FATHERS_OCCUPATION": s.FATHERS_OCCUPATION,
+            "MOTHERS_OCCUPATION": s.MOTHERS_OCCUPATION,
+
+            "PHONE": s.PHONE,
+            "ALT_MOBILE": s.ALT_MOBILE,
+            "Home_Distance": s.Home_Distance,
+            "ADDRESS": s.ADDRESS,
+            "PIN": s.PIN,
+            "EMAIL": s.EMAIL,
+
+            "ADMISSION_DATE": s.ADMISSION_DATE,
+            "ADMISSION_NO": s.ADMISSION_NO,
+            "ADMISSION_CLASS": s.Admission_Class,
+            "SR": s.SR,
+            "PEN": s.PEN,
             "CLASS": s.CLASS,
-            "ROLL": s.ROLL
+            "ROLL": s.ROLL,
+            "APAAR": s.APAAR,
+            "ADMISSION_SESSION": f'{s.admission_session_id}-{s.admission_session_id+1}',
+
+            "RTE": s.is_RTE,
+            "BANK_ACCOUNT_NUMBER": s.account_number,
+            "IFSC_CODE": s.ifsc,
+            "BANK_NAME": s.bank_name,
+            "BANK_BRANCH": s.bank_branch,
+            "ACCOUNT_HOLDER_NAME": s.account_holder,
+
+
+
+            "Previous_School_Name": s.Previous_School_Name,
+            "Previous_School_Marks": f"{s.Previous_School_Marks}%" if s.Previous_School_Marks else None,
+            "Previous_School_Attendance": f"{s.Previous_School_Attendance} Days" if s.Previous_School_Attendance else None
         })
     
     return jsonify({"success": True, "students": students_data})

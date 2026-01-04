@@ -1,619 +1,157 @@
 {% macro student_detail_modal() %}
 <!-- 
-  Student Detail Modal Component
-  ==============================
+  Complete Student Modal Component
+  ================================
   
-  This is a self-contained modal component for displaying student details.
   Features:
-  - Skeleton loader while fetching data
-  - Client-side rendering of student information
-  - Responsive design
-  - Smooth animations
-  - Error handling
+  - All original details included
+  - Modern premium design
+  - Perfect scrolling and centering
+  - Mobile-first responsive
+  - RTE status and session year
+  - Collapsible bank account details
 -->
+
 <!-- Student Detail Modal -->
-<div class="student-modal" id="studentDetailsModal">
-  <div class="student-modal-content">
-    <div class="student-modal-header">
-      <div class="school-info">
-        <i class="fas fa-school school-icon"></i>
-        <div class="school-name">Falak Public School</div>
+<div id="studentDetailsModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-0 m-0 hidden">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeStudentModal()"></div>
+  
+  <!-- Modal Container -->
+  <div id="modalContainer" class="relative w-full h-full md:h-auto md:max-h-[90vh] md:max-w-3xl md:mx-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 md:rounded-2xl shadow-2xl border border-gray-700/30 overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0">
+    
+    <!-- Header -->
+    <div class="flex-shrink-0 flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 to-purple-600 border-b border-white/10">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-white/20 rounded-xl">
+          <i class="fas fa-graduation-cap text-white text-lg"></i>
+        </div>
+        <h2 class="text-white font-bold text-lg">Student Profile</h2>
       </div>
-      <button class="close-btn" onclick="closeStudentModal()">
-        <i class="fas fa-times"></i>
+      <button onclick="closeStudentModal()" 
+              class="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 active:scale-90">
+        <i class="fas fa-times text-lg"></i>
       </button>
     </div>
 
-    <div class="student-modal-body" id='studentModalBody'>
+    <!-- Scrollable Body -->
+    <div class="flex-1 overflow-y-auto min-h-0">
       <!-- Skeleton Loader -->
-      <div id="studentModalSkeleton" class="student-skeleton">
-        <div class="skeleton-profile">
-          <div class="skeleton-img animate-pulse"></div>
-          <div class="skeleton-name animate-pulse"></div>
-          <div class="skeleton-class animate-pulse"></div>
+      <div id="studentModalSkeleton" class="p-4 space-y-6">
+        <!-- Profile Skeleton -->
+        <div class="text-center animate-pulse">
+          <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-700 mx-auto mb-4"></div>
+          <div class="h-6 bg-gray-700 rounded w-40 mx-auto mb-2"></div>
+          <div class="h-4 bg-gray-700 rounded w-32 mx-auto"></div>
         </div>
-        <div class="skeleton-table">
-          {% for i in range(12) %}
-          <div class="skeleton-row">
-            <div class="skeleton-th animate-pulse"></div>
-            <div class="skeleton-td animate-pulse"></div>
+        
+        <!-- Grid Skeleton -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {% for i in range(10) %}
+          <div class="space-y-2 p-3 bg-gray-800/20 rounded-lg">
+            <div class="h-3 bg-gray-700 rounded w-20"></div>
+            <div class="h-4 bg-gray-700 rounded w-full"></div>
           </div>
           {% endfor %}
         </div>
       </div>
-      <!-- Actual content will be loaded here -->
-      <div id="studentModalContent" style="display: none;"></div>
+
+      <!-- Content Container -->
+      <div id="studentModalContent" class="hidden"></div>
     </div>
 
-    <div class="student-modal-footer">
-      <button class="action-btn" onclick="closeStudentModal()">Close</button>
+    <!-- Footer -->
+    <div class="flex-shrink-0 p-4 bg-gray-900/95 border-t border-gray-700/30">
+      <button onclick="closeStudentModal()" 
+              class="w-full px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg">
+        Close
+      </button>
     </div>
   </div>
 </div>
 
-<style>
-  /* Modal Styles */
-  .student-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    padding: 20px;
-    backdrop-filter: blur(5px);
-  }
-
-  .student-modal.active {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .student-modal-content {
-    background: linear-gradient(165deg, #1a1a1a 0%, #242424 100%);
-    border-radius: 20px;
-    width: 100%;
-    max-width: 36rem;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-    transform: scale(0.9) translateY(20px);
-    transition: transform 0.3s ease;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid rgba(67, 97, 238, 0.3);
-  }
-
-  .student-modal.active .student-modal-content {
-    transform: scale(1) translateY(0);
-  }
-
-  .student-modal-header {
-    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .school-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .school-icon {
-    font-size: 28px;
-    color: white;
-  }
-
-  .school-name {
-    color: white;
-    font-size: 1.4rem;
-    font-weight: 600;
-  }
-
-  .close-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-  }
-
-  .close-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
-  }
-
-  .student-modal-body {
-    padding: 15px;
-    overflow-y: auto;
-    flex-grow: 1;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .student-modal-body::-webkit-scrollbar {
-    display: none;
-  }
-
-  .student-modal-footer {
-    padding: 20px 28px;
-    border-top: 1px solid #333;
-    display: flex;
-    justify-content: flex-end;
-    background: rgba(0, 0, 0, 0.2);
-  }
-
-  .action-btn {
-    background: linear-gradient(135deg, #374151, #4b5563);
-    color: white;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 1rem;
-  }
-
-  .action-btn:hover {
-    background: linear-gradient(135deg, #4b5563, #6b7280);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-
-  /* Skeleton Styles */
-  .student-skeleton {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-
-  .skeleton-profile {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-
-  .skeleton-img {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    margin: 0 auto 16px;
-  }
-
-  .skeleton-name {
-    height: 32px;
-    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .skeleton-class {
-    height: 24px;
-    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    border-radius: 8px;
-    width: 150px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .skeleton-table {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .skeleton-row {
-    display: flex;
-    border-bottom: 1px solid #333;
-    padding: 16px 0;
-  }
-
-  .skeleton-th {
-    width: 35%;
-    height: 20px;
-    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    border-radius: 4px;
-    margin-right: 12px;
-  }
-
-  .skeleton-td {
-    flex: 1;
-    height: 20px;
-    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    border-radius: 4px;
-  }
-
-  @keyframes loading {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
-
-  /* Content Styles */
-  .student-profile {
-    text-align: center;
-    margin-bottom: 28px;
-  }
-
-  .student-img {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid #2563eb;
-    margin: 0 auto 16px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s;
-  }
-
-  .student-img:hover {
-    transform: scale(1.05);
-  }
-
-  .student-name {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 8px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  .student-class {
-    color: #a0a0a0;
-    font-size: 1.2rem;
-    font-weight: 500;
-  }
-
-  .details-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 24px 0;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .details-table tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    transition: background 0.2s;
-  }
-
-  .details-table tr:last-child {
-    border-bottom: none;
-  }
-
-  .details-table tr:hover {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .details-table th {
-    text-align: left;
-    padding: 16px 16px;
-    width: 35%;
-    color: #a0a0a0;
-    font-weight: 600;
-    vertical-align: middle;
-    font-size: 1rem;
-    background: rgba(0, 0, 0, 0.2);
-  }
-
-  .details-table td {
-    padding: 16px 16px;
-    color: #f0f0f0;
-    font-weight: 500;
-    vertical-align: middle;
-    font-size: 1rem;
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  .sibling-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .sibling-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.2s;
-  }
-
-  .sibling-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateX(4px);
-  }
-
-  .sibling-info {
-    flex-grow: 1;
-  }
-
-  .sibling-name {
-    color: white;
-    font-weight: 600;
-    font-size: 1.1rem;
-  }
-
-  .sibling-class {
-    color: #a0a0a0;
-    font-size: 0.9rem;
-  }
-
-  .view-btn {
-    background: linear-gradient(135deg, #2563eb, #4f46e5);
-    border: none;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-  }
-
-  .view-btn:hover {
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-  }
-
-  .contact-link {
-    color: #3b82f6;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-    font-size: 1rem;
-    font-weight: 500;
-  }
-
-  .contact-link:hover {
-    color: #60a5fa;
-    text-decoration: underline;
-    transform: translateX(4px);
-  }
-
-  @media (max-width: 480px) {
-
-  .details-table,
-  .details-table tbody,
-  .details-table tr {
-    display: block;
-    width: 100%;
-  }
-
-  .details-table tr {
-    margin-bottom: 14px;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  .details-table th,
-  .details-table td {
-    display: block;
-    width: 100%;
-    padding: 10px 14px;
-  }
-
-  .details-table th {
-    background: rgba(0,0,0,0.35);
-    font-size: 0.85rem;
-    color: #9ca3af;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .details-table td {
-    background: rgba(255,255,255,0.02);
-    font-size: 1rem;
-    color: #f9fafb;
-    word-break: break-word;
-  }
-
-  .details-table tr:hover {
-    background: none;
-  }
-  .details-table th i {
-    margin-right: 6px;
-    opacity: 0.7;
-  }
-}
-
-
-</style>
-
 <script>
   /*
-   * Student Detail Modal JavaScript
-   * ================================
-   * 
-   * Functions available:
-   * - loadStudentDetails(studentId, phone): Fetches and displays student data
-   * - openStudentModal(): Opens the modal (internal use)
-   * - closeStudentModal(): Closes the modal
-   * 
-   * The modal fetches data from /student_modal_data_api endpoint
-   * and renders it client-side using the renderStudentData function.
+   * Complete Student Modal with All Details
+   * ========================================
    */
+
+  let currentStudentData = null;
+  let isLoading = false;
+
+  // Initialize modal
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('studentDetailsModal');
+    
+    // Escape key to close
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeStudentModal();
+      }
+    });
+  });
 
   // Modal functions
   function openStudentModal() {
-    document.getElementById('studentDetailsModal').classList.add('active');
+    const modal = document.getElementById('studentDetailsModal');
+    const container = document.getElementById('modalContainer');
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    requestAnimationFrame(() => {
+      container.classList.remove('scale-95', 'opacity-0');
+      container.classList.add('scale-100', 'opacity-100');
+    });
+    
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
   }
 
   function closeStudentModal() {
-    document.getElementById('studentDetailsModal').classList.remove('active');
-    document.body.style.overflow = 'auto';
+    if (isLoading) return;
+    
+    const modal = document.getElementById('studentDetailsModal');
+    const container = document.getElementById('modalContainer');
+    
+    container.classList.remove('scale-100', 'opacity-100');
+    container.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      
+      const skeleton = document.getElementById('studentModalSkeleton');
+      const content = document.getElementById('studentModalContent');
+      
+      skeleton.classList.remove('hidden');
+      content.classList.add('hidden');
+      content.innerHTML = '';
+      
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      currentStudentData = null;
+    }, 300);
   }
 
-  // Function to render student data
-  function renderStudentData(students) {
-    if (!students || students.length === 0) {
-      return '<div class="text-center text-gray-400">No student data available</div>';
-    }
-
-    const mainStudent = students[0];
-    const siblings = students.slice(1);
-
-    const imageUrl = mainStudent.IMAGE 
-      ? `https://lh3.googleusercontent.com/d/${mainStudent.IMAGE}=s200`
-      : 'https://cdn.pixabay.com/photo/2016/04/22/04/57/graduation-1345143_1280.png';
-
-    let html = `
-      <div class="student-profile">
-        <img src="${imageUrl}" alt="Student" class="student-img" loading="lazy">
-        <h2 class="student-name">${mainStudent.STUDENTS_NAME}</h2>
-        <div class="student-class">Class ${mainStudent.CLASS} | Roll ${mainStudent.ROLL}</div>
-      </div>
-
-      <table class="details-table">
-        <tr>
-          <th><i class="fas fa-user-friends mr-2"></i>Father's Name</th>
-          <td>${mainStudent.FATHERS_NAME || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-user-friends mr-2"></i>Mother's Name</th>
-          <td>${mainStudent.MOTHERS_NAME || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-birthday-cake mr-2"></i>Date of Birth</th>
-          <td>${mainStudent.DOB || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-id-card mr-2"></i>Aadhaar No.</th>
-          <td>${mainStudent.AADHAAR || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-hashtag mr-2"></i>SR</th>
-          <td>${mainStudent.SR || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-graduation-cap mr-2"></i>Admission No</th>
-          <td>${mainStudent.ADMISSION_NO || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-calendar-alt mr-2"></i>Admission Date</th>
-          <td>${mainStudent.ADMISSION_DATE || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-venus-mars mr-2"></i>Gender</th>
-          <td>${mainStudent.GENDER || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-pen mr-2"></i>PEN No.</th>
-          <td>${mainStudent.PEN || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-phone mr-2"></i>Phone No.</th>
-          <td>
-            <a href="tel:+91${mainStudent.PHONE}" class="contact-link">
-              <i class="fas fa-phone"></i> ${mainStudent.PHONE}
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-envelope mr-2"></i>Email</th>
-          <td>${mainStudent.EMAIL || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-tint mr-2"></i>Blood Group</th>
-          <td>${mainStudent.BLOOD_GROUP || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-users mr-2"></i>Caste</th>
-          <td>${mainStudent.Caste || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-school mr-2"></i>Previous School</th>
-          <td>${mainStudent.Previous_School_Name || 'N/A'}</td>
-        </tr>
-        <tr>
-          <th><i class="fas fa-map-marker-alt mr-2"></i>Address</th>
-          <td>${mainStudent.ADDRESS || 'N/A'}</td>
-        </tr>`;
-
-    if (siblings.length > 0) {
-      html += `
-        <tr>
-          <th><i class="fas fa-users mr-2"></i>Siblings</th>
-          <td>
-            <div class="sibling-list">`;
-      
-      siblings.forEach(sib => {
-        html += `
-              <div class="sibling-item">
-                <div class="sibling-info">
-                  <div class="sibling-name">${sib.STUDENTS_NAME}</div>
-                  <div class="sibling-class">Class ${sib.CLASS} - Roll ${sib.ROLL}</div>
-                </div>
-                <button onclick="viewStudentDetails('${sib.id}', '${sib.PHONE}')" class="view-btn">
-                  <i class="fas fa-eye mr-1"></i>View
-                </button>
-              </div>`;
-      });
-      
-      html += `
-            </div>
-          </td>
-        </tr>`;
-    }
-
-    html += `
-      </table>`;
-
-    return html;
-  }
-
-  // Function to load and display student details
+  // Main function
   async function loadStudentDetails(studentId, phone) {
+    if (isLoading) return;
+    
+    isLoading = true;
+    
     const skeleton = document.getElementById('studentModalSkeleton');
     const content = document.getElementById('studentModalContent');
     
-    // Show skeleton
-    skeleton.style.display = 'block';
-    content.style.display = 'none';
+    skeleton.classList.remove('hidden');
+    content.classList.add('hidden');
+    content.innerHTML = '';
+    
     openStudentModal();
     
     try {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       const response = await fetch('/student_modal_data_api', {
         method: 'POST',
         headers: {
@@ -625,45 +163,702 @@
         })
       });
       
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || 'Failed to fetch student details');
+      if (!response.ok) {
+        throw new Error(`Failed to load: ${response.status}`);
       }
       
-      // Render the data
-      const html = renderStudentData(data.students);
-      content.innerHTML = html;
+      const data = await response.json();
       
-      // Hide skeleton, show content
-      skeleton.style.display = 'none';
-      content.style.display = 'block';
+      if (!data.success) {
+        throw new Error(data.message || 'Invalid data received');
+      }
+      
+      currentStudentData = data.students;
+      await new Promise(resolve => setTimeout(resolve, 400));
+      
+      renderCompleteStudentContent(data.students);
       
     } catch (error) {
       console.error('Error loading student details:', error);
-      closeStudentModal();
-      alert('Failed to load student details. Please try again.');
+      showErrorState(error.message);
+    } finally {
+      isLoading = false;
     }
   }
 
-  // Close modal when clicking outside
-  document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('studentDetailsModal');
-    if (modal) {
-      modal.addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeStudentModal();
-        }
-      });
+  // Render complete student content with all details
+  function renderCompleteStudentContent(students) {
+    const skeleton = document.getElementById('studentModalSkeleton');
+    const content = document.getElementById('studentModalContent');
+    
+    if (!students || students.length === 0) {
+      content.innerHTML = `
+        <div class="p-4 flex flex-col items-center justify-center min-h-[400px] text-center">
+          <div class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-4">
+            <i class="fas fa-user-slash text-gray-500 text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-300 mb-2">No Data Available</h3>
+          <p class="text-gray-500">Student information could not be loaded.</p>
+        </div>`;
+    } else {
+      const mainStudent = students[0];
+      const siblings = students.slice(1);
+      
+      // Generate image URL
+      const imageUrl = mainStudent.IMAGE 
+        ? `https://lh3.googleusercontent.com/d/${mainStudent.IMAGE}=s300`
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(mainStudent.STUDENTS_NAME)}&background=4f46e5&color=fff&size=128&bold=true`;
+      
+      content.innerHTML = `
+        <!-- Profile Header -->
+        <div class="p-4 md:p-6 bg-gradient-to-b from-gray-800/30 to-transparent">
+          <div class="flex flex-col items-center text-center">
+            <div class="relative mb-4">
+              <img src="${imageUrl}" 
+                   alt="${mainStudent.STUDENTS_NAME}"
+                   class="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-blue-500/30 shadow-xl object-cover">
+              <div class="absolute -bottom-2 right-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                Roll: ${mainStudent.ROLL}
+              </div>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">${mainStudent.STUDENTS_NAME}</h1>
+            <div class="inline-flex items-center space-x-2 bg-gray-800/50 px-4 rounded-full mb-2">
+              <i class="fas fa-graduation-cap text-blue-400"></i>
+              <span class="text-gray-300 font-medium">Class: ${mainStudent.CLASS}</span>
+            </div>
+          </div>
+        </div>
 
-      // Close with Escape key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.classList.contains('active')) {
-          closeStudentModal();
-        }
-      });
+        <!-- All Details Grid -->
+        <div class="p-4 md:p-6 space-y-6">
+          <!-- Personal Details Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+              <div class="w-1 h-6 bg-blue-500 rounded-full"></div>
+              Personal Information
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${renderDetailCard('fas fa-birthday-cake', 'Date of Birth', mainStudent.DOB, 'green')}
+              ${renderDetailCard('fas fa-venus-mars', 'Gender', mainStudent.GENDER, 'pink')}
+              ${renderDetailCard('fas fa-id-card', 'Aadhaar No.', mainStudent.AADHAAR, 'yellow')}
+              ${renderDetailCard('fas fa-tint', 'Blood Group', mainStudent.BLOOD_GROUP, 'red')}
+              ${renderDetailCard('fas fa-user-tag', 'Caste', mainStudent.Caste + ' (' + mainStudent.CasteType + ')', 'orange')}
+              ${renderDetailCard('fas fa-praying-hands', 'Religion', mainStudent.Religion, 'pink')}
+              ${renderDetailCard('fas fa-ruler-vertical', 'Height', mainStudent.Height, 'teal')}
+              ${renderDetailCard('fas fa-weight-scale', 'Weight', mainStudent.Weight, 'indigo')}
+            </div>
+          </div>
+
+
+
+          <!-- Academic Details Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+              <div class="w-1 h-6 bg-purple-500 rounded-full"></div>
+              Academic Information
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${renderDetailCard('fas fa-hashtag', 'SR No.', mainStudent.SR, 'indigo')}
+              ${renderDetailCard('fas fa-graduation-cap', 'Admission No', mainStudent.ADMISSION_NO, 'blue')}
+              ${renderDetailCard('fas fa-calendar-alt', 'Admission Date', mainStudent.ADMISSION_DATE, 'teal')}
+              ${renderDetailCard('fas fa-layer-group', 'Admission Class (Session)', `${mainStudent.ADMISSION_CLASS} (${mainStudent.ADMISSION_SESSION})`, 'purple')}
+              ${renderDetailCard('fas fa-id-card', 'PEN No.', mainStudent.PEN, 'green')}
+              ${renderDetailCard('fas fa-id-card', 'APAAR No.', mainStudent.APAAR, 'orange')}
+            </div>
+          </div>
+
+          <!-- Guardian Details Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+              <div class="w-1 h-6 bg-blue-500 rounded-full"></div>
+              Guardian Information
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${renderDetailCard('fas fa-user-tie', 'Father\'s Name', mainStudent.FATHERS_NAME, 'blue')}
+              ${renderDetailCard('fas fa-female', 'Mother\'s Name', mainStudent.MOTHERS_NAME, 'purple')}
+              ${renderDetailCard('fas fa-fingerprint', 'Father\'s Aadhaar', mainStudent.FATHERS_AADHAAR, 'blue')}
+              ${renderDetailCard('fas fa-fingerprint', 'Mother\'s Aadhaar', mainStudent.MOTHERS_AADHAAR, 'purple')}
+              ${renderDetailCard('fas fa-graduation-cap', 'Father\'s Education', mainStudent.FATHERS_EDUCATION, 'blue')}
+              ${renderDetailCard('fas fa-graduation-cap', 'Mother\'s Education', mainStudent.MOTHERS_EDUCATION, 'purple')}
+              ${renderDetailCard('fas fa-briefcase', 'Father\'s Occupation', mainStudent.FATHERS_OCCUPATION, 'blue')}
+              ${renderDetailCard('fas fa-briefcase', 'Mother\'s Occupation', mainStudent.MOTHERS_OCCUPATION, 'purple')}
+            </div>
+          </div>
+
+          
+          <!-- Contact & Address Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+              <div class="w-1 h-6 bg-green-500 rounded-full"></div>
+              Contact & Address
+            </h3>
+
+            <!-- Contact Cards -->
+            <!-- Address Card -->
+            ${mainStudent.ADDRESS ? `
+              <div class="bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 h-full">
+                <div class="flex items-start gap-3">
+                  <div class="p-2 bg-orange-500/20 rounded-lg flex-shrink-0">
+                    <i class="fas fa-map-marker-alt text-orange-400 text-lg"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-sm text-gray-400 mb-2">Address</p>
+                    <p class="text-white break-words">${mainStudent.ADDRESS}</p>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+  
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${renderContactCard('fas fa-phone', 'Phone No.', mainStudent.PHONE, 'tel', 'green')}                
+              ${renderContactCard('fas fa-phone', 'Alternate Mobile', mainStudent.ALT_MOBILE,'tel', 'blue')}
+              ${renderDetailCard('fas fa-map-pin', 'PIN Code', mainStudent.PIN, 'red')}
+              ${renderContactCard('fas fa-envelope', 'Email', mainStudent.EMAIL, 'mailto', 'orange')}
+              ${renderDetailCard('fas fa-road', 'School to home distance', mainStudent.Home_Distance, 'amber')}
+            </div>
+          </div>
+
+          <!-- Combined RTE & Bank Account Details (Collapsible) -->
+          <div class="space-y-4">
+            <div class="bg-gray-800/30 rounded-xl border border-gray-700/30 overflow-hidden hover:border-emerald-500/30 transition-all duration-300">
+              <!-- Collapsible Header with RTE Status -->
+              <button id="bankDetailsToggle" 
+                      class="w-full flex items-center justify-between p-4 hover:bg-gray-700/20 transition-all duration-200"
+                      onclick="toggleBankDetails()">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                  <div class="relative">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 flex items-center justify-center">
+                      <i class="fas fa-university text-emerald-400 text-lg"></i>
+                    </div>
+                    <!-- RTE Badge Indicator -->
+                    ${mainStudent.RTE ? `
+                      <div class="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center border border-gray-800">
+                        <i class="fas fa-check text-xs text-white"></i>
+                      </div>
+                    ` : ''}
+                  </div>
+                  
+                  <div class="text-left min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h3 class="text-lg font-semibold text-white truncate">Financial & RTE Details</h3>
+                      ${mainStudent.RTE ? `
+                        <span class="px-2 py-1 bg-gradient-to-r from-emerald-500/30 to-green-500/30 text-emerald-300 text-xs font-medium rounded-full whitespace-nowrap">
+                          RTE Student
+                        </span>
+                      ` : `
+                        <span class="px-2 py-1 bg-gradient-to-r from-gray-600/30 to-gray-700/30 text-gray-400 text-xs font-medium rounded-full whitespace-nowrap">
+                          Non-RTE
+                        </span>
+                      `}
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <!-- RTE Session -->
+                      ${mainStudent.RTE_SESSION && mainStudent.RTE_SESSION !== 'N/A' ? `
+                        <div class="flex items-center gap-1">
+                          <i class="fas fa-calendar-alt text-emerald-400 text-xs"></i>
+                          <span class="text-sm text-gray-300">Session: ${mainStudent.RTE_SESSION}</span>
+                        </div>
+                      ` : ''}
+                      
+                      <!-- Bank Account Status -->
+                      <div class="flex items-center gap-1">
+                        <i class="fas fa-credit-card ${mainStudent.BANK_ACCOUNT_NUMBER ? 'text-emerald-400' : 'text-gray-500'} text-xs"></i>
+                        <span class="text-sm ${mainStudent.BANK_ACCOUNT_NUMBER ? 'text-gray-300' : 'text-gray-500'}">
+                          ${mainStudent.BANK_ACCOUNT_NUMBER ? 'Bank Details Available' : 'No Bank Details'}
+                        </span>
+                      </div>
+                      
+                      <!-- Expand Hint -->
+                      <div class="flex items-center gap-1 text-gray-400">
+                        <i class="fas fa-chevron-down text-xs transition-transform duration-300" id="bankChevron"></i>
+                        <span class="text-xs">Click to expand</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </button>
+              
+              <!-- Collapsible Content -->
+              <div id="bankDetailsContent" class="hidden">
+                <div class="border-t border-gray-700/30">
+                  <!-- RTE Details (Always shown when expanded) -->
+                  <div class="p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                      <div class="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
+                      <h4 class="text-sm font-semibold text-white">RTE Information</h4>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <!-- RTE Status Card -->
+                      <div class="bg-gradient-to-br ${mainStudent.RTE ? 'from-emerald-500/10 to-green-500/10' : 'from-gray-700/20 to-gray-800/20'} rounded-lg p-3 border ${mainStudent.RTE ? 'border-emerald-500/20' : 'border-gray-600/20'}">
+                        <div class="flex items-center gap-2">
+                          <div class="w-8 h-8 rounded-lg ${mainStudent.RTE ? 'bg-emerald-500/20' : 'bg-gray-600/20'} flex items-center justify-center">
+                            <i class="${mainStudent.RTE ? 'fas fa-check-circle text-emerald-400' : 'fas fa-times-circle text-gray-400'}"></i>
+                          </div>
+                          <div>
+                            <p class="text-xs text-gray-400">RTE Status</p>
+                            <p class="font-medium ${mainStudent.RTE ? 'text-emerald-300' : 'text-gray-300'}">
+                              ${mainStudent.RTE ? 'RTE Student' : 'Non-RTE Student'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- RTE Session Card -->
+                      <div class="bg-gradient-to-br ${mainStudent.RTE_SESSION ? 'from-blue-500/10 to-cyan-500/10' : 'from-gray-700/20 to-gray-800/20'} rounded-lg p-3 border ${mainStudent.RTE_SESSION ? 'border-blue-500/20' : 'border-gray-600/20'}">
+                        <div class="flex items-center gap-2">
+                          <div class="w-8 h-8 rounded-lg ${mainStudent.RTE_SESSION ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center">
+                            <i class="${mainStudent.RTE_SESSION ? 'fas fa-calendar-check text-blue-400' : 'fas fa-calendar-times text-gray-400'}"></i>
+                          </div>
+                          <div>
+                            <p class="text-xs text-gray-400">RTE Session Year</p>
+                            <p class="font-medium ${mainStudent.RTE_SESSION ? 'text-blue-300' : 'text-gray-300'}">
+                              ${mainStudent.RTE_SESSION || 'Not Registered'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Bank Account Details (Only if available) -->
+                    <div class="p-4 pt-0">
+                      <div class="flex items-center gap-2 mb-3">
+                        <div class="w-1.5 h-4 bg-cyan-500 rounded-full"></div>
+                        <h4 class="text-sm font-semibold text-white">Bank Account Details</h4>
+                      </div>
+                      
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        ${renderBankDetailCard('fas fa-credit-card', 'Account Number', mainStudent.BANK_ACCOUNT_NUMBER, 'emerald')}
+                        ${renderBankDetailCard('fas fa-code', 'IFSC Code', mainStudent.IFSC_CODE, 'blue')}
+                        ${renderBankDetailCard('fas fa-university', 'Bank Name', mainStudent.BANK_NAME, 'purple')}
+                        ${renderBankDetailCard('fas fa-map-marker-alt', 'Bank Branch', mainStudent.BANK_BRANCH, 'orange')}
+                        ${renderBankDetailCard('fas fa-user-circle', 'Account Holder', mainStudent.ACCOUNT_HOLDER_NAME, 'pink')}
+                      </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Siblings Section -->
+          ${siblings.length > 0 ? `
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                  <div class="w-1 h-6 bg-indigo-500 rounded-full"></div>
+                  Siblings
+                </h3>
+                <span class="px-3 py-1 bg-indigo-500/20 text-indigo-300 text-sm rounded-full">
+                  ${siblings.length} sibling${siblings.length > 1 ? 's' : ''}
+                </span>
+              </div>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                ${siblings.map(sibling => `
+                  <div class="group bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 hover:border-blue-500/50 transition-all cursor-pointer"
+                       onclick="viewSibling('${sibling.id}', '${sibling.PHONE}')">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                          <i class="fas fa-user text-blue-400"></i>
+                        </div>
+                        <div class="min-w-0">
+                          <h4 class="font-medium text-white group-hover:text-blue-300 truncate">${sibling.STUDENTS_NAME}</h4>
+                          <div class="flex items-center gap-2 mt-1">
+                            <span class="px-2 py-0.5 bg-gray-700/50 text-gray-300 rounded text-xs">
+                              Class ${sibling.CLASS}
+                            </span>
+                            <span class="text-gray-500 text-xs">•</span>
+                            <span class="text-gray-400 text-xs">Roll ${sibling.ROLL}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button class="opacity-0 group-hover:opacity-100 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg transition-all text-sm">
+                        <i class="fas fa-eye mr-1"></i>View
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+          
+          <!-- Additional Information -->
+          <div class="pt-4 border-t border-gray-700/30">
+            <h4 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+              <i class="fas fa-info-circle text-blue-400"></i>
+              Additional Information
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Student ID -->
+              <div class="flex justify-between md:block">
+                <span class="text-gray-400 text-sm">Student ID:</span>
+                <span class="text-white text-sm font-medium">${mainStudent.id || 'N/A'}</span>
+              </div>
+
+              <div class="flex justify-between md:block">
+                <span class="text-gray-400 text-sm">Previous School:</span>
+                <span class="text-white text-sm font-medium">${mainStudent.Previous_School_Name || 'N/A'}</span>
+              </div>
+
+              <div class="flex justify-between md:block">
+                <span class="text-gray-400 text-sm">Previous School Marks:</span>
+                <span class="text-white text-sm font-medium">${mainStudent.Previous_School_Marks || 'N/A'}</span>
+              </div>
+
+              <div class="flex justify-between md:block">
+                <span class="text-gray-400 text-sm">Previous School Attendance:</span>
+                <span class="text-white text-sm font-medium">${mainStudent.Previous_School_Attendance || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
     }
-  });
+    
+    // Show content with transition
+    setTimeout(() => {
+      skeleton.classList.add('hidden');
+      content.classList.remove('hidden');
+      
+      content.style.opacity = '0';
+      content.style.transform = 'translateY(10px)';
+      
+      requestAnimationFrame(() => {
+        content.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        content.style.opacity = '1';
+        content.style.transform = 'translateY(0)';
+      });
+    }, 300);
+  }
+
+  // Helper function to render detail cards
+  function renderDetailCard(icon, label, value, color = 'blue') {
+    if (!value || value === 'N/A') {
+      return `
+        <div class="bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 opacity-70">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-gray-500/20 rounded-lg flex-shrink-0">
+              <i class="${icon} text-gray-400 text-lg"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm text-gray-400 mb-1">${label}</p>
+              <p class="text-gray-400 font-medium">Not Provided</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    const colorClasses = {
+      blue: 'bg-blue-500/20 text-blue-400',
+      purple: 'bg-purple-500/20 text-purple-400',
+      green: 'bg-green-500/20 text-green-400',
+      pink: 'bg-pink-500/20 text-pink-400',
+      yellow: 'bg-yellow-500/20 text-yellow-400',
+      red: 'bg-red-500/20 text-red-400',
+      orange: 'bg-orange-500/20 text-orange-400',
+      indigo: 'bg-indigo-500/20 text-indigo-400',
+      teal: 'bg-teal-500/20 text-teal-400',
+      gray: 'bg-gray-500/20 text-gray-400',
+      amber: 'bg-amber-500/20 text-amber-400',
+      emerald: 'bg-emerald-500/20 text-emerald-400'
+    };
+    
+    const colorClass = colorClasses[color] || colorClasses.blue;
+    
+    return `
+      <div class="bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 hover:border-${color}-500/30 transition-colors">
+        <div class="flex items-center gap-3">
+          <div class="p-2 ${colorClass} rounded-lg flex-shrink-0">
+            <i class="${icon} text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-gray-400 mb-1">${label}</p>
+            <p class="text-white font-medium truncate">${value}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Special RTE card with status indicator
+  function renderRTECard(rteStatus, sessionYear) {
+    const isRTE = rteStatus === 'Yes' || rteStatus === 'true';
+    const statusColor = isRTE ? 'emerald' : 'gray';
+    const statusIcon = isRTE ? 'fas fa-check-circle' : 'fas fa-times-circle';
+    const statusText = isRTE ? 'RTE Student' : 'Non-RTE Student';
+    
+    return `
+      <div class="bg-gray-800/30 rounded-xl p-4 border border-${statusColor}-500/30 transition-colors">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="p-2 bg-${statusColor}-500/20 rounded-lg flex-shrink-0">
+            <i class="${statusIcon} text-${statusColor}-400 text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-gray-400 mb-1">RTE Status</p>
+            <div class="flex items-center gap-2">
+              <p class="text-white font-medium">${rteStatus}</p>
+              <span class="px-2 py-0.5 bg-${statusColor}-500/20 text-${statusColor}-300 text-xs rounded-full">
+                ${statusText}
+              </span>
+            </div>
+          </div>
+          <div class="pl-11">
+            <p class="text-sm text-gray-400 mb-1">RTE Session Year</p>
+            <p class="text-white font-medium">${sessionYear || 'N/A'}</p>
+        </div>
+      </div>
+        
+
+      </div>
+    `;
+  }
+
+  // Special bank detail card
+  function renderBankDetailCard(icon, label, value, color = 'emerald') {
+    if (!value || value === 'N/A') {
+      return `
+        <div class="bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 opacity-70">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-gray-500/20 rounded-lg flex-shrink-0">
+              <i class="${icon} text-gray-400 text-lg"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm text-gray-400 mb-1">${label}</p>
+              <p class="text-gray-400 font-medium">Not Provided</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    const colorClasses = {
+      blue: 'bg-blue-500/20 text-blue-400',
+      purple: 'bg-purple-500/20 text-purple-400',
+      green: 'bg-green-500/20 text-green-400',
+      pink: 'bg-pink-500/20 text-pink-400',
+      yellow: 'bg-yellow-500/20 text-yellow-400',
+      red: 'bg-red-500/20 text-red-400',
+      orange: 'bg-orange-500/20 text-orange-400',
+      indigo: 'bg-indigo-500/20 text-indigo-400',
+      teal: 'bg-teal-500/20 text-teal-400',
+      gray: 'bg-gray-500/20 text-gray-400',
+      emerald: 'bg-emerald-500/20 text-emerald-400'
+    };
+    
+    const colorClass = colorClasses[color] || colorClasses.emerald;
+    
+    return `
+      <div class="bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 hover:border-${color}-500/30 transition-colors">
+        <div class="flex items-center gap-3">
+          <div class="p-2 ${colorClass} rounded-lg flex-shrink-0">
+            <i class="${icon} text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-gray-400 mb-1">${label}</p>
+            <p class="text-white font-medium truncate">${value}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderContactCard(icon, label, value, type, color = 'blue') {
+
+    if (!value || value === 'N/A') {
+      return `
+        <div class="bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 opacity-70">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-gray-500/20 rounded-lg flex-shrink-0">
+              <i class="${icon} text-gray-400 text-lg"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm text-gray-400 mb-1">${label}</p>
+              <p class="text-gray-400 font-medium">Not Provided</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+
+    href = type === 'tel' ? `tel:+91${value}` : `${type}:${value}`;
+    displayValue = type === 'tel' ? `+91 ${value}` : value;
+    redirectIcon = `<i class="fas fa-external-link-alt text-gray-500 group-hover:text-${color}-400 transition-colors"></i>`;
+
+    const colorClasses = {
+      blue: 'bg-blue-500/20 text-blue-400',
+      purple: 'bg-purple-500/20 text-purple-400',
+      green: 'bg-green-500/20 text-green-400',
+      pink: 'bg-pink-500/20 text-pink-400',
+      yellow: 'bg-yellow-500/20 text-yellow-400',
+      red: 'bg-red-500/20 text-red-400',
+      orange: 'bg-orange-500/20 text-orange-400',
+      indigo: 'bg-indigo-500/20 text-indigo-400',
+      teal: 'bg-teal-500/20 text-teal-400',
+      gray: 'bg-gray-500/20 text-gray-400',
+      amber: 'bg-amber-500/20 text-amber-400'
+    };
+    
+    const colorClass = colorClasses[color] || colorClasses.blue;
+
+    return `
+      <a href="${href}" 
+         class="group bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 hover:border-blue-500/50 transition-all block">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="p-2 ${colorClass} rounded-lg transition-colors">
+              <i class="${icon}"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400 mb-1">${label}</p>
+              <p class="text-white font-medium">${displayValue}</p>
+            </div>
+          </div>
+          ${redirectIcon}
+        </div>
+      </a>
+    `;
+  }
+
+  // Toggle bank details visibility
+  function toggleBankDetails() {
+    const content = document.getElementById('bankDetailsContent');
+    const chevron = document.getElementById('bankChevron');
+    
+    if (content.classList.contains('hidden')) {
+      // Show
+      content.classList.remove('hidden');
+      chevron.classList.add('rotate-180');
+      content.style.maxHeight = '0px';
+      content.style.overflow = 'hidden';
+      
+      // Animate height
+      setTimeout(() => {
+        const scrollHeight = content.scrollHeight;
+        content.style.maxHeight = scrollHeight + 'px';
+        content.style.transition = 'max-height 0.3s ease';
+      }, 10);
+    } else {
+      // Hide
+      content.style.maxHeight = content.scrollHeight + 'px';
+      
+      setTimeout(() => {
+        content.style.maxHeight = '0px';
+        chevron.classList.remove('rotate-180');
+        
+        setTimeout(() => {
+          if (content.style.maxHeight === '0px') {
+            content.classList.add('hidden');
+            content.style.maxHeight = '';
+            content.style.transition = '';
+          }
+        }, 300);
+      }, 10);
+    }
+  }
+
+  // Error state
+  function showErrorState(message) {
+    const skeleton = document.getElementById('studentModalSkeleton');
+    const content = document.getElementById('studentModalContent');
+    
+    content.innerHTML = `
+      <div class="p-4 md:p-6 flex flex-col items-center justify-center min-h-[400px] text-center">
+        <div class="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+          <i class="fas fa-exclamation-triangle text-red-400 text-3xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-300 mb-2">Unable to Load Data</h3>
+        <p class="text-gray-500 mb-6 max-w-md">
+          ${message || 'An error occurred while loading student information.'}
+        </p>
+        <div class="flex gap-3">
+          <button onclick="closeStudentModal()" 
+                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+            Close
+          </button>
+          <button onclick="retryLoad()" 
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+            <i class="fas fa-redo mr-2"></i> Try Again
+          </button>
+        </div>
+      </div>`;
+    
+    skeleton.classList.add('hidden');
+    content.classList.remove('hidden');
+  }
+
+  // Helper functions
+  function retryLoad() {
+    if (currentStudentData) {
+      renderCompleteStudentContent(currentStudentData);
+    }
+  }
+
+  function viewSibling(studentId, phone) {
+    loadStudentDetails(studentId, phone);
+  }
+
+  // Global functions
+  window.loadStudentDetails = loadStudentDetails;
+  window.closeStudentModal = closeStudentModal;
+  window.viewSibling = viewSibling;
+  window.retryLoad = retryLoad;
+  window.toggleBankDetails = toggleBankDetails;
 </script>
+
+<style>
+  /* Custom scrollbar */
+  #studentDetailsModal .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+  }
+  
+  #studentDetailsModal .overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  #studentDetailsModal .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  #studentDetailsModal .overflow-y-auto::-webkit-scrollbar-thumb {
+    background-color: rgba(75, 85, 99, 0.5);
+    border-radius: 4px;
+  }
+  
+  #studentDetailsModal .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(75, 85, 99, 0.7);
+  }
+  
+  /* Safe area for mobile */
+  @supports (-webkit-touch-callout: none) {
+    #studentDetailsModal {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+  
+  /* Smooth transitions */
+  #studentModalContent {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  
+  /* Rotate animation for chevron */
+  .rotate-180 {
+    transform: rotate(180deg);
+  }
+  
+  /* Bank details animation */
+  #bankDetailsContent {
+    transition: max-height 0.3s ease;
+  }
+</style>
 {% endmacro %}
-</content>

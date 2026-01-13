@@ -1,52 +1,20 @@
 {% macro render_image_uploader(unique_suffix='', label='Click to upload the image', image_url = '', icon = 'fas fa-cloud-upload-alt') %}
-
-<!-- <div class="flex justify-center">
-  <div class="w-full max-w-md rounded-3 border-2 border-dashed border-gray-500/40 bg-dark p-6 shadow-sm transition hover:border-blue-400/70">
-    <div id="uploadContent{{ unique_suffix }}" class="flex flex-col items-center justify-center cursor-pointer">
-
-      <div id="uploadIconSection{{unique_suffix }}" class="flex flex-col items-center {{ 'hidden' if image_url else '' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none"
-          viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V3m0 9l-3-3m3 3l3-3" />
-        </svg>
-        <p class="text-gray-400 mt-2">{{ label or 'Click to upload the image' }}</p>
-      </div>
-
-      
-      <div id="uploadedImageSection{{unique_suffix }}" class="relative w-full {{ '' if image_url else 'hidden' }}">
-        <img id="uploadedImage{{unique_suffix }}" src="{{ image_url or '' }}" alt="Cropped Image" class="w-full rounded-2 border border-white/25" />
-        <button id="destroyImage{{unique_suffix }}" type="button"
-          class="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/85 focus:outline-none focus:ring-2 focus:ring-white/70">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        <p class="mt-2 text-center text-gray-300">Image uploaded successfully. Click to change.</p>
-      </div>
-
-    </div>
-  </div>
-
-  <input type="file" id="imageInput{{unique_suffix }}" accept="image/*" class="hidden">
-
-</div> -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
 <style>
 .image-upload {
     border: 2px dashed rgba(255, 255, 255, 0.1);
-    background: rgba(15, 23, 42, 0.7) !important;
+    background: #1C1C1C !important;
 }
 
 .image-upload {
         border: 2px dashed rgba(255, 255, 255, 0.1);
-        background: rgba(15, 23, 42, 0.7) !important;
+        background: #1C1C1C !important;
     }
     .btn-upload {
         border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(15, 23, 42, 0.9) !important;
+        background: rgba(30, 30, 30, 0.9) !important;
         transition: all 0.3s ease;
     }
 
@@ -127,7 +95,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- Cropper Modal -->
 <div id="cropModal{{unique_suffix }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">

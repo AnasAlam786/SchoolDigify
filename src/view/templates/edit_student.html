@@ -429,7 +429,7 @@
   async function conflictVerification(studentId, verifiedData){
     
     try {
-      const conflictResp = await fetch('/api/update_conflict_verification', {
+      const conflictResp = await fetch('', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: studentId, verifiedData })

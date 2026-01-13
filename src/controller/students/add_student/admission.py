@@ -8,19 +8,31 @@ from src.model.StudentsDB import StudentsDB
 from src.model.ClassData import ClassData
 from src.model.StudentsDB import StudentsDB
 from src.model.ClassAccess import ClassAccess
+from src.model.enums import StudentsDBEnums
 
 from src import db
 
 from src.controller.auth.login_required import login_required
 from src.controller.permissions.permission_required import permission_required
 
-from src.controller.students.utils.pydantic_to_fields import pydantic_model_to_field_dicts
-from src.controller.students.utils.admission_form_schema import (PersonalInfoModel, AcademicInfoModel, 
-                                           GuardianInfoModel, ContactInfoModel, 
-                                           AdditionalInfoModel)
 from datetime import datetime
 
 admission_bp = Blueprint( 'admission_bp',   __name__)
+
+
+
+def get_enum_options():
+    """Get all enum options for select fields."""
+    return {
+        'gender_options': list(StudentsDBEnums.GENDER.enums),
+        'caste_type_options': list(StudentsDBEnums.CASTE_TYPE.enums),
+        'religion_options': list(StudentsDBEnums.RELIGION.enums),
+        'blood_group_options': list(StudentsDBEnums.BLOOD_GROUP.enums),
+        'education_options': list(StudentsDBEnums.EDUCATION_TYPE.enums),
+        'fathers_occupation_options': list(StudentsDBEnums.FATHERS_OCCUPATION.enums),
+        'mothers_occupation_options': list(StudentsDBEnums.MOTHERS_OCCUPATION.enums),
+        'home_distance_options': list(StudentsDBEnums.HOME_DISTANCE.enums),
+    }
 
 
 
@@ -28,10 +40,6 @@ admission_bp = Blueprint( 'admission_bp',   __name__)
 @login_required
 @permission_required('admission')
 def admission():
-
-    
-    user_id = session["user_id"]
-    school_id = session["school_id"]
 
     ["Class", "Section", "Name", "Gender", "Initialised at SDMS", "Student PEN", "Student State Code",
     "Father Name", "Mother Name", "Social Category", "Minority Group",
@@ -41,75 +49,63 @@ def admission():
     "Email", "Mother Tongue", "Blood Group", "Admission Number", "Admission Date", "Roll No"
     "Section 12C", "Height", "Weight", "Distance to School", "Guardian Education Level"]
 
-    
-    
+    """Render the add student form."""
+    user_id = session["user_id"]
+    school_id = session["school_id"]
+    current_session = session["session_id"]
+    current_running_session = session.get("current_running_session")
+
+    # Get classes accessible to user
     classes_query = (
         db.session.query(ClassData)
         .join(ClassAccess, ClassAccess.class_id == ClassData.id)
         .filter(ClassAccess.staff_id == user_id)
         .order_by(ClassData.id.asc())
     )
-
     classes = classes_query.all()
-    classes = {str(cls.id): cls.CLASS for cls in classes}
+    classes_dict = {str(cls.id): cls.CLASS for cls in classes}
 
-    admission_session_select = {}
-
-    for year in session["all_sessions"]:
+    # Build admission sessions
+    admission_sessions = {}
+    for year in session.get("all_sessions", []):
         year = int(year)
-        admission_session_select[year] = f"{year}-{year+1}"
+        admission_sessions[year] = f"{year}-{year+1}"
 
-
-    AcademicInfo = pydantic_model_to_field_dicts(AcademicInfoModel)
-    GuardianInfo = pydantic_model_to_field_dicts(GuardianInfoModel)
-    AdditionalInfo = pydantic_model_to_field_dicts(AdditionalInfoModel)
-    ContactInfo = pydantic_model_to_field_dicts(ContactInfoModel)
-    PersonalInfo = pydantic_model_to_field_dicts(PersonalInfoModel)
-
- 
-    #get current date
-    current_session_year = str(session["session_id"])[-2:]
+    # Calculate next SR and Admission No
+    current_session_year = str(current_session)[-2:] if current_session else str(datetime.now().year)[-2:]
 
     max_sr, max_adm = (
-        StudentsDB.query
-            .with_entities(
-                func.max(StudentsDB.SR).label("max_sr"),
-                func.max(StudentsDB.ADMISSION_NO).label("max_adm")
-            )
-            .filter(
-                StudentsDB.school_id == school_id,
-            )
-            .first()
+        db.session.query(
+            func.max(StudentsDB.SR).label("max_sr"),
+            func.max(StudentsDB.ADMISSION_NO).label("max_adm")
+        )
+        .filter(StudentsDB.school_id == school_id)
+        .first()
     )
 
-    if max_sr is None:
-        max_sr = 0
+
+    max_sr = max_sr if max_sr is not None else 0
     if max_adm is None or str(max_adm)[:2] != current_session_year:
         max_adm = int(current_session_year + "000")
-    
+    else:
+        max_adm = int(max_adm)
+
     new_adm = max_adm + 1
     new_sr = max_sr + 1
+    current_date = datetime.now().strftime("%d-%m-%Y")
 
-    current_date = datetime.now().strftime("%Y-%m-%d")
+    return render_template(
+        'student_form.html',
+        mode='add',
+        student=None,
+        rte_info=None,
+        classes=classes_dict,
+        admission_sessions=admission_sessions,
+        current_session=current_running_session,
+        default_admission_no=new_adm,
+        default_sr=new_sr,
+        default_admission_date=current_date,
+        **get_enum_options()
+    )
 
-    for academic_inputfield in AcademicInfo:
-        if academic_inputfield["id"] == "admission_session_id":
-            academic_inputfield["options"] = {"": "Select admission session", **admission_session_select}
-            academic_inputfield["value"] = session["current_running_session"]
-            academic_inputfield["disabled"] = True
-        if academic_inputfield["id"] == "CLASS":
-            academic_inputfield["disabled"] = True
-            academic_inputfield["options"] = {"": "Select Class", **classes}
-        if academic_inputfield["id"] == "Admission_Class":
-            academic_inputfield["options"] = {"": "Select Class", **classes}
-        if academic_inputfield["id"] == "ADMISSION_DATE":
-            academic_inputfield["value"] = current_date
-        if academic_inputfield["id"] == "ADMISSION_NO":
-            academic_inputfield["value"] = new_adm
-        if academic_inputfield["id"] == "SR":
-            academic_inputfield["value"] = new_sr
-
-    
-    return render_template('admission.html',PersonalInfo=PersonalInfo, AcademicInfo=AcademicInfo, 
-                            GuardianInfo=GuardianInfo, ContactInfo=ContactInfo, AdditionalInfo=AdditionalInfo)
     

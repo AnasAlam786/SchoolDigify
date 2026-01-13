@@ -699,8 +699,6 @@
           errorElement.style.display = 'block';
           errorElement.textContent = error.message;
           errorField.classList.add('red-error-border');
-
-
         });
         // scroll to the first error field
         errorField = document.getElementById(pydanticData.errors[0].field);
@@ -722,7 +720,7 @@
   async function conflictVerification(pydenticVerifiedData) {
     try {
 
-      const conflictResponse = await fetch("/api/conflict_verification", {
+      const conflictResponse = await fetch("", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pydenticVerifiedData)

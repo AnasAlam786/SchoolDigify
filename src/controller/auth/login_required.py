@@ -1,9 +1,7 @@
-import time
 from flask import session, redirect, url_for, request, jsonify
 from functools import wraps
 from src import r
 from .login import save_sessions
-# import time
 
 
 def login_required(f):
@@ -22,22 +20,14 @@ def login_required(f):
                 else:
                     return redirect(url_for('login_bp.login'))
                 
-        start_time = time.time()  # start timer
-
         redis_permission_no = r.get(session['user_id'])
         session_permission_no = session["permission_no"]
-
-        end_time = time.time()  # end timer
-        print(f"Redis cloud took {end_time - start_time:.6f} seconds to run")
 
         if not redis_permission_no:
             return redirect(url_for('logout_bp.logout'))
 
         if int(session_permission_no) != int(redis_permission_no):
             save_sessions(user_id=session['user_id'])
-
-        end_time = time.time()  # end timer
-        print(f"login_required decorator took whole {end_time - start_time:.6f} seconds to run")
 
 
         return f(*args, **kwargs)

@@ -209,7 +209,7 @@ function createStudentCard(student) {
                 </button>
 
                 <!-- EDIT ICON -->
-                <button onclick="window.location.href='/update_student_info?id=${student.id}'"
+                <button onclick="window.location.href='/update_student/${student.id}'"
                         class="relative group p-1.5 hover:bg-gray-700 rounded-full">
                     <i class="fas fa-edit text-green-400 text-lg"></i>
                     <span class="absolute right-1/2 translate-x-1/2 -top-7 hidden group-hover:block 

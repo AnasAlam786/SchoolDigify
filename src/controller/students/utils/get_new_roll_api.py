@@ -1,11 +1,6 @@
 # src/controller/get_new_roll_api.py
 
 from flask import session, request, jsonify, Blueprint
-from sqlalchemy import select, func
-
-from src.model import StudentsDB
-from src.model import StudentSessions
-from src import db
 
 from src.controller.auth.login_required import login_required
 from src.controller.permissions.permission_required import permission_required

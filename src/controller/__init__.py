@@ -14,9 +14,7 @@ from .students_list.get_admit_cards_api import get_admit_cards_api_bp
 from .students_list.admit_card_view import admit_card_view_bp
 
 
-from .students.update.update_student_info import update_student_info_bp
-from .students.update.final_student_update_api import final_student_update_api_bp
-from .students.update.update_conflic_varification import update_conflict_verification_api_bp
+
 
 from .attendance.attendance import attendance_bp
 from .attendance.get_attendance_data_api import get_attendance_data_api_bp
@@ -67,10 +65,12 @@ from .tc.redo_tc_api import revert_tc_api_bp
 from .tc.reprint_tc_api import reprint_tc_api_bp
 
 from .students.add_student.admission import admission_bp
-from .students.add_student.pydantic_verification_api import pydantic_verification_api_bp
-from .students.add_student.conflict_verification_api import conflict_verification_api_bp
-from .students.add_student.get_new_roll_api import get_new_roll_api_bp
+from .students.utils.pydantic_verification_api import pydantic_verification_api_bp
+from .students.utils.get_new_roll_api import get_new_roll_api_bp
 from .students.add_student.final_admission_api import final_admission_api_bp
+
+from .students.update.final_student_update_api import final_update_student_api_bp
+from .students.update.update_student import update_student_bp
 
 from .students.utils.create_watsapp_message_api import create_watsapp_message_api_bp
 from .students.utils.create_admission_form_api import create_admission_form_api_bp
@@ -99,9 +99,8 @@ def register_blueprints(app):
     app.register_blueprint(admit_card_view_bp)
     
 
-    app.register_blueprint(update_student_info_bp)
-    app.register_blueprint(final_student_update_api_bp)
-    app.register_blueprint(update_conflict_verification_api_bp)
+    app.register_blueprint(final_update_student_api_bp)
+    app.register_blueprint(update_student_bp)
 
     app.register_blueprint(attendance_bp)
     app.register_blueprint(get_attendance_data_api_bp)
@@ -118,7 +117,6 @@ def register_blueprints(app):
 
     app.register_blueprint(admission_bp)
     app.register_blueprint(pydantic_verification_api_bp)
-    app.register_blueprint(conflict_verification_api_bp)
     app.register_blueprint(get_new_roll_api_bp)
     app.register_blueprint(final_admission_api_bp)
 

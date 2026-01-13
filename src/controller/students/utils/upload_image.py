@@ -3,11 +3,12 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from googleapiclient.http import MediaIoBaseUpload
 
-
 from dotenv import load_dotenv
 import io
 import json
 import os
+import time
+
 
 
 
@@ -27,6 +28,27 @@ def get_credentials():
         creds_dict, scopes=scope)
     return creds
 
+# def compress_image(image_data):
+#     """Compress image to reduce size while maintaining quality."""
+#     try:
+#         img = Image.open(io.BytesIO(image_data))
+#         # Convert to RGB if necessary
+#         if img.mode != 'RGB':
+#             img = img.convert('RGB')
+        
+#         # Resize if too large (max 800px width/height)
+#         max_size = 800
+#         if img.width > max_size or img.height > max_size:
+#             img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+        
+#         # Compress
+#         output = io.BytesIO()
+#         img.save(output, format='JPEG', quality=85, optimize=True)
+#         return output.getvalue()
+#     except Exception as e:
+#         print(f"Compression failed: {e}")
+#         return image_data
+
 def upload_image(image_base64, image_name, drive_folder_id):
     
     creds = get_credentials()
@@ -42,7 +64,10 @@ def upload_image(image_base64, image_name, drive_folder_id):
         'name': str(image_name),
         'parents': [drive_folder_id]
     }
+    start = time.perf_counter()
     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    end = time.perf_counter()
+    print(f"Upload image time: {end - start:.6f} seconds")
     file_id = file.get('id')
 
     # make the file publicly accessible
@@ -58,7 +83,10 @@ def delete_image(file_id):
     try:
         creds = get_credentials()
         drive_service = build('drive', 'v3', credentials=creds)
+        start = time.perf_counter()
         drive_service.files().delete(fileId=file_id).execute()
+        end = time.perf_counter()
+        print(f"Delete image time: {end - start:.6f} seconds")
         return True  # Indicate success
     except Exception as error:
         print(f"An error occurred: {error}")
@@ -75,7 +103,10 @@ def move_image(file_id, new_folder_id, rename=None, older_images_folder_id=None)
         older_images_folder_id = ",".join(file.get('parents'))
 
     # Move the file to the new folder
+    start = time.perf_counter()
     drive_service.files().update(fileId=file_id, addParents=new_folder_id, removeParents=older_images_folder_id).execute()
+    end = time.perf_counter()
+    print(f"Move image time: {end - start:.6f} seconds")
 
     # Optionally rename the file
     if rename:

@@ -1,0 +1,110 @@
+# src/controller/students/add_student/pydantic_verification_api.py
+
+from flask import request, jsonify, Blueprint
+from pydantic import ValidationError
+
+from src.controller.students.utils.admission_form_schema import AdmissionFormModel
+from src.model.ClassData import ClassData
+from src import db
+
+from src.controller.auth.login_required import login_required
+from src.controller.permissions.permission_required import permission_required
+import time
+
+
+pydantic_verification_api_bp = Blueprint('pydantic_verification_bp', __name__)
+
+
+def format_pydantic_errors(validation_error: ValidationError) -> list[dict]:
+    """Format Pydantic validation errors into user-friendly messages."""
+    errors = []
+    for error in validation_error.errors():
+        field = error['loc'][0] if error['loc'] else 'unknown'
+        msg = error['msg']
+        # Customize messages for better UX
+        if 'pattern' in msg.lower() and 'name' in field.lower():
+            msg = "Name should contain only letters and spaces, no numbers or special characters."
+        elif 'constr' in msg and 'pattern' in msg:
+            if 'name' in field.lower():
+                msg = "Name must be alphabetic with spaces only."
+            else:
+                msg = f"Invalid format for {field.replace('_', ' ').title()}."
+        elif 'conint' in msg:
+            if 'gt' in msg:
+                msg = f"{field.replace('_', ' ').title()} must be greater than {error['ctx']['gt']}."
+            elif 'ge' in msg:
+                msg = f"{field.replace('_', ' ').title()} must be at least {error['ctx']['ge']}."
+        elif 'EmailStr' in msg:
+            msg = "Please enter a valid email address."
+        elif 'date' in msg.lower():
+            msg = f"{field.replace('_', ' ').title()} must be a valid date in DD-MM-YYYY format."
+        else:
+            msg = msg.replace('_', ' ').capitalize()
+        errors.append({"field": field, "message": msg})
+    return errors
+
+
+@pydantic_verification_api_bp.route('/api/pydantic_verification', methods=["POST"])
+@login_required
+@permission_required('admission')
+def verify_admission():
+    """Validate form data using Pydantic and perform basic business logic checks."""
+    try:
+        data = request.get_json()
+        if not isinstance(data, dict):
+            raise ValueError("JSON is not an object")
+    except Exception:
+        print("Error processing data")
+        return jsonify({"message": "Invalid JSON payload.", "errors": []}), 400
+    
+    print(data)
+
+    # Validate with Pydantic
+    try:
+        model = AdmissionFormModel(**data)
+        verified_data = model.to_verified_data()
+    except ValidationError as e:
+        errors = format_pydantic_errors(e)
+        print(errors)
+        return jsonify({"message": "Please fix the validation errors below.", "errors": errors}), 400
+
+    
+
+    # Business logic checks
+    student_status = data.get('student_status')
+    if student_status == "new":
+        if data.get("Admission_Class") != data.get("CLASS"):
+            return jsonify({
+                "message": "Validation failed",
+                "errors": [{"field": "CLASS", "message": "For new students, Admission Class must be the same as Current Class."}]
+            }), 400
+        
+    elif student_status == "old":
+        adm_id = data.get("Admission_Class")
+        cur_id = data.get("CLASS")
+        if not adm_id or not cur_id:
+            return jsonify({
+                "message": "Validation failed",
+                "errors": [{"field": "Admission_Class", "message": "Admission Class and Current Class are required for existing students."}]
+            }), 400
+        try:
+            adm_id_int = int(adm_id)
+            cur_id_int = int(cur_id)
+        except (ValueError, TypeError):
+            return jsonify({
+                "message": "Validation failed",
+                "errors": [{"field": "Admission_Class", "message": "Invalid class selection."}]
+            }), 400
+
+        # Check display_order
+        adm_order = db.session.query(ClassData.display_order).filter(ClassData.id == adm_id_int).scalar()
+        cur_order = db.session.query(ClassData.display_order).filter(ClassData.id == cur_id_int).scalar()
+        adm_order = adm_order or 0
+        cur_order = cur_order or 0
+        if adm_order > cur_order:
+            return jsonify({
+                "message": "Validation failed",
+                "errors": [{"field": "Admission_Class", "message": "Admission Class must be lower than or same as Current Class."}]
+            }), 400
+    
+    return jsonify({"message": "All validations passed.", "verifiedData": verified_data}), 200

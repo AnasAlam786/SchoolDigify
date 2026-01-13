@@ -1,4 +1,4 @@
-{% macro student_detail_modal() %}
+{% macro student_detail_modal(mode='student') %}
 <!-- 
   Complete Student Modal Component
   ================================
@@ -26,7 +26,7 @@
         <div class="p-2 bg-white/20 rounded-xl">
           <i class="fas fa-graduation-cap text-white text-lg"></i>
         </div>
-        <h2 class="text-white font-bold text-lg">Student Profile</h2>
+        <h2 class="text-white font-bold text-lg">{{ 'Student Admission Verification' if mode == 'admission' else 'Student Profile' }}</h2>
       </div>
       <button onclick="closeStudentModal()" 
               class="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 active:scale-90">
@@ -62,10 +62,23 @@
 
     <!-- Footer -->
     <div class="flex-shrink-0 p-4 bg-gray-900/95 border-t border-gray-700/30">
+      {% if mode == 'admission' %}
+      <div class="flex flex-col sm:flex-row gap-3 justify-end">
+        <button onclick="closeStudentModal()" 
+                class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition-all duration-200">
+          Cancel
+        </button>
+        <button id="finalSubmit"
+                class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg">
+          Submit Admission
+        </button>
+      </div>
+      {% else %}
       <button onclick="closeStudentModal()" 
               class="w-full px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg">
         Close
       </button>
+      {% endif %}
     </div>
   </div>
 </div>
@@ -78,6 +91,7 @@
 
   let currentStudentData = null;
   let isLoading = false;
+  let admissionImageBlob = null;
 
   // Initialize modal
   document.addEventListener('DOMContentLoaded', function() {
@@ -138,6 +152,10 @@
   async function loadStudentDetails(studentId, phone) {
     if (isLoading) return;
     
+    admissionImageBlob = null; // Reset for existing students
+    
+    isLoading = true;
+    
     isLoading = true;
     
     const skeleton = document.getElementById('studentModalSkeleton');
@@ -175,6 +193,8 @@
       
       currentStudentData = data.students;
       await new Promise(resolve => setTimeout(resolve, 400));
+
+      console.log(data.students);
       
       renderCompleteStudentContent(data.students);
       
@@ -205,9 +225,11 @@
       const siblings = students.slice(1);
       
       // Generate image URL
-      const imageUrl = mainStudent.IMAGE 
-        ? `https://lh3.googleusercontent.com/d/${mainStudent.IMAGE}=s300`
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(mainStudent.STUDENTS_NAME)}&background=4f46e5&color=fff&size=128&bold=true`;
+      const imageUrl = admissionImageBlob 
+        ? URL.createObjectURL(admissionImageBlob) 
+        : (mainStudent.IMAGE 
+          ? `https://lh3.googleusercontent.com/d/${mainStudent.IMAGE}=s300`
+          : `https://ui-avatars.com/api/?name=${encodeURIComponent(mainStudent.STUDENTS_NAME)}&background=4f46e5&color=fff&size=128&bold=true`);
       
       content.innerHTML = `
         <!-- Profile Header -->
@@ -243,8 +265,8 @@
               ${renderDetailCard('fas fa-venus-mars', 'Gender', mainStudent.GENDER, 'pink')}
               ${renderDetailCard('fas fa-id-card', 'Aadhaar No.', mainStudent.AADHAAR, 'yellow')}
               ${renderDetailCard('fas fa-tint', 'Blood Group', mainStudent.BLOOD_GROUP, 'red')}
-              ${renderDetailCard('fas fa-user-tag', 'Caste', mainStudent.Caste + ' (' + mainStudent.CasteType + ')', 'orange')}
-              ${renderDetailCard('fas fa-praying-hands', 'Religion', mainStudent.Religion, 'pink')}
+              ${renderDetailCard('fas fa-user-tag', 'Caste', mainStudent.Caste + ' (' + mainStudent.Caste_Type + ')', 'orange')}
+              ${renderDetailCard('fas fa-praying-hands', 'Religion', mainStudent.RELIGION, 'pink')}
               ${renderDetailCard('fas fa-ruler-vertical', 'Height', mainStudent.Height, 'teal')}
               ${renderDetailCard('fas fa-weight-scale', 'Weight', mainStudent.Weight, 'indigo')}
             </div>
@@ -263,7 +285,7 @@
               ${renderDetailCard('fas fa-hashtag', 'SR No.', mainStudent.SR, 'indigo')}
               ${renderDetailCard('fas fa-graduation-cap', 'Admission No', mainStudent.ADMISSION_NO, 'blue')}
               ${renderDetailCard('fas fa-calendar-alt', 'Admission Date', mainStudent.ADMISSION_DATE, 'teal')}
-              ${renderDetailCard('fas fa-layer-group', 'Admission Class (Session)', `${mainStudent.ADMISSION_CLASS} (${mainStudent.ADMISSION_SESSION})`, 'purple')}
+              ${renderDetailCard('fas fa-layer-group', 'Admission Class (Session)', `${mainStudent.Admission_Class} (${mainStudent.admission_session_id})`, 'purple')}
               ${renderDetailCard('fas fa-id-card', 'PEN No.', mainStudent.PEN, 'green')}
               ${renderDetailCard('fas fa-id-card', 'APAAR No.', mainStudent.APAAR, 'orange')}
             </div>
@@ -279,8 +301,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               ${renderDetailCard('fas fa-user-tie', 'Father\'s Name', mainStudent.FATHERS_NAME, 'blue')}
               ${renderDetailCard('fas fa-female', 'Mother\'s Name', mainStudent.MOTHERS_NAME, 'purple')}
-              ${renderDetailCard('fas fa-fingerprint', 'Father\'s Aadhaar', mainStudent.FATHERS_AADHAAR, 'blue')}
-              ${renderDetailCard('fas fa-fingerprint', 'Mother\'s Aadhaar', mainStudent.MOTHERS_AADHAAR, 'purple')}
+              ${renderDetailCard('fas fa-fingerprint', 'Father\'s Aadhaar', mainStudent.FATHERS_AADHAR, 'blue')}
+              ${renderDetailCard('fas fa-fingerprint', 'Mother\'s Aadhaar', mainStudent.MOTHERS_AADHAR, 'purple')}
               ${renderDetailCard('fas fa-graduation-cap', 'Father\'s Education', mainStudent.FATHERS_EDUCATION, 'blue')}
               ${renderDetailCard('fas fa-graduation-cap', 'Mother\'s Education', mainStudent.MOTHERS_EDUCATION, 'purple')}
               ${renderDetailCard('fas fa-briefcase', 'Father\'s Occupation', mainStudent.FATHERS_OCCUPATION, 'blue')}
@@ -334,7 +356,7 @@
                       <i class="fas fa-university text-emerald-400 text-lg"></i>
                     </div>
                     <!-- RTE Badge Indicator -->
-                    ${mainStudent.RTE ? `
+                    ${mainStudent.is_RTE ? `
                       <div class="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center border border-gray-800">
                         <i class="fas fa-check text-xs text-white"></i>
                       </div>
@@ -344,7 +366,7 @@
                   <div class="text-left min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                       <h3 class="text-lg font-semibold text-white truncate">Financial & RTE Details</h3>
-                      ${mainStudent.RTE ? `
+                      ${mainStudent.is_RTE ? `
                         <span class="px-2 py-1 bg-gradient-to-r from-emerald-500/30 to-green-500/30 text-emerald-300 text-xs font-medium rounded-full whitespace-nowrap">
                           RTE Student
                         </span>
@@ -355,20 +377,12 @@
                       `}
                     </div>
                     
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <!-- RTE Session -->
-                      ${mainStudent.RTE_SESSION && mainStudent.RTE_SESSION !== 'N/A' ? `
-                        <div class="flex items-center gap-1">
-                          <i class="fas fa-calendar-alt text-emerald-400 text-xs"></i>
-                          <span class="text-sm text-gray-300">Session: ${mainStudent.RTE_SESSION}</span>
-                        </div>
-                      ` : ''}
-                      
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">                      
                       <!-- Bank Account Status -->
                       <div class="flex items-center gap-1">
-                        <i class="fas fa-credit-card ${mainStudent.BANK_ACCOUNT_NUMBER ? 'text-emerald-400' : 'text-gray-500'} text-xs"></i>
-                        <span class="text-sm ${mainStudent.BANK_ACCOUNT_NUMBER ? 'text-gray-300' : 'text-gray-500'}">
-                          ${mainStudent.BANK_ACCOUNT_NUMBER ? 'Bank Details Available' : 'No Bank Details'}
+                        <i class="fas fa-credit-card ${mainStudent.account_number ? 'text-emerald-400' : 'text-gray-500'} text-xs"></i>
+                        <span class="text-sm ${mainStudent.account_number ? 'text-gray-300' : 'text-gray-500'}">
+                          ${mainStudent.account_number ? 'Bank Details Available' : 'No Bank Details'}
                         </span>
                       </div>
                       
@@ -394,30 +408,30 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <!-- RTE Status Card -->
-                      <div class="bg-gradient-to-br ${mainStudent.RTE ? 'from-emerald-500/10 to-green-500/10' : 'from-gray-700/20 to-gray-800/20'} rounded-lg p-3 border ${mainStudent.RTE ? 'border-emerald-500/20' : 'border-gray-600/20'}">
+                      <div class="bg-gradient-to-br ${mainStudent.is_RTE ? 'from-emerald-500/10 to-green-500/10' : 'from-gray-700/20 to-gray-800/20'} rounded-lg p-3 border ${mainStudent.is_RTE ? 'border-emerald-500/20' : 'border-gray-600/20'}">
                         <div class="flex items-center gap-2">
-                          <div class="w-8 h-8 rounded-lg ${mainStudent.RTE ? 'bg-emerald-500/20' : 'bg-gray-600/20'} flex items-center justify-center">
-                            <i class="${mainStudent.RTE ? 'fas fa-check-circle text-emerald-400' : 'fas fa-times-circle text-gray-400'}"></i>
+                          <div class="w-8 h-8 rounded-lg ${mainStudent.is_RTE ? 'bg-emerald-500/20' : 'bg-gray-600/20'} flex items-center justify-center">
+                            <i class="${mainStudent.is_RTE ? 'fas fa-check-circle text-emerald-400' : 'fas fa-times-circle text-gray-400'}"></i>
                           </div>
                           <div>
                             <p class="text-xs text-gray-400">RTE Status</p>
-                            <p class="font-medium ${mainStudent.RTE ? 'text-emerald-300' : 'text-gray-300'}">
-                              ${mainStudent.RTE ? 'RTE Student' : 'Non-RTE Student'}
+                            <p class="font-medium ${mainStudent.is_RTE ? 'text-emerald-300' : 'text-gray-300'}">
+                              ${mainStudent.is_RTE ? 'RTE Student' : 'Non-RTE Student'}
                             </p>
                           </div>
                         </div>
                       </div>
                       
                       <!-- RTE Session Card -->
-                      <div class="bg-gradient-to-br ${mainStudent.RTE_SESSION ? 'from-blue-500/10 to-cyan-500/10' : 'from-gray-700/20 to-gray-800/20'} rounded-lg p-3 border ${mainStudent.RTE_SESSION ? 'border-blue-500/20' : 'border-gray-600/20'}">
+                      <div class="bg-gradient-to-br ${mainStudent.RTE_registered_year ? 'from-blue-500/10 to-cyan-500/10' : 'from-gray-700/20 to-gray-800/20'} rounded-lg p-3 border ${mainStudent.RTE_registered_year ? 'border-blue-500/20' : 'border-gray-600/20'}">
                         <div class="flex items-center gap-2">
-                          <div class="w-8 h-8 rounded-lg ${mainStudent.RTE_SESSION ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center">
-                            <i class="${mainStudent.RTE_SESSION ? 'fas fa-calendar-check text-blue-400' : 'fas fa-calendar-times text-gray-400'}"></i>
+                          <div class="w-8 h-8 rounded-lg ${mainStudent.RTE_registered_year ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center">
+                            <i class="${mainStudent.RTE_registered_year ? 'fas fa-calendar-check text-blue-400' : 'fas fa-calendar-times text-gray-400'}"></i>
                           </div>
                           <div>
                             <p class="text-xs text-gray-400">RTE Session Year</p>
-                            <p class="font-medium ${mainStudent.RTE_SESSION ? 'text-blue-300' : 'text-gray-300'}">
-                              ${mainStudent.RTE_SESSION || 'Not Registered'}
+                            <p class="font-medium ${mainStudent.RTE_registered_year ? 'text-blue-300' : 'text-gray-300'}">
+                              ${mainStudent.RTE_registered_year || 'Not Registered'}
                             </p>
                           </div>
                         </div>
@@ -433,11 +447,11 @@
                       </div>
                       
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        ${renderBankDetailCard('fas fa-credit-card', 'Account Number', mainStudent.BANK_ACCOUNT_NUMBER, 'emerald')}
-                        ${renderBankDetailCard('fas fa-code', 'IFSC Code', mainStudent.IFSC_CODE, 'blue')}
-                        ${renderBankDetailCard('fas fa-university', 'Bank Name', mainStudent.BANK_NAME, 'purple')}
-                        ${renderBankDetailCard('fas fa-map-marker-alt', 'Bank Branch', mainStudent.BANK_BRANCH, 'orange')}
-                        ${renderBankDetailCard('fas fa-user-circle', 'Account Holder', mainStudent.ACCOUNT_HOLDER_NAME, 'pink')}
+                        ${renderBankDetailCard('fas fa-credit-card', 'Account Number', mainStudent.account_number, 'emerald')}
+                        ${renderBankDetailCard('fas fa-code', 'IFSC Code', mainStudent.ifsc, 'blue')}
+                        ${renderBankDetailCard('fas fa-university', 'Bank Name', mainStudent.bank_name, 'purple')}
+                        ${renderBankDetailCard('fas fa-map-marker-alt', 'Bank Branch', mainStudent.bank_branch, 'orange')}
+                        ${renderBankDetailCard('fas fa-user-circle', 'Account Holder', mainStudent.account_holder, 'pink')}
                       </div>
                     </div>
                 </div>
@@ -806,12 +820,58 @@
     loadStudentDetails(studentId, phone);
   }
 
+  // Admission preview function
+  function loadAdmissionPreview(verifiedData, imageBlob) {
+    if (isLoading) return;
+    
+    admissionImageBlob = imageBlob;
+    
+    const skeleton = document.getElementById('studentModalSkeleton');
+    const content = document.getElementById('studentModalContent');
+    
+    skeleton.classList.remove('hidden');
+    content.classList.add('hidden');
+    content.innerHTML = '';
+    
+    openStudentModal();
+    
+    // Transform verifiedData to student object
+    const student = {};
+    verifiedData.forEach(item => {
+      student[item.field] = item.value;
+    });
+    
+    // Convert IDs to display values
+    const classSelect = document.getElementById('CLASS');
+    if (classSelect && student.CLASS) {
+      const opt = Array.from(classSelect.options).find(o => o.value === student.CLASS);
+      if (opt) student.CLASS = opt.text;
+    }
+    
+    const admissionClassSelect = document.getElementById('Admission_Class');
+    if (admissionClassSelect && student.Admission_Class) {
+      const opt = Array.from(admissionClassSelect.options).find(o => o.value === student.Admission_Class);
+      if (opt) student.Admission_Class = opt.text;
+    }
+    
+    const sessionSelect = document.getElementById('admission_session_id');
+    if (sessionSelect && student.admission_session_id) {
+      const opt = Array.from(sessionSelect.options).find(o => o.value === student.admission_session_id);
+      if (opt) student.admission_session_id = opt.text;
+    }
+    
+    setTimeout(() => {
+      renderCompleteStudentContent([student]);
+    }, 400);
+  }
+
   // Global functions
   window.loadStudentDetails = loadStudentDetails;
   window.closeStudentModal = closeStudentModal;
   window.viewSibling = viewSibling;
   window.retryLoad = retryLoad;
   window.toggleBankDetails = toggleBankDetails;
+  window.loadAdmissionPreview = loadAdmissionPreview;
 </script>
 
 <style>

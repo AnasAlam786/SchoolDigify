@@ -111,18 +111,18 @@
             <table style="width: 100%; border-collapse: collapse; margin: 0; padding: 0; ">
               <tr>
                 <td><strong>Ad. No:</strong></td>
-                <td>{{ student.ADMISSION_NO }}</td>
+                <td>{% if student.ADMISSION_NO %}{{ student.ADMISSION_NO }}{% endif %}</td>
                 <td><strong>Ad. Date:</strong></td>
-                <td>{{ student.admission_date }}</td>
+                <td>{% if student.ADMISSION_DATE %}{{ student.ADMISSION_DATE }}{% endif %}</td>
                 <td><strong>SR No:</strong></td>
-                <td>{{ student.SR }}</td>
+                <td>{% if student.SR %}{{ student.SR }}{% endif %}</td>
               </tr>
 
               <tr>
                 <td><strong>Name:</strong></td>
                 <td>{{ student.STUDENTS_NAME }}</td>
                 <td><strong>Gender:</strong></td>
-                <td>{{ student.GENDER }}</td>
+                <td>{% if student.GENDER %}{{ student.GENDER }}{% endif %}</td>
               </tr>
               
               <tr>
@@ -131,12 +131,12 @@
                 <td><strong>Roll:</strong></td>
                 <td>{{ student.ROLL }}</td>
                 <td><strong>Section:</strong></td>
-                <td>{{ student.SECTION }}</td>
+                <td>{% if student.SECTION %}{{ student.SECTION }}{% endif %}</td>
               </tr>
 
               <tr>
                 <td><strong>Aadhar:</strong></td>
-                <td>{{ student.AADHAAR }}</td>
+                <td>{% if student.AADHAAR %}{{ student.AADHAAR }}{% endif %}</td>
                 <td><strong>DOB:</strong></td>
                 <td>{{ student.dob }}</td>
               </tr>

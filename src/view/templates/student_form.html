@@ -179,60 +179,78 @@
     }
 </style>
 
-<!-- Page Header -->
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+<div class="max-w-6xl mx-auto sm:px-6 py-4">
     <div
-        class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900/90 to-gray-800/90 p-6 sm:p-8 border border-gray-800/50 backdrop-blur-sm mobile-header">
-        <!-- Background pattern -->
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(99,102,241,0.15),transparent_50%)]">
+        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#181818] via-[#141414] to-[#0f0f0f] border border-gray-800 shadow-xl">
+
+        <!-- Subtle background accents (reduced) -->
+        <div class="absolute inset-0 pointer-events-none">
+            <div
+                class="absolute inset-0 bg-[radial-gradient(circle_at_15%_25%,rgba(255,255,255,0.04),transparent_45%)]">
+            </div>
         </div>
 
-        <div class="relative flex flex-col md:flex-row md:items-center justify-between">
-            <div class="mb-6 md:mb-0">
-                <div class="inline-flex items-center gap-3 mb-4">
+        <div class="relative z-10 p-6 md:p-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+                <!-- LEFT -->
+                <div class="flex items-start gap-4 lg:gap-5">
+                    <!-- Icon -->
                     <div
-                        class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                        class="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
                         <i class="fas fa-user-plus text-white text-xl"></i>
                     </div>
-                    <div>
-                        <h1
-                            class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                            {{ 'Edit Student' if mode == 'edit' else 'Add New Student' }}
-                        </h1>
-                        <p class="text-gray-400 mt-2 text-sm sm:text-base">
+
+                    <!-- Text -->
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-3">
+                            <h1 class="text-xl sm:text-2xl lg:text-3xl font-semibold text-white">
+                                {{ 'Edit Student' if mode == 'edit' else 'Add New Student' }}
+                            </h1>
+                            <span
+                                class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700/60 text-gray-200 border border-gray-600">
+                                {{ 'Edit' if mode == 'edit' else 'New' }}
+                            </span>
+                        </div>
+
+                        <p class="text-gray-400 text-sm max-w-xl">
                             {{ 'Update student information and details' if mode == 'edit' else 'Fill in the student
                             details to add them to the system' }}
                         </p>
                     </div>
                 </div>
-            </div>
 
-            <div class="flex items-center gap-3">
-                <a href="/student_list"
-                    class="group inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white transition-all duration-300 hover:shadow-lg text-sm sm:text-base">
-                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
-                    Back to Students
-                </a>
+                <!-- ACTIONS -->
+                <div class="flex flex-col sm:flex-row lg:flex-row gap-3">
+                    <a href="/student_list"
+                        class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 hover:text-white transition text-sm">
+                        <i class="fas fa-arrow-left text-xs"></i>
+                        Back to Students
+                    </a>
 
-                {% if mode == 'edit' and student %}
-                <a href="#" onclick="printAdmissionForm('{{ student.id }}')"
-                    class="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-medium transition-all duration-300 hover:shadow-lg hover:scale-105 text-sm sm:text-base">
-                    <i class="fas fa-print"></i>
-                    Print Form
-                </a>
-                <a href="#" onclick="sendMessage('{{ student.id }}')"
-                    class="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium transition-all duration-300 hover:shadow-lg hover:scale-105 text-sm sm:text-base">
-                    <i class="fab fa-whatsapp"></i>
-                    Send Message
-                </a>
-                {% endif %}
+                    {% if mode == 'edit' and student %}
+                    <button onclick="printAdmissionForm('{{ student.id }}')"
+                        class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition">
+                        <i class="fas fa-print"></i>
+                        Print Form
+                    </button>
+
+                    <button onclick="sendMessage('{{ student.id }}')"
+                        class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition">
+                        <i class="fab fa-whatsapp"></i>
+                        Send Message
+                    </button>
+                    {% endif %}
+                </div>
+
             </div>
         </div>
     </div>
 </div>
 
+
 <!-- Validation Summary -->
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+<div class="max-w-6xl mx-auto sm:px-6 mb-6">
     <div id="validationSummary"
         class="hidden rounded-xl border border-red-500/30 bg-gradient-to-r from-red-900/20 to-red-800/10 p-4 sm:p-5 backdrop-blur-sm transition-all duration-300">
         <div class="flex items-start gap-3 sm:gap-4">
@@ -254,7 +272,7 @@
 </div>
 
 <!-- Main Form -->
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-6xl mx-auto sm:px-6 mb-24">
     <form id="DataForm" class="space-y-6">
         <!-- Personal Information Card -->
         <div class="section-card gradient-border rounded-2xl p-4 sm:p-6 bg-gray-900/50 backdrop-blur-sm">
@@ -573,17 +591,14 @@
                         Admission Session
                     </label>
                     <div class="relative">
-                        <select id="admission_session_id" name="admission_session_id" data-current-session="{{ current_session }}"
+                        <select id="admission_session_id" name="admission_session_id"
+                            data-current-session="{{ current_session }}"
                             class="w-full px-4 py-3 sm:py-3.5 bg-gray-800/70 border border-gray-700 rounded-lg sm:rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all duration-300 appearance-none"
                             {{ 'disabled' if mode=='add' else '' }} required>
                             <option value="" class="bg-gray-800">Select Session</option>
                             {% for year, label in admission_sessions.items() %}
-                            <option value="{{ year }}" 
-                                {% if mode=='add' and year==current_session %}
-                                    selected
-                                {% elif mode=='edit' and student and student.admission_session_id==year %}
-                                    selected
-                                {% endif %}
+                            <option value="{{ year }}" {% if mode=='add' and year==current_session %} selected {% elif
+                                mode=='edit' and student and student.admission_session_id==year %} selected {% endif %}
                                 class="bg-gray-800">
                                 {{ label }}
                             </option>
@@ -637,8 +652,8 @@
                             {{ 'disabled' if mode=='add' else '' }} required>
                             <option value="" class="bg-gray-800">Select Class</option>
                             {% for class_id, class_name in classes.items() %}
-                            <option value="{{ class_id }}" 
-                                {{ 'selected' if student and student.class_id==class_id|int else '' }} class="bg-gray-800">
+                            <option value="{{ class_id }}" {{ 'selected' if student and student.class_id==class_id|int
+                                else '' }} class="bg-gray-800">
                                 {{ class_name }}
                             </option>
                             {% endfor %}
@@ -911,7 +926,7 @@
                                         value="{{ student.MOTHERS_NAME if student and student.MOTHERS_NAME else '' }}"
                                         required placeholder="Mother's name"
                                         oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
-                                                                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                                         <i class="fas fa-female"></i>
                                     </div>
                                 </div>
@@ -1361,43 +1376,69 @@
     </form>
 </div>
 
-<!-- Compact Sticky Form Actions -->
-<div class="fixed bottom-0 left-0 right-0 z-50 compact-sticky-actions">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-            class="bg-gray-900/95 backdrop-blur-xl rounded-t-xl p-3 sm:p-4 border-t border-x border-gray-800/50 shadow-2xl">
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
-                <div class="flex items-center gap-2 text-gray-400 text-xs order-2 sm:order-1 mt-2 sm:mt-0">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>
-                        <span class="text-red-500">*</span> Required fields
-                    </p>
-                </div>
+<!-- Responsive Sticky / Floating Form Actions -->
+<div
+  class="fixed bottom-0 left-0 right-0
+         md:left-auto md:right-6 md:bottom-6
+         z-50">
 
-                <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto order-1 sm:order-2">
-                    <a href="/student_list"
-                        class="px-3 sm:px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 hover:text-white transition-all duration-300 font-medium text-sm flex-1 sm:flex-none text-center">
-                        Cancel
-                    </a>
+  <div
+    class="max-w-6xl mx-auto md:mx-0
+           px-4 sm:px-6 md:px-0">
 
-                    <button type="button" id="FormSubmit"
-                        class="px-4 sm:px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold transition-all duration-300 hover:shadow-lg flex-1 sm:flex-none text-sm flex items-center justify-center gap-2">
-                        <svg id="btn-spinner" class="hidden animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                            <path class="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        <span id="btn-text">
-                            <i class="fas fa-paper-plane mr-1"></i>
-                            {{ 'Update' if mode == 'edit' else 'Review' }}
-                        </span>
-                    </button>
-                </div>
-            </div>
-        </div>
+    <div
+      class="bg-[#161616]
+             border-t border-gray-800
+             md:border md:border-gray-700
+             shadow-[0_-6px_20px_rgba(0,0,0,0.6)]
+             md:shadow-2xl
+             rounded-t-xl md:rounded-xl
+             px-4 py-3">
+
+      <div
+        class="flex flex-col items-center gap-2
+               md:items-stretch md:min-w-[240px]">
+
+        <!-- Guidance text -->
+        <p class="text-xs text-gray-400 text-center md:text-left leading-snug">
+          Review all details carefully, then submit the form to continue.
+        </p>
+
+        <!-- Primary CTA -->
+        <button type="button" id="FormSubmit"
+                class="w-full md:w-full
+                       px-6 py-2.5 rounded-lg
+                       bg-green-600 hover:bg-green-500
+                       text-white font-semibold text-sm
+                       transition shadow-md
+                       flex items-center justify-center gap-2">
+
+          <!-- Spinner -->
+          <svg id="btn-spinner"
+               class="hidden animate-spin w-4 h-4"
+               xmlns="http://www.w3.org/2000/svg"
+               fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25"
+                    cx="12" cy="12" r="10"
+                    stroke="currentColor"
+                    stroke-width="4" />
+            <path class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0
+                     C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+
+          <!-- Button text -->
+          <span id="btn-text">
+            {{ 'Update Student' if mode == 'edit' else 'Save & Review' }}
+          </span>
+        </button>
+
+      </div>
     </div>
+  </div>
 </div>
+
 
 <!-- Verification Modal (for add mode) -->
 {% if mode == 'add' %}
@@ -1441,7 +1482,7 @@
                     </button>
 
                     {% if mode == 'add' %}
-                    <button id="sendMessageBTN"
+                    <button id="sendWhatsAppBTN"
                         class="group px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 inline-flex items-center justify-center gap-2 text-sm sm:text-base">
                         <i class="fab fa-whatsapp"></i>
                         Send WhatsApp
@@ -1471,39 +1512,11 @@
 <script>
     // Show/hide sticky actions based on scroll
 
-    let lastScrollTop = 0;
-    const stickyActions = document.querySelector('.compact-sticky-actions');
-
-    window.addEventListener('scroll', function () {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-        if (scrollTop > lastScrollTop) {
-            // Scrolling down
-            if (stickyActions && !stickyActions.classList.contains('hidden')) {
-                stickyActions.classList.add('hidden');
-            }
-        } else {
-            // Scrolling up
-            if (stickyActions && stickyActions.classList.contains('hidden')) {
-                stickyActions.classList.remove('hidden');
-            }
-        }
-        lastScrollTop = scrollTop;
-    });
-
     function closeModal(modalID) {
         document.getElementById(modalID).classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     }
 
-    // Also show sticky actions on form focus
-    document.addEventListener('focusin', function (e) {
-        if (e.target.matches('input, select, textarea')) {
-            if (stickyActions && stickyActions.classList.contains('hidden')) {
-                stickyActions.classList.remove('hidden');
-            }
-        }
-    });
 </script>
 
 {% endblock %}

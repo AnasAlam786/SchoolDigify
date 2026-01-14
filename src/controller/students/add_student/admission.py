@@ -41,14 +41,6 @@ def get_enum_options():
 @permission_required('admission')
 def admission():
 
-    ["Class", "Section", "Name", "Gender", "Initialised at SDMS", "Student PEN", "Student State Code",
-    "Father Name", "Mother Name", "Social Category", "Minority Group",
-    "BPL beneficiary", "CWSN", "Type of Impairments", "Is Repeater", "Suspected Duplicate",
-    "Entry Status", "AADHAAR No.", "Name As per AADHAAR", "AADHAAR Validation Status", "MBU Status",
-    "APAAR ID",	"APAAR Status",	"DOB", "Address", "Pincode", "Mobile", "Alternate Mobile",
-    "Email", "Mother Tongue", "Blood Group", "Admission Number", "Admission Date", "Roll No"
-    "Section 12C", "Height", "Weight", "Distance to School", "Guardian Education Level"]
-
     """Render the add student form."""
     user_id = session["user_id"]
     school_id = session["school_id"]

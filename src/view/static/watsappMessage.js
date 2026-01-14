@@ -1,6 +1,20 @@
 // used in src/view/static/student.js
 // used in src/view/static/promote_students.js
 
+async function sendMessage(studentId) {
+    try {
+      const resp = await fetch(`/create_watsapp_message_api?student_id=${encodeURIComponent(studentId)}`);
+      const data = await resp.json();
+      if (resp.ok) {
+        sendWhatsAppMessage(data.phone, data.watsapp_message);
+      } else {
+        this.showAlert(resp.status, data.message);
+      }
+    } catch (err) {
+      console.error('Error sending message:', err);
+    }
+  }
+
 function sendWhatsAppMessage(phone, message) {
     // 1. Convert and validate phone
     try {

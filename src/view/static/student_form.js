@@ -443,7 +443,7 @@ class StudentFormManager {
   showAdmissionDoneModal(studentId) {
     document.getElementById('successModal').classList.remove('hidden');
     document.body.classList.add('overflow-hidden');
-    document.getElementById('sendMessageBTN').onclick = () => this.sendMessage(studentId);
+    document.getElementById('sendWhatsAppBTN').onclick = () => sendMessage(studentId);
     document.getElementById('printFormBTN').onclick = () => printAdmissionForm(studentId);
   }
 
@@ -452,19 +452,6 @@ class StudentFormManager {
     document.body.classList.remove('overflow-hidden');
   }
 
-  async sendMessage(studentId) {
-    try {
-      const resp = await fetch(`/create_watsapp_message_api?student_id=${encodeURIComponent(studentId)}`);
-      const data = await resp.json();
-      if (resp.ok) {
-        sendWhatsAppMessage(data.phone, data.watsapp_message);
-      } else {
-        this.showAlert(resp.status, data.message);
-      }
-    } catch (err) {
-      console.error('Error sending message:', err);
-    }
-  }
 
   convertBlobToBase64(blob) {
     return new Promise((resolve, reject) => {

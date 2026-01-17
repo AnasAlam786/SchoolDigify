@@ -22,8 +22,6 @@ get_students_pdf_api_bp = Blueprint( 'get_students_pdf_api_bp',   __name__)
 @permission_required('admission')
 def get_students_pdf_api():
 
-    
-
     school_id = session['school_id']
 
     min_session_subq = (

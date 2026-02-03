@@ -8,9 +8,6 @@ class ClassData(db.Model):
     
     id = Column(BigInteger, primary_key=True)
     CLASS = Column(Text, nullable=False)
-    Numeric_Subjects = Column(JSON, nullable=False)
-    exam_format = Column(JSON, nullable=False)
-    Grading_Subjects = Column(JSON, nullable=True)
     Section = Column(Text, nullable=True)   # Added Section column as per DB
     display_order = Column(SmallInteger, nullable=True)
 

@@ -2,14 +2,6 @@
 {% block title %}Update Marks{% endblock %}
 {% block content %}
 <style>
-  .container-lg {
-    background: rgba(30, 30, 30, 0.9);
-    padding: 20px;
-    border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-    margin-bottom: 30px;
-  }
-
   /* Dropdowns */
   .select-input {
     background-color: #222;
@@ -157,79 +149,127 @@
   }
 </style>
 
-<div class="mx-auto">
-  <!-- Page Header -->
-  <div class="flex flex-col md:flex-row justify-between items-center mb-8">
-    <div>
-      <h1 class="text-2xl md:text-3xl font-bold text-white">
-        <i class="fas fa-edit text-indigo-400 mr-2"></i>
-        Student Marks Management
-      </h1>
-      <p class="text-gray-400 mt-1 md:mt-2 text-sm md:text-base">
-        Select class, subject, and exam to update student marks. Changes are saved automatically.
-      </p>
+<div class="mx-auto px-4 sm:px-6 lg:px-8">
+  <!-- Modern Header without Panel Background -->
+  <div class="mb-8">
+    
+    <!-- Header with Title and Manage Exams Button -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <!-- Title Section -->
+      <div class="flex-1">
+        <div class="flex items-center mb-3">
+          <div class="mr-4 p-3 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg">
+            <i class="fas fa-edit text-white text-xl"></i>
+          </div>
+          <div>
+            <h1 class="text-xl md:text-4xl font-bold text-white">
+              <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Marks Update</span>
+            </h1>
+            <p class="text-gray-400 text-sm md:text-base mt-2 max-w-2xl">
+              Select class, subject, and exam to update student marks.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Manage Exams Button on Right -->
+      {% if has_permission('lock_marks') %}
+      <div class="md:text-right">
+        <button type="button" id="manageExamsBtn"
+          class="group bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-emerald-500/50 text-gray-100 font-semibold py-3 px-6 rounded-xl text-lg transition-all duration-300 shadow-lg hover:shadow-emerald-500/10">
+          <div class="flex items-center justify-center gap-3">
+            <i class="fas fa-cog group-hover:rotate-90 transition-transform duration-500"></i>
+            <span>Manage Exams</span>
+          </div>
+        </button>
+      </div>
+      {% endif %}
     </div>
-  </div>
 
-  <!-- Form Row -->
-  <div class="flex flex-col md:flex-row md:space-x-4 mb-3">
-    <div class="mb-2 md:mb-0 md:w-1/3">
-      <select class="w-full select-input text-gray-300 text-sm md:text-base p-2 rounded" id="Class" name="selectClass"
-        required>
-        <option disabled selected hidden value="">Class</option>
-        {% if classes %}
-        {% for class in classes %}
-        <option value="{{ class.id }}">{{ class.CLASS }}</option>
-        {% endfor %}
-        {% endif %}
-      </select>
-    </div>
-    <div class="mb-2 md:mb-0 md:w-1/3">
-      <select class="w-full select-input text-gray-300 text-sm md:text-base p-2 rounded" id="Subject"
-        name="selectSubject" required>
-        <option disabled selected hidden value="">Subject</option>
-        {% if subjects %}
-        {% for subject in subjects %}
-        <option value="{{ subject }}">{{ subject }}</option>
-        {% endfor %}
-        {% endif %}
-      </select>
-    </div>
-    <div class="mb-2 md:mb-0 md:w-1/3">
-      <select class="w-full select-input text-gray-300 text-sm md:text-base p-2 rounded" id="Exam" name="selectExam"
-        required>
-        <option disabled selected hidden value=""> Select Exam</option>
-        {% if exams %}
-        {% for exam in exams %}
-        <option value="{{ exam.id }}" {% if (not exam.is_enabled) and (not has_permission('override_marks_lock')) %}
-          disabled {% endif %}>
-          {{ exam.exam_name }}
-        </option>
-        {% endfor %}
-        {% endif %}
-      </select>
-    </div>
-  </div>
+    <!-- Form Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+      <!-- Class Selection -->
+      <div class="relative group">
+        <label class="block text-sm font-semibold text-gray-300 mb-2 ml-1">
+          <i class="fas fa-graduation-cap mr-2 text-indigo-400"></i>Class
+        </label>
+        <div class="relative">
+          <select class="w-full bg-gray-900 border border-gray-700 text-gray-100 text-base p-3 pl-4 rounded-lg focus:ring-2 focus:ring-indigo-500 
+                  focus:border-transparent outline-none transition-all hover:border-indigo-500/50 appearance-none cursor-pointer" id="Class" name="selectClass" required>
+            <option disabled selected hidden class="text-gray-500">Select Class</option>
+            {% if classes %}
+            {% for class in classes %}
+            <option value="{{ class.id }}" class="bg-gray-900 text-gray-100">{{ class.CLASS }}</option>
+            {% endfor %}
+            {% endif %}
+          </select>
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
 
-  <!-- Button -->
-  <div class="text-center">
-    <button type="button" onclick="submitData()"
-      class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg text-lg mb-3"
-      id="submitButton">
-      Get Marks
-    </button>
-  </div>
+      <!-- Subject Selection -->
+      <div class="relative group">
+        <label class="block text-sm font-semibold text-gray-300 mb-2 ml-1">
+          <i class="fas fa-book mr-2 text-purple-400"></i>Subject
+        </label>
+        <div class="relative">
+          <select class="w-full bg-gray-900 border border-gray-700 text-gray-100 text-base p-3 pl-4 rounded-lg focus:ring-2 focus:ring-purple-500 
+                  focus:border-transparent outline-none transition-all hover:border-purple-500/50 appearance-none cursor-pointer" id="Subject" name="selectSubject" required>
+            <option disabled selected hidden class="text-gray-500">Select Subject</option>
+            {% if subjects %}
+            {% for subject in subjects %}
+            <option value="{{ subject }}" class="bg-gray-900 text-gray-100">{{ subject }}</option>
+            {% endfor %}
+            {% endif %}
+          </select>
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
 
-  <!-- Manage Exams Button -->
-  <div class="text-center mb-4">
-    {% if has_permission('lock_marks') %}
-    <button type="button" id="manageExamsBtn"
-      class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg text-lg">
-      Manage Exams
-    </button>
-    {% endif %}
+      <!-- Exam Selection -->
+      <div class="relative group">
+        <label class="block text-sm font-semibold text-gray-300 mb-2 ml-1">
+          <i class="fas fa-clipboard-list mr-2 text-blue-400"></i>Exam
+        </label>
+        <div class="relative">
+          <select class="w-full bg-gray-900 border border-gray-700 text-gray-100 text-base p-3 pl-4 rounded-lg focus:ring-2 focus:ring-blue-500 
+                  focus:border-transparent outline-none transition-all hover:border-blue-500/50 appearance-none cursor-pointer" id="Exam" name="selectExam" required>
+            <option disabled selected hidden class="text-gray-500">Select Exam</option>
+            {% if exams %}
+            {% for exam in exams %}
+            <option value="{{ exam.id }}" {% if (not exam.is_enabled) and (not has_permission('override_marks_lock')) %}
+              disabled {% endif %}
+              class="bg-gray-900 text-gray-100 {% if not exam.is_enabled %} opacity-50 {% endif %}">
+              {{ exam.exam_name }}
+            </option>
+            {% endfor %}
+            {% endif %}
+          </select>
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered Get Marks Button -->
+    <div class="text-center">
+      <button type="button" onclick="submitData()"
+        class="group relative bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 px-8 rounded-xl text-lg transition-all duration-300 shadow-lg hover:shadow-indigo-500/25 hover:shadow-xl transform hover:-translate-y-0.5">
+        <div class="flex items-center justify-center gap-3">
+          <i class="fas fa-download"></i>
+          <span>Get Marks</span>
+          <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+        </div>
+      </button>
+    </div>
   </div>
 </div>
+
 
 <div id="marksTable">
   {% if data %}

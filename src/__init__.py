@@ -32,6 +32,12 @@ def create_app():
     app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
     app.config['SECRET_KEY'] = os.getenv('SESSION_KEY')
 
+    # app.config.update(
+    #     SERVER_NAME="schooldigify.com",
+    #     SESSION_COOKIE_DOMAIN=".schooldigify.com",
+    #     SESSION_COOKIE_SAMESITE="Lax",
+    # )
+
     # ——— DATABASE CONFIG (Supabase-safe) ———
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('URI')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -79,6 +85,32 @@ def create_app():
         print("✅ Connected to Redis Cloud successfully.")
     except redis.exceptions.ConnectionError as e:
         print("❌ Redis connection failed:", e)
+
+    # # ——— Subdomain Management ———
+    # from .controller.utils.subdomain_helper import (
+    #     extract_school_id_from_request,
+    #     is_authenticated_for_subdomain,
+    #     url_for_school
+    # )
+
+    # @app.before_request
+    # def validate_subdomain_access():
+    #     from flask import request, redirect, url_for, session
+
+    #     # Skip non-subdomain routes
+    #     if not request.blueprint or not request.blueprint.endswith('tenant_bp'):
+    #         return
+
+    #     school_id = extract_school_id_from_request()
+
+    #     if not is_authenticated_for_subdomain(school_id):
+    #         session.clear()
+    #         return redirect(url_for('login_bp.login'))
+
+    # @app.context_processor
+    # def inject_subdomain_helpers():
+    #     """Inject subdomain utilities into all templates"""
+    #     return dict(url_for_school=url_for_school, school_id=extract_school_id_from_request())
 
     # ——— Register blueprints ———
     from .controller import register_blueprints

@@ -59,6 +59,7 @@
             </div>
             {% endif %}
 
+            <!-- QnA, FillUp, TF Type Questions -->
             {% if question.type in ["QnA", "fillUp", "TF"] and question.subQuestion|length != 0 %}
             <div style="display: flex; justify-content: space-between; margin-bottom: 0; width: 100%;">
                 <p style="margin: 0; line-height: 1.4; padding-left: 35px; text-indent: -35px;"><strong>Q{{ loop.index }}. {{ question.qText }}</strong></p>
@@ -77,6 +78,7 @@
             </div>
             {% endif %}
 
+            <!-- SingleWord Type Questions -->
             {% if question.type == "singleWord" and question.subQuestion|length != 0 %}
             <div style="display: flex; justify-content: space-between; margin-bottom: 0; width: 100%;">
                 <p style="margin: 0; line-height: 1.4; padding-left: 35px; text-indent: -35px;"><strong>Q{{ loop.index }}. {{ question.qText }}</strong></p>
@@ -94,6 +96,7 @@
             </div>
             {% endif %}
 
+            <!-- MCQ Type Questions -->
             {% if question.type == "mcq" and question.subQuestion|length != 0 %}
             <div style="display: flex; justify-content: space-between; margin-bottom: 0; width: 100%;">
                 <p style="margin: 0; line-height: 1.4; padding-left: 35px; text-indent: -35px;"><strong>Q{{ loop.index }}. {{ question.qText }}</strong></p>

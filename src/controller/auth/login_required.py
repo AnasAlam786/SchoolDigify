@@ -29,6 +29,5 @@ def login_required(f):
         if int(session_permission_no) != int(redis_permission_no):
             save_sessions(user_id=session['user_id'])
 
-
         return f(*args, **kwargs)
     return decorated_function

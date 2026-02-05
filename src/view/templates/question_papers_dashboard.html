@@ -1,0 +1,851 @@
+{% extends "base.html" %}
+{% block title %}Question Papers - Dashboard{% endblock %}
+{% block content %}
+<style>
+#papersContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 420px));
+    gap: 16px;
+    justify-content: center;
+    align-items: start;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+</style>
+<div class="min-h-screen">
+
+    <div class="mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <!-- Enhanced Header -->
+        <div class="mb-10">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="p-2 bg-gradient-to-r from-primary to-secondary rounded-xl">
+                            <i class="fas fa-file-alt text-2xl text-white"></i>
+                        </div>
+                        <h1 class="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                            Question Papers
+                        </h1>
+                    </div>
+                    <p class="text-gray-400 text-lg max-w-2xl">Create, manage, and customize professional question papers with ease</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <!-- Quick Stats -->
+                    <div class="bg-navbg/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4 min-w-[200px]">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Total Papers</p>
+                                <p class="text-2xl font-bold text-white" id="totalPapers">0</p>
+                            </div>
+                            <div class="p-2 bg-primary/20 rounded-lg">
+                                <i class="fas fa-layer-group text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="openCreateModal()"
+                        class="group relative overflow-hidden bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]">
+                        <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                        <i class="fas fa-plus mr-2"></i>
+                        Create New Paper
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter and Search Bar -->
+        <div class="mb-8">
+            <div class="bg-navbg/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-4">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1 relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" 
+                               id="searchInput" 
+                               placeholder="Search papers by event, subject, or class..."
+                               class="w-full pl-12 pr-4 py-3 bg-darkbg/50 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <select id="sortSelect" 
+                                class="px-4 py-3 bg-darkbg/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="event">Event (A-Z)</option>
+                            <option value="subject">Subject (A-Z)</option>
+                        </select>
+                        
+                        <button id="filterBtn" 
+                                class="px-4 py-3 bg-darkbg/50 border border-gray-600 rounded-xl text-white hover:bg-gray-700 transition-all flex items-center gap-2">
+                            <i class="fas fa-filter"></i>
+                            <span class="hidden sm:inline">Filter</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Advanced Filters (Hidden by default) -->
+                <div id="advancedFilters" class="hidden mt-4 pt-4 border-t border-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <select id="eventFilter" class="px-4 py-2 bg-darkbg/50 border border-gray-600 rounded-lg text-white">
+                            <option value="">All Events</option>
+                            <option value="Formative Assessment - I">Formative Assessment - I</option>
+                            <option value="Summative Assessment - I">Summative Assessment - I</option>
+                            <option value="Formative Assessment - II">Formative Assessment - II</option>
+                            <option value="Summative Assessment - II">Summative Assessment - II</option>
+                        </select>
+                        
+                        <select id="subjectFilter" class="px-4 py-2 bg-darkbg/50 border border-gray-600 rounded-lg text-white">
+                            <option value="">All Subjects</option>
+                            <option value="English">English</option>
+                            <option value="Math">Math</option>
+                            <option value="Science">Science</option>
+                            <option value="Computer">Computer</option>
+                        </select>
+                        
+                        <select id="classFilter" class="px-4 py-2 bg-darkbg/50 border border-gray-600 rounded-lg text-white">
+                            <option value="">All Classes</option>
+                            <option value="IX">Class IX</option>
+                            <option value="X">Class X</option>
+                            <option value="XI">Class XI</option>
+                            <option value="XII">Class XII</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Papers Grid -->
+        <div id="papersContainer" >
+            <!-- Loading skeleton cards -->
+            {% for i in range(8) %}
+            <div class="animate-pulse">
+                <div class="bg-navbg/50 backdrop-blur-sm border border-gray-700 rounded-2xl overflow-hidden">
+                    <div class="h-48 bg-gray-700/50"></div>
+                    <div class="p-6 space-y-4">
+                        <div class="h-4 bg-gray-700/50 rounded w-3/4"></div>
+                        <div class="h-3 bg-gray-700/50 rounded w-1/2"></div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="h-10 bg-gray-700/50 rounded"></div>
+                            <div class="h-10 bg-gray-700/50 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-16">
+            <div class="max-w-md mx-auto">
+                <div class="relative mb-6">
+                    <div class="w-32 h-32 mx-auto bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-file-alt text-6xl text-gray-600"></i>
+                    </div>
+                    <div class="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-plus text-sm text-white"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">No Question Papers Yet</h3>
+                <p class="text-gray-400 mb-8">Create your first professional question paper to get started</p>
+                <button onclick="openCreateModal()"
+                    class="group relative overflow-hidden bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                    <i class="fas fa-plus mr-2"></i>
+                    Create Your First Paper
+                </button>
+            </div>
+        </div>
+        
+        <!-- View Toggle -->
+        <div class="mt-12 text-center">
+            <div class="inline-flex bg-navbg/50 backdrop-blur-sm border border-gray-700 rounded-xl p-1">
+                <button id="gridView" class="px-4 py-2 rounded-lg bg-primary text-white">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button id="listView" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white transition">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Paper Modal -->
+<div id="createModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-navbg border border-gray-700 rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-95">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-primary/20 to-secondary/20 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-primary/20 rounded-lg">
+                    <i class="fas fa-plus text-primary"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white">Create New Paper</h2>
+            </div>
+            <button onclick="closeCreateModal()" 
+                    class="text-gray-400 hover:text-white transition transform hover:rotate-90 duration-300">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <form id="createForm" class="px-6 py-6 space-y-5">
+            <!-- Event Selection -->
+            <div>
+                <label class="block text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                    <i class="fas fa-calendar text-primary"></i>
+                    Event <span class="text-danger">*</span>
+                </label>
+                <div class="relative">
+                    <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    <input type="text" id="eventInput" list="eventList" placeholder="Select event"
+                        class="w-full bg-darkbg/50 text-white border border-gray-600 rounded-xl px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition pl-10">
+                    <i class="fas fa-calendar-day absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <datalist id="eventList">
+                    <option value="Formative Assessment - I">
+                    <option value="Summative Assessment - I">
+                    <option value="Formative Assessment - II">
+                    <option value="Summative Assessment - II">
+                    <option value="Unit Test">
+                    <option value="Half Yearly">
+                    <option value="Annual Examination">
+                </datalist>
+            </div>
+
+            <!-- Subject Selection -->
+            <div>
+                <label class="block text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                    <i class="fas fa-book text-primary"></i>
+                    Subject <span class="text-danger">*</span>
+                </label>
+                <div class="relative">
+                    <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    <input type="text" id="subjectInput" list="subjectList" placeholder="Select subject"
+                        class="w-full bg-darkbg/50 text-white border border-gray-600 rounded-xl px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition pl-10">
+                    <i class="fas fa-book-open absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <datalist id="subjectList">
+                    <option value="English">
+                    <option value="Hindi">
+                    <option value="Math">
+                    <option value="Science">
+                    <option value="Computer">
+                    <option value="Social Studies">
+                </datalist>
+            </div>
+
+            <!-- Class Selection -->
+            <div>
+                <label class="block text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                    <i class="fas fa-users text-primary"></i>
+                    Class <span class="text-danger">*</span>
+                </label>
+                <div class="relative">
+                    <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    <input type="text" id="classInput" list="classList" placeholder="Select class"
+                        class="w-full bg-darkbg/50 text-white border border-gray-600 rounded-xl px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition pl-10">
+                    <i class="fas fa-graduation-cap absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <datalist id="classList">
+                    <option value="IX">
+                    <option value="X">
+                    <option value="XI">
+                    <option value="XII">
+                </datalist>
+            </div>
+
+            <!-- Marks and Duration -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                        <i class="fas fa-star text-primary"></i>
+                        Marks
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="marksInput" placeholder="e.g., 50"
+                            class="w-full bg-darkbg/50 text-white border border-gray-600 rounded-xl px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition pl-10">
+                        <i class="fas fa-percentage absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                        <i class="fas fa-clock text-primary"></i>
+                        Duration
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="durationInput" placeholder="e.g., 2 Hrs"
+                            class="w-full bg-darkbg/50 text-white border border-gray-600 rounded-xl px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition pl-10">
+                        <i class="fas fa-hourglass-half absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeCreateModal()"
+                    class="flex-1 group relative overflow-hidden bg-gray-700/50 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 border border-gray-600">
+                    <div class="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="flex-1 group relative overflow-hidden bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 shadow-lg hover:shadow-xl">
+                    <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                    <i class="fas fa-plus mr-2"></i>
+                    Create & Edit
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-navbg border border-gray-700 rounded-2xl shadow-2xl max-w-sm w-full transform transition-all duration-300 scale-95">
+        <div class="p-6 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 bg-danger/20 rounded-full flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-danger text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Delete Paper?</h3>
+            <p class="text-gray-400 text-sm mb-6">This action cannot be undone. All questions and settings will be permanently removed.</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()"
+                    class="flex-1 group relative overflow-hidden bg-gray-700/50 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 border border-gray-600">
+                    <div class="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                    Cancel
+                </button>
+                <button onclick="confirmDelete()"
+                    class="flex-1 group relative overflow-hidden bg-gradient-to-r from-danger to-red-700 hover:from-danger/90 hover:to-red-600 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 shadow-lg">
+                    <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                    <i class="fas fa-trash mr-2"></i>
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast"
+    class="hidden fixed bottom-4 right-4 bg-gray-800/90 backdrop-blur-sm text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-40 border border-gray-700 transform transition-all duration-300 translate-y-full">
+    <div id="toastIcon"></div>
+    <span id="toastMessage"></span>
+</div>
+
+<!-- Quick Actions Menu -->
+<div id="quickActions" class="hidden fixed bottom-6 right-6 z-30">
+    <div class="bg-navbg border border-gray-700 rounded-xl shadow-2xl p-2">
+        <button onclick="openCreateModal()" class="p-3 hover:bg-gray-700/50 rounded-lg transition group" title="Create New">
+            <i class="fas fa-plus text-primary group-hover:scale-110 transition-transform"></i>
+        </button>
+        <button onclick="scrollToTop()" class="p-3 hover:bg-gray-700/50 rounded-lg transition group" title="Scroll to Top">
+            <i class="fas fa-arrow-up text-gray-400 group-hover:text-white group-hover:scale-110 transition-transform"></i>
+        </button>
+    </div>
+</div>
+
+<style>
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+    
+    .list-view .paper-card {
+        grid-column: span 3;
+    }
+    
+    @media (max-width: 768px) {
+        .list-view .paper-card {
+            grid-column: span 1;
+        }
+    }
+</style>
+
+<script>
+    let papers = [];
+    let deleteTargetId = null;
+    let isGridView = true;
+
+    // Load papers on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadPapers();
+        initEventListeners();
+        showQuickActions();
+    });
+
+    // Initialize event listeners
+    function initEventListeners() {
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', filterPapers);
+        
+        // Sort functionality
+        document.getElementById('sortSelect').addEventListener('change', sortPapers);
+        
+        // Filter toggle
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            const filters = document.getElementById('advancedFilters');
+            filters.classList.toggle('hidden');
+        });
+        
+        // View toggle
+        document.getElementById('gridView').addEventListener('click', () => setGridView(true));
+        document.getElementById('listView').addEventListener('click', () => setGridView(false));
+        
+        // Advanced filters
+        ['eventFilter', 'subjectFilter', 'classFilter'].forEach(id => {
+            document.getElementById(id).addEventListener('change', filterPapers);
+        });
+    }
+
+    // Show quick actions menu on scroll
+    function showQuickActions() {
+        window.addEventListener('scroll', () => {
+            const quickActions = document.getElementById('quickActions');
+            if (window.scrollY > 300) {
+                quickActions.classList.remove('hidden');
+            } else {
+                quickActions.classList.add('hidden');
+            }
+        });
+    }
+
+    // Scroll to top
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Set grid/list view
+    function setGridView(isGrid) {
+        isGridView = isGrid;
+        const container = document.getElementById('papersContainer');
+        const gridBtn = document.getElementById('gridView');
+        const listBtn = document.getElementById('listView');
+        
+        if (isGrid) {
+            container.classList.remove('list-view');
+            gridBtn.classList.add('bg-primary', 'text-white');
+            gridBtn.classList.remove('text-gray-400');
+            listBtn.classList.remove('bg-primary', 'text-white');
+            listBtn.classList.add('text-gray-400');
+        } else {
+            container.classList.add('list-view');
+            listBtn.classList.add('bg-primary', 'text-white');
+            listBtn.classList.remove('text-gray-400');
+            gridBtn.classList.remove('bg-primary', 'text-white');
+            gridBtn.classList.add('text-gray-400');
+        }
+        renderPapers();
+    }
+
+    // Load all papers
+    async function loadPapers() {
+        try {
+            const response = await fetch('/question-papers/api/list');
+            const data = await response.json();
+            papers = data.papers;
+            document.getElementById('totalPapers').textContent = papers.length;
+            renderPapers();
+        } catch (error) {
+            console.error('Error loading papers:', error);
+            showToast('Error loading papers', 'error');
+        }
+    }
+
+    // Filter papers based on search and filters
+    function filterPapers() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const eventFilter = document.getElementById('eventFilter').value;
+        const subjectFilter = document.getElementById('subjectFilter').value;
+        const classFilter = document.getElementById('classFilter').value;
+
+        const filtered = papers.filter(paper => {
+            const matchesSearch = !searchTerm || 
+                paper.event.toLowerCase().includes(searchTerm) ||
+                paper.subject.toLowerCase().includes(searchTerm) ||
+                paper.class_name.toLowerCase().includes(searchTerm);
+            
+            const matchesEvent = !eventFilter || paper.event === eventFilter;
+            const matchesSubject = !subjectFilter || paper.subject === subjectFilter;
+            const matchesClass = !classFilter || paper.class_name === classFilter;
+
+            return matchesSearch && matchesEvent && matchesSubject && matchesClass;
+        });
+
+        renderPapers(filtered);
+    }
+
+    // Sort papers
+    function sortPapers() {
+        const sortBy = document.getElementById('sortSelect').value;
+        const filtered = getFilteredPapers();
+        
+        filtered.sort((a, b) => {
+            switch(sortBy) {
+                case 'newest':
+                    return new Date(b.created_at) - new Date(a.created_at);
+                case 'oldest':
+                    return new Date(a.created_at) - new Date(b.created_at);
+                case 'event':
+                    return a.event.localeCompare(b.event);
+                case 'event_desc':
+                    return b.event.localeCompare(a.event);
+                case 'subject':
+                    return a.subject.localeCompare(b.subject);
+                case 'subject_desc':
+                    return b.subject.localeCompare(a.subject);
+                default:
+                    return 0;
+            }
+        });
+        
+        renderPapers(filtered);
+    }
+
+    // Get filtered papers
+    function getFilteredPapers() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        return papers.filter(paper => {
+            return !searchTerm || 
+                paper.event.toLowerCase().includes(searchTerm) ||
+                paper.subject.toLowerCase().includes(searchTerm) ||
+                paper.class_name.toLowerCase().includes(searchTerm);
+        });
+    }
+
+    // Render papers
+    function renderPapers(papersArray = papers) {
+        const container = document.getElementById('papersContainer');
+        const emptyState = document.getElementById('emptyState');
+
+        if (!papersArray || papersArray.length === 0) {
+            container.innerHTML = '';
+            emptyState.classList.remove('hidden');
+            return;
+        }
+
+        emptyState.classList.add('hidden');
+
+        container.innerHTML = papersArray.map(paper => `
+            <div class="paper-card transform transition-all duration-300 hover:scale-[1.02]">
+                <div class="bg-navbg/50 backdrop-blur-sm border border-gray-700 rounded-2xl overflow-hidden hover:border-primary transition-all duration-300 h-full flex flex-col">
+                    <!-- Card Header -->
+                    <div class="relative">
+                        <div class="h-2 bg-gradient-to-r from-primary to-secondary"></div>
+                        <div class="absolute top-3 right-3">
+                            <div class="relative">
+                                <button onclick="openMoreMenu(event, ${paper.id})"
+                                    class="p-2 hover:bg-gray-700/50 rounded-lg transition group"
+                                    title="More options">
+                                    <i class="fas fa-ellipsis-v text-gray-400 group-hover:text-white"></i>
+                                </button>
+                                <div id="menu-${paper.id}" class="hidden absolute right-0 mt-2 w-48 bg-navbg border border-gray-700 rounded-xl shadow-2xl z-20">
+                                    <button onclick="duplicatePaper(${paper.id})"
+                                        class="w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700/50 hover:text-white transition text-sm flex items-center gap-2">
+                                        <i class="fas fa-copy"></i>Duplicate
+                                    </button>
+                                    <button onclick="openDeleteModal(${paper.id})"
+                                        class="w-full text-left px-4 py-3 text-danger hover:bg-red-900/50 hover:text-red-300 transition text-sm flex items-center gap-2 border-t border-gray-700">
+                                        <i class="fas fa-trash"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="p-6 flex-1">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-white truncate mb-1">${paper.event}</h3>
+                                <p class="text-sm text-gray-400 truncate">${paper.subject} • Class ${paper.class_name}</p>
+                            </div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="bg-darkbg/30 rounded-lg p-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                                        <i class="fas fa-star text-primary text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-400">Marks</p>
+                                        <p class="text-white font-semibold">${paper.marks}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-darkbg/30 rounded-lg p-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                                        <i class="fas fa-clock text-success text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-400">Duration</p>
+                                        <p class="text-white font-semibold">${paper.duration}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dates -->
+                        <div class="space-y-2 text-xs text-gray-500">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-calendar-plus"></i>
+                                <span>Created: ${formatDate(paper.created_at)}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-edit"></i>
+                                <span>Updated: ${formatDate(paper.updated_at)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="px-6 py-4 bg-darkbg/30 border-t border-gray-700">
+                        <div class="flex gap-3">
+                            <button onclick="editPaper(${paper.id})"
+                                class="flex-1 group relative overflow-hidden bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold py-2 px-3 rounded-lg transition duration-300 text-sm flex items-center justify-center gap-2">
+                                <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                                <i class="fas fa-edit"></i>
+                                Edit
+                            </button>
+                            <button onclick="downloadPDF(${paper.id})"
+                                class="flex-1 group relative overflow-hidden bg-gray-700/50 hover:bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg transition duration-300 text-sm flex items-center justify-center gap-2 border border-gray-600">
+                                <div class="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                                <i class="fas fa-download"></i>
+                                PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+        });
+    }
+
+    // Modal functions
+    function openCreateModal() {
+        const modal = document.getElementById('createModal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.querySelector('.transform').classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeCreateModal() {
+        const modal = document.getElementById('createModal');
+        modal.querySelector('.transform').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.getElementById('createForm').reset();
+        }, 300);
+    }
+
+    function openDeleteModal(paperId) {
+        deleteTargetId = paperId;
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.querySelector('.transform').classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.querySelector('.transform').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            deleteTargetId = null;
+        }, 300);
+    }
+
+    // Form submission
+    document.getElementById('createForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = {
+            event: document.getElementById('eventInput').value,
+            subject: document.getElementById('subjectInput').value,
+            class_name: document.getElementById('classInput').value,
+            marks: document.getElementById('marksInput').value,
+            duration: document.getElementById('durationInput').value
+        };
+
+        try {
+            const response = await fetch('/question-papers/api/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                closeCreateModal();
+                showToast('Question paper created successfully!', 'success');
+                window.location.href = data.redirect;
+            } else {
+                showToast('Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error creating paper:', error);
+            showToast('An error occurred while creating the paper', 'error');
+        }
+    });
+
+    // Edit paper
+    function editPaper(paperId) {
+        window.location.href = `/question-papers/${paperId}`;
+    }
+
+    // Download PDF
+    async function downloadPDF(paperId) {
+        try {
+            showToast('Generating PDF...', 'info');
+            const response = await fetch(`/question-papers/api/${paperId}/preview`);
+            const data = await response.json();
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(data.html);
+            printWindow.document.close();
+
+            setTimeout(() => {
+                printWindow.print();
+                showToast('PDF ready for download', 'success');
+            }, 500);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            showToast('Error generating PDF', 'error');
+        }
+    }
+
+    // Duplicate paper
+    async function duplicatePaper(paperId) {
+        try {
+            const response = await fetch(`/question-papers/api/${paperId}/duplicate`, {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast('Paper duplicated successfully', 'success');
+                await loadPapers();
+            } else {
+                showToast('Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error duplicating paper:', error);
+            showToast('Error duplicating paper', 'error');
+        }
+    }
+
+    // Delete paper
+    async function confirmDelete() {
+        try {
+            const response = await fetch(`/question-papers/api/${deleteTargetId}/delete`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                closeDeleteModal();
+                showToast('Paper deleted successfully', 'success');
+                await loadPapers();
+            } else {
+                showToast('Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting paper:', error);
+            showToast('Error deleting paper', 'error');
+        }
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastIcon = document.getElementById('toastIcon');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        // Set icon based on type
+        let icon = '';
+        switch(type) {
+            case 'success':
+                icon = '<i class="fas fa-check-circle text-success"></i>';
+                break;
+            case 'error':
+                icon = '<i class="fas fa-exclamation-circle text-danger"></i>';
+                break;
+            case 'info':
+                icon = '<i class="fas fa-info-circle text-primary"></i>';
+                break;
+        }
+        
+        toastIcon.innerHTML = icon;
+        toastMessage.textContent = message;
+        
+        toast.classList.remove('hidden', 'translate-y-full');
+        toast.classList.add('translate-y-0');
+        
+        setTimeout(() => {
+            toast.classList.remove('translate-y-0');
+            toast.classList.add('translate-y-full');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
+        }, 3000);
+    }
+
+    // More menu toggle
+    function openMoreMenu(event, paperId) {
+        event.stopPropagation();
+        const menu = document.getElementById(`menu-${paperId}`);
+        menu.classList.toggle('hidden');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', () => {
+        document.querySelectorAll('[id^="menu-"]').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    });
+
+    // Close modals when clicking outside
+    document.getElementById('createModal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+            closeCreateModal();
+        }
+    });
+
+    document.getElementById('deleteModal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+            closeDeleteModal();
+        }
+    });
+</script>
+
+{% endblock %}

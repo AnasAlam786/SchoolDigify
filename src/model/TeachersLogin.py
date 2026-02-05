@@ -36,3 +36,4 @@ class TeachersLogin(db.Model):
     class_access = db.relationship("ClassAccess", back_populates="staff_data")
     subjects = db.relationship("Subjects", back_populates="staff_data")
     attendance = db.relationship("Attendance", back_populates="staff_data")
+    papers = db.relationship("Papers", back_populates="staff_data")

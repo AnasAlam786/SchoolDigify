@@ -33,7 +33,7 @@ def get_gapped_rolls(class_id, session_id):
     if not rolls:
         # No rolls exist, so no gaps, next roll is 1
         return {
-            'gaped_rolls': [],
+            'gapped_rolls': [],
             'next_roll': 1
         }
 
@@ -43,6 +43,7 @@ def get_gapped_rolls(class_id, session_id):
     all_rolls = set(range(1, max_roll + 1))  # All rolls from 1 to max
     existing_rolls = set(rolls)              # Existing rolls
     gapped_rolls = sorted(all_rolls - existing_rolls)  # Missing roll
+    print(gapped_rolls)
 
     # Next available roll
     next_roll = max_roll + 1

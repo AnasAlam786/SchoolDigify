@@ -19,6 +19,7 @@ class Sessions(db.Model):
     marks = db.relationship("StudentMarks", back_populates="session")
     school_legacy = db.relationship("Schools", back_populates="session")
     holidays = db.relationship("AttendanceHolidays", back_populates="session")
+    papers = db.relationship("Papers", back_populates="session")
 
     # fee_data = db.relationship("FeeData", back_populates="session")
     fee_sessions = db.relationship("FeeSessionData", back_populates="session")

@@ -17,7 +17,6 @@ class Schools(db.Model):
     Email = Column(Text, unique=True, nullable=True)
     Password = Column(Text, nullable=True)
     Manager = Column(Text, nullable=False)
-    Classes = Column(JSON, nullable=False)              # Not null in DB
     IP = Column(JSON, nullable=True)
     students_image_folder_id = Column(Text, nullable=True)  # Added students_image_folder_id as per DB
     school_heading_image = Column(Text, nullable=True)  # Added school_heading_image as per DB
@@ -39,4 +38,5 @@ class Schools(db.Model):
     fee_structure = db.relationship("FeeStructure", back_populates="school")
     fee_transactions = db.relationship("FeeTransaction", back_populates="school")
     holidays = db.relationship("AttendanceHolidays", back_populates="school")
+    papers = db.relationship("Papers", back_populates="school")
 

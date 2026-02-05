@@ -1,7 +1,5 @@
 # src/controller/__init__.py
 
-from .tenant.routes import tenant_bp
-
 from .auth.login import login_bp
 from .auth.logout import logout_bp
 
@@ -81,11 +79,11 @@ from .temp.fill_colums_api import fill_colums_api_bp
 
 from .tools.question_paper import question_paper_bp
 from .tools.question_paper_api import question_paper_api_bp
+from .tools.question_papers_dashboard import question_papers_dashboard_bp
+from .tools.question_papers_editor import question_papers_editor_bp
 from .tools.exam_seat_chits import get_seat_chits_bp
 
 def register_blueprints(app):
-    # app.register_blueprint(tenant_bp)
-
     app.register_blueprint(login_bp)
     app.register_blueprint(logout_bp)
     app.register_blueprint(change_session_bp)
@@ -156,6 +154,8 @@ def register_blueprints(app):
 
     app.register_blueprint(question_paper_bp)
     app.register_blueprint(question_paper_api_bp)
+    app.register_blueprint(question_papers_dashboard_bp)
+    app.register_blueprint(question_papers_editor_bp)
     app.register_blueprint(get_seat_chits_bp)
 
 

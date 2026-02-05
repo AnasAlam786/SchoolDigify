@@ -57,8 +57,8 @@ class StudentService:
         # --- Validate admission date ---
         if not (session_start_date <= admission_date <= session_end_date):
             return (
-                f"Admission Date ({admission_date}) must fall within "
-                f"Academic Session {session_start_year}-{session_start_year + 1}."
+                f"Admission Date ({admission_date.strftime('%d-%m-%Y')}) must fall within "
+                f"Academic Session ({session_start_date.strftime('%d-%m-%Y')} to {session_end_date.strftime('%d-%m-%Y')})."
             )
 
         # --- Validate admission number prefix ---

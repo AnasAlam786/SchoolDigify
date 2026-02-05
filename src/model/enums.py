@@ -31,7 +31,7 @@ class StudentsDBEnums:
 
     MOTHERS_OCCUPATION = Enum(
         'Homemaker', 'Labour',  'Business',  'Shop Owner', 
-        'Private Job',  'Government',
+        'Private Job',  'Government Job',
         name='MOTHERS_OCCUPATION'
     )
 

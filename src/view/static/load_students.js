@@ -177,12 +177,12 @@ function createStudentCard(student) {
             : '/static/no-student-girl-image.png');
     
     const rteTag = student.is_RTE ? '<span class="bg-yellow-500 text-gray-900 text-[9px] font-bold px-1.5 py-[2px] rounded">RTE</span>' : '';
-    const newTag = student.student_status === 'new' ? '<span class="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-[2px] rounded">NEW</span>' : '';
+    const newTag = student.student_status === 'new' ? '<span class="bg-blue-500 text-[9px] font-bold px-1.5 py-[2px] rounded">NEW</span>' : '';
     const aadhaarTag = (!student.AADHAAR || student.AADHAAR === '' || student.AADHAAR === '999999999999') 
-        ? '<span class="bg-red-500 text-white text-[9px] font-bold px-1.5 py-[2px] rounded">No Aadhaar</span>' 
+        ? '<span class="bg-red-500 text-[9px] font-bold px-1.5 py-[2px] rounded">No Aadhaar</span>' 
         : '';
     const penTag = (!student.PEN || student.PEN === '' || student.PEN === '999999999999') 
-        ? '<span class="bg-orange-500 text-white text-[9px] font-bold px-1.5 py-[2px] rounded">No PEN</span>' 
+        ? '<span class="bg-orange-500 text-[9px] font-bold px-1.5 py-[2px] rounded">No PEN</span>' 
         : '';
     
     card.innerHTML = `
@@ -237,7 +237,7 @@ function createStudentCard(student) {
                         <a class="cursor-pointer hover:text-blue-300"
                             onclick="viewStudentDetails('${student.id}', '${student.PHONE}')">${student.STUDENTS_NAME}</a>
                     </h3>
-                    <p class="text-gray-400 text-md mb-2 truncate">C/O Mr. ${student.FATHERS_NAME}</p>
+                    <p class="text-gray-400 text-md mb-2 truncate">C/O: ${student.FATHERS_NAME}</p>
 
                     <!-- Larger class badge -->
                     <div class="bg-blue-900 bg-opacity-50 text-blue-400 px-2 py-1 rounded text-base font-medium mb-1 inline-block">

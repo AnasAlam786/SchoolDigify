@@ -51,6 +51,7 @@ def get_students_data():
         StudentsDB.AADHAAR, StudentsDB.FATHERS_NAME,
         StudentsDB.PEN, StudentsDB.GENDER,
         StudentsDB.IMAGE, StudentsDB.ADMISSION_NO,
+        StudentsDB.admission_session_id,
         StudentsDB.PHONE, StudentsDB.Free_Scheme,
         StudentsDB.ADMISSION_SESSION, StudentsDB.ADMISSION_DATE,
         StudentSessions.ROLL,
@@ -59,7 +60,7 @@ def get_students_data():
         RTEInfo.is_RTE,
         # NEW / OLD STATUS
         case(
-            (extract('year', StudentsDB.ADMISSION_DATE) == selected_session, 'new'),
+            (StudentsDB.admission_session_id == selected_session, 'new'),
             else_='old'
         ).label('student_status')
 

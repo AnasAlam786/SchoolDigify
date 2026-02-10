@@ -108,6 +108,8 @@ def save_sessions(user=None, user_id=None):
     session["email"] = user.email
     session["school_id"] = user.school_id
     session["permission_no"] = user.permission_number
+    session["user_name"] = user.Name
+    session["user_image"] = user.image
 
     permissions = get_permissions(user.id, user.role_id)
     session["permissions"] = permissions

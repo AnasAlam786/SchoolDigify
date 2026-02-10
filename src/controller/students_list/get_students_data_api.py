@@ -128,6 +128,7 @@ def get_students_data():
     # ---------------------------------------------------
     # Convert SQLAlchemy Row objects to dictionaries
     students_list = [s._asdict() for s in data]
+    print(session)
 
 
     return jsonify({

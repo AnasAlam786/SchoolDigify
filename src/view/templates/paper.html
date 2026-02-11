@@ -119,27 +119,28 @@
 
 
 <div id="content" style="width: 100%;">
-    <div class="question-block d-flex flex-column align-items-end mb-4">
-      <div class="question input-group mb-2">
-          <select class="form-select fw-bold" rows="1" style="overflow: hidden; resize: none;"
-              onchange="addQuestion(this)">
-              <option selected>Select Question Type</option>
-              <option value="mcq">Multiple Choice Questions</option>
-              <option value="fillUp">Fill In The Blanks</option>
-              <option value="TF">True or False</option>
-              <option value="match">Matching</option>
-              <option value="QnA">Question & Answers</option>
-              <option value="singleWord">Single Word Questions</option>
-          </select>
+  <div class="question-block d-flex flex-column align-items-end mb-4">
+    <div class="question input-group mb-2">
+      <select class="form-select fw-bold" rows="1" style="overflow: hidden; resize: none;" onchange="addQuestion(this)">
+        <option selected>Select Question Type</option>
+        <option value="mcq">Multiple Choice Questions</option>
+        <option value="fillUp">Fill In The Blanks</option>
+        <option value="TF">True or False</option>
+        <option value="match">Matching</option>
+        <option value="QnA">Question & Answers</option>
+        <option value="singleWord">Single Word Questions</option>
+      </select>
 
-          <button class="btn btn-success ms-1" onclick="addQuestionBlock(this)" style="width: 35px; height: 40px;">+</button>
-          <button class="btn btn-danger ms-1" onclick="removeQuestionBlock(this)" style="width: 35px; height: 40px;">-</button>
-      </div>
-
-      <div class="questionWrapper w-100">
-          <!-- Question will be rendered here -->
-      </div>
+      <button class="btn btn-success ms-1" onclick="addQuestionBlock(this)"
+        style="width: 35px; height: 40px;">+</button>
+      <button class="btn btn-danger ms-1" onclick="removeQuestionBlock(this)"
+        style="width: 35px; height: 40px;">-</button>
     </div>
+
+    <div class="questionWrapper w-100">
+      <!-- Question will be rendered here -->
+    </div>
+  </div>
 
 </div>
 
@@ -282,13 +283,13 @@
   function debounce(fn, wait = 600) {
     let t;
     return (...a) => {
-        clearTimeout(t);               // Cancel any previously scheduled call
-        t = setTimeout(() => fn(...a), wait);  // Schedule new call after `wait` ms
+      clearTimeout(t);               // Cancel any previously scheduled call
+      t = setTimeout(() => fn(...a), wait);  // Schedule new call after `wait` ms
     };
   }
 
 
-function saveCurrentState() {
+  function saveCurrentState() {
 
     state.meta.event = document.querySelector(".event").value || "";
     state.meta.subject = document.querySelector(".subject").value || "";
@@ -303,49 +304,49 @@ function saveCurrentState() {
     const questionBlocks = document.querySelectorAll(".question-block");
 
     state.questions = Array.from(questionBlocks).map(questionBlock => {
-        const type = questionBlock.querySelector("select")?.value;
-        const qText = questionBlock.querySelector(".q-text")?.value || "";
-        const marks = questionBlock.querySelector(".m-text")?.value || "";
+      const type = questionBlock.querySelector("select")?.value;
+      const qText = questionBlock.querySelector(".q-text")?.value || "";
+      const marks = questionBlock.querySelector(".m-text")?.value || "";
 
-        const questionWrapper = questionBlock.querySelector(".questionWrapper") || [];
-        let subQuestion = [];
-        let options = [];
+      const questionWrapper = questionBlock.querySelector(".questionWrapper") || [];
+      let subQuestion = [];
+      let options = [];
 
-        if(type === "mcq") {
-            const mcqItems = questionWrapper.querySelectorAll(".sub-question");
-            subQuestion = Array.from(mcqItems).map(mcq => ({
-                text: mcq.querySelector('.subQuestionText')?.value || "",
-                options: Array.from(mcq.querySelectorAll(".option")).map(opt => opt.value)
-            }));
-        }
-        else if(type === "match") {
-            subQuestion = Array.from(questionWrapper.querySelectorAll(".matchingLeft")).map(el => el.value);
-            options = Array.from(questionWrapper.querySelectorAll(".matchingRight")).map(el => el.value);
-        }
-        else {
-            subQuestion = Array.from(questionWrapper.querySelectorAll(".subQuestionText")).map(el => el.value);
-        }
+      if (type === "mcq") {
+        const mcqItems = questionWrapper.querySelectorAll(".sub-question");
+        subQuestion = Array.from(mcqItems).map(mcq => ({
+          text: mcq.querySelector('.subQuestionText')?.value || "",
+          options: Array.from(mcq.querySelectorAll(".option")).map(opt => opt.value)
+        }));
+      }
+      else if (type === "match") {
+        subQuestion = Array.from(questionWrapper.querySelectorAll(".matchingLeft")).map(el => el.value);
+        options = Array.from(questionWrapper.querySelectorAll(".matchingRight")).map(el => el.value);
+      }
+      else {
+        subQuestion = Array.from(questionWrapper.querySelectorAll(".subQuestionText")).map(el => el.value);
+      }
 
-        const questionObj = { type, qText, marks, subQuestion };
-        if(type === "match") questionObj.options = options;
+      const questionObj = { type, qText, marks, subQuestion };
+      if (type === "match") questionObj.options = options;
 
 
-        return questionObj;
+      return questionObj;
     });
 
     localStorage.setItem("questionPaperJSON", JSON.stringify(state));
-}
+  }
 
 
-  function addQuestionBlock(addBTN=null) {
+  function addQuestionBlock(addBTN = null) {
     const container = document.getElementById("content");
     const questionSelectHTML = templates['QuestionSelect']();
 
     if (!addBTN) {
-        // Append at the end
-        container.insertAdjacentHTML('beforeend', questionSelectHTML);
+      // Append at the end
+      container.insertAdjacentHTML('beforeend', questionSelectHTML);
     } else {
-        addBTN.closest('.question-block').insertAdjacentHTML('afterend', questionSelectHTML);
+      addBTN.closest('.question-block').insertAdjacentHTML('afterend', questionSelectHTML);
     }
 
     saveCurrentState();
@@ -379,9 +380,9 @@ function saveCurrentState() {
   function addSubQuestion(addBtn) {
     const questionBlock = addBtn.closest('.question-block');
     const selectedType = questionBlock.querySelector("select").value;
-    const questionWrapper  = addBtn.closest('.questionWrapper');
+    const questionWrapper = addBtn.closest('.questionWrapper');
 
-    if (!questionWrapper  || !selectedType || !templates[selectedType]) return;    
+    if (!questionWrapper || !selectedType || !templates[selectedType]) return;
 
     // Create a container for the question template
     questionWrapper.insertAdjacentHTML('beforeend', templates[selectedType]());
@@ -426,7 +427,7 @@ function saveCurrentState() {
     saveCurrentState();
   }
 
-  
+
   async function convert() {
 
     let questions = [];
@@ -471,16 +472,13 @@ function saveCurrentState() {
                     background: rgb(255, 555, 255);
                     line-height: 1.2;
                 }
-
                 .content {
                     font-size: ${fontSize}px;
                     margin-top:5px
                 }
-
                 .paperHeader {
                     font-size: 20px;
                 }
-                /* ✅ Prevent question from splitting across pages */
                 .question-block {
                     page-break-inside: avoid;
                     break-inside: avoid;
@@ -527,23 +525,23 @@ function saveCurrentState() {
     textarea.style.height = textarea.scrollHeight + 'px'; // Adjust height based on content
   }
 
-// ...existing code...
+  // ...existing code...
   function renderJson(json) {
     // Restore meta fields if present
     if (json && json.meta) {
-        document.querySelector(".event").value = json.meta.event || "";
-        document.querySelector(".subject").value = json.meta.subject || "";
-        document.querySelector(".class").value = json.meta.std || "";
-        document.querySelector(".hrs").value = json.meta.hrs || "";
-        document.querySelector(".M-M").value = json.meta.MM || "";
-        document.getElementById("fontSize").textContent = json.meta.fontSize || "20";
-        document.getElementById("customRange").value = json.meta.fontSize || "20";
+      document.querySelector(".event").value = json.meta.event || "";
+      document.querySelector(".subject").value = json.meta.subject || "";
+      document.querySelector(".class").value = json.meta.std || "";
+      document.querySelector(".hrs").value = json.meta.hrs || "";
+      document.querySelector(".M-M").value = json.meta.MM || "";
+      document.getElementById("fontSize").textContent = json.meta.fontSize || "20";
+      document.getElementById("customRange").value = json.meta.fontSize || "20";
     }
 
     // If no questions, render one empty block
     if (!json || !json.questions || !Array.isArray(json.questions) || json.questions.length === 0) {
-        console.log("No questions found, rendering empty block.");
-        return;
+      console.log("No questions found, rendering empty block.");
+      return;
     }
 
     // Clear container first
@@ -551,73 +549,73 @@ function saveCurrentState() {
     container.innerHTML = "";
 
     json.questions.forEach((q) => {
-        if (!q.type || !templates[q.type]) return;
+      if (!q.type || !templates[q.type]) return;
 
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = templates.QuestionSelect();
-        const questionBlock = tempDiv.firstElementChild;
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = templates.QuestionSelect();
+      const questionBlock = tempDiv.firstElementChild;
 
-        const select = questionBlock.querySelector("select");
-        select.value = q.type;
+      const select = questionBlock.querySelector("select");
+      select.value = q.type;
 
-        const questionWrapper = questionBlock.querySelector(".questionWrapper");
-        questionWrapper.innerHTML = `
+      const questionWrapper = questionBlock.querySelector(".questionWrapper");
+      questionWrapper.innerHTML = `
             <div class="d-flex w-100">
                 <input type="text" class="q-text form-control mb-2 me-1" value="${q.qText || ""}" placeholder="Enter Question Text">
                 <input type="number" class="m-text form-control mb-2" value="${q.marks || ""}" placeholder="Marks" style="width: 75px;">
             </div>
         `;
 
-        if (q.type === "mcq" && Array.isArray(q.subQuestion)) {
-            q.subQuestion.forEach(sq => {
-                questionWrapper.insertAdjacentHTML('beforeend', templates.mcq());
-                const lastSub = questionWrapper.querySelector(".sub-question:last-child");
-                lastSub.querySelector(".subQuestionText").value = sq.text || "";
-                const optionInputs = lastSub.querySelectorAll(".option");
-                (sq.options || []).forEach((opt, i) => { if(optionInputs[i]) optionInputs[i].value = opt; });
-            });
-        } else if (q.type === "match" && Array.isArray(q.subQuestion)) {
-            q.subQuestion.forEach((left, i) => {
-                questionWrapper.insertAdjacentHTML('beforeend', templates.match());
-                const lastSub = questionWrapper.querySelector(".sub-question:last-child");
-                lastSub.querySelector(".matchingLeft").value = left || "";
-                lastSub.querySelector(".matchingRight").value = (q.options && q.options[i]) || "";
-            });
-        } else if (Array.isArray(q.subQuestion)) {
-            q.subQuestion.forEach(sq => {
-                questionWrapper.insertAdjacentHTML('beforeend', templates[q.type]());
-                const lastSub = questionWrapper.querySelector(".sub-question:last-child");
-                lastSub.querySelector(".subQuestionText").value = sq || "";
-            });
-        }
+      if (q.type === "mcq" && Array.isArray(q.subQuestion)) {
+        q.subQuestion.forEach(sq => {
+          questionWrapper.insertAdjacentHTML('beforeend', templates.mcq());
+          const lastSub = questionWrapper.querySelector(".sub-question:last-child");
+          lastSub.querySelector(".subQuestionText").value = sq.text || "";
+          const optionInputs = lastSub.querySelectorAll(".option");
+          (sq.options || []).forEach((opt, i) => { if (optionInputs[i]) optionInputs[i].value = opt; });
+        });
+      } else if (q.type === "match" && Array.isArray(q.subQuestion)) {
+        q.subQuestion.forEach((left, i) => {
+          questionWrapper.insertAdjacentHTML('beforeend', templates.match());
+          const lastSub = questionWrapper.querySelector(".sub-question:last-child");
+          lastSub.querySelector(".matchingLeft").value = left || "";
+          lastSub.querySelector(".matchingRight").value = (q.options && q.options[i]) || "";
+        });
+      } else if (Array.isArray(q.subQuestion)) {
+        q.subQuestion.forEach(sq => {
+          questionWrapper.insertAdjacentHTML('beforeend', templates[q.type]());
+          const lastSub = questionWrapper.querySelector(".sub-question:last-child");
+          lastSub.querySelector(".subQuestionText").value = sq || "";
+        });
+      }
 
-        container.appendChild(questionBlock);
+      container.appendChild(questionBlock);
     });
 
     // <-- Add this line to sync the state after rendering
     saveCurrentState();
-}
+  }
 
   document.addEventListener("DOMContentLoaded", () => {
-      const savedJSON = JSON.parse(localStorage.getItem("questionPaperJSON") || "[]");
-      renderJson(savedJSON);
+    const savedJSON = JSON.parse(localStorage.getItem("questionPaperJSON") || "[]");
+    renderJson(savedJSON);
 
-      // Event delegation for the whole page
-      document.addEventListener("input", function (e) {
-          const target = e.target;
-          const tag = target.tagName.toLowerCase();
+    // Event delegation for the whole page
+    document.addEventListener("input", function (e) {
+      const target = e.target;
+      const tag = target.tagName.toLowerCase();
 
-          if (
-              (tag === "input" && (target.type === "text" || target.type === "number")) ||
-              tag === "textarea" ||
-              tag === "select"
-          ) {
-              saveCurrentState();
-          }
-      });
+      if (
+        (tag === "input" && (target.type === "text" || target.type === "number")) ||
+        tag === "textarea" ||
+        tag === "select"
+      ) {
+        saveCurrentState();
+      }
+    });
   });
 
-    
+
 
 </script>
 

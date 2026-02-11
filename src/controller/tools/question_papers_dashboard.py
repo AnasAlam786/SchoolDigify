@@ -21,7 +21,7 @@ def question_papers_dashboard():
     # Get all papers for this user
     papers = Papers.query.filter_by(user_id=user_id).order_by(Papers.created_at.desc()).all()
     
-    return render_template('question_papers_dashboard.html', papers=papers)
+    return render_template('question_paper/question_papers_dashboard.html', papers=papers)
 
 
 @question_papers_dashboard_bp.route('/question-papers/api/list', methods=["GET"])

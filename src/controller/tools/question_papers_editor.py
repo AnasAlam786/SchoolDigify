@@ -23,7 +23,7 @@ def question_papers_editor(paper_id):
     if not paper:
         return redirect(url_for('question_papers_dashboard_bp.question_papers_dashboard'))
     
-    return render_template('question_papers_editor.html', paper=paper)
+    return render_template('question_paper/question_papers_editor.html', paper=paper)
 
 
 @question_papers_editor_bp.route('/question-papers/api/create', methods=["POST"])

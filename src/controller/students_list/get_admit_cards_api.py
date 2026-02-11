@@ -99,8 +99,6 @@ def get_admit_cards_api():
     else:
         page_size = 4
 
-    print(outputType)
-
     pages = [student_objs[i:i + page_size] for i in range(0, len(student_objs), page_size)]
 
     # Get school info for logo and name

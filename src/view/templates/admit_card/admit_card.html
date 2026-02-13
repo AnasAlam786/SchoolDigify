@@ -231,6 +231,14 @@
       // Load saved data from localStorage
       loadSavedData();
       
+      // Initialize visibility based on current output type selection
+      const selectedOutputType = document.querySelector('input[name="outputType"]:checked').value;
+      if (selectedOutputType === 'admitOnly') {
+        examSchemeContainer.classList.add('hidden');
+      } else {
+        examSchemeContainer.classList.remove('hidden');
+      }
+      
       // Show/hide exam Scheme inputs based on output type selection
       outputTypeRadios.forEach(radio => {
         radio.addEventListener('change', function() {

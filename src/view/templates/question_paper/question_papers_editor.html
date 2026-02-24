@@ -253,12 +253,6 @@
   <span class="text-sm">Auto-saving...</span>
 </div>
 
-<!-- Floating Action Button for Add Section -->
-<button onclick="showQuestionTypeModal()"
-        class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-primary to-secondary rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center text-white text-2xl group">
-    <i class="fas fa-plus"></i>
-    <span class="absolute right-full mr-3 bg-gray-800 text-white text-sm py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Add Section</span>
-</button>
 
 <!-- Loading Overlay -->
 <div id="loadingOverlay"
@@ -496,6 +490,15 @@
                     <option value="singleWord" ${type === 'singleWord' ? 'selected' : ''}>Single Word</option>
                   </select>
                 </div>
+                <!-- Add Section Button -->
+                <button onclick="addSectionAfter('${id}')" 
+                        class="p-2 bg-success/20 hover:bg-success/30 border border-success/30 hover:border-success/50 rounded-lg transition group" title="Add Section After">
+                  <i class="fas fa-plus text-success text-sm"></i>
+                </button>
+                <button onclick="removeQuestionSection('${id}')" 
+                          class="p-2 bg-danger/20 hover:bg-danger/30 rounded-lg transition group" title="Remove Section">
+                    <i class="fas fa-trash text-danger text-sm"></i>
+                </button>
                 <!-- Action buttons -->
                 <div class="flex gap-1">
                   <button onclick="moveQuestionUp('${id}')" 
@@ -506,10 +509,7 @@
                           class="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition group" title="Move Down">
                     <i class="fas fa-arrow-down text-gray-400 group-hover:text-white text-sm"></i>
                   </button>
-                  <button onclick="removeQuestionSection('${id}')" 
-                          class="p-2 bg-danger/20 hover:bg-danger/30 rounded-lg transition group" title="Remove Section">
-                    <i class="fas fa-trash text-danger text-sm"></i>
-                  </button>
+
                 </div>
               </div>
             </div>
@@ -536,14 +536,6 @@
               ${questionContent}
             </div>
 
-            <!-- Add Question Button -->
-            <div class="mt-6">
-              <button onclick="addQuestionToSection('${id}')"
-                      class="w-full py-3 bg-darkbg/50 border border-dashed border-gray-600 rounded-lg text-gray-400 hover:text-white hover:border-primary transition flex items-center justify-center gap-2">
-                <i class="fas fa-plus"></i>
-                Add Question
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -560,7 +552,7 @@ function getMCQTemplate(subQuestions) {
   }
 
   return subQuestions.map((sq, index) => `
-    <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+    <div class="question-item border-b border-gray-700 last:border-b-0 pb-6">
       <div class="bg-darkbg/20 p-4 md:p-5 rounded-lg">
         <!-- Header: Question number, title, and action buttons -->
         <div class="flex items-center justify-between mb-4">
@@ -611,7 +603,7 @@ function getMCQTemplate(subQuestions) {
     }
 
     return subQuestions.map((text, index) => `
-      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+      <div class="question-item border-b border-gray-700 last:border-b-0 pb-6">
         <div class="bg-darkbg/20 p-4 md:p-5">
           <!-- Header: Question number, title, and action buttons -->
           <div class="flex items-center justify-between mb-4">
@@ -644,7 +636,7 @@ function getMCQTemplate(subQuestions) {
     }
 
     return subQuestions.map((text, index) => `
-      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+      <div class="question-item border-b border-gray-700 last:border-b-0 pb-6">
         <div class="bg-darkbg/20 p-4 md:p-5">
           <!-- Header: Question number, title, and action buttons -->
           <div class="flex items-center justify-between mb-4">
@@ -677,7 +669,7 @@ function getMCQTemplate(subQuestions) {
     }
 
     return subQuestions.map((text, index) => `
-      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+      <div class="question-item border-b border-gray-700 last:border-b-0 pb-6">
         <div class="bg-darkbg/20 p-4 md:p-5">
           <!-- Header: Question number, title, and action buttons -->
           <div class="flex items-center justify-between mb-4">
@@ -711,7 +703,7 @@ function getMCQTemplate(subQuestions) {
     }
 
     return subQuestions.map((left, index) => `
-      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+      <div class="question-item border-b border-gray-700 last:border-b-0 pb-6">
         <div class="bg-darkbg/20 p-4 md:p-5">
           <!-- Header: Question number, title, and action buttons -->
           <div class="flex items-center justify-between mb-4">
@@ -753,7 +745,7 @@ function getMCQTemplate(subQuestions) {
     }
 
     return subQuestions.map((text, index) => `
-      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+      <div class="question-item border-b border-gray-700 last:border-b-0 pb-6">
         <div class="bg-darkbg/20 p-4 md:p-5">
           <!-- Header: Question number, title, and action buttons -->
           <div class="flex items-center justify-between mb-4">
@@ -796,6 +788,9 @@ function getMCQTemplate(subQuestions) {
     }
 
     container.insertAdjacentHTML('beforeend', getQuestionTemplate(type, questionData));
+    const newSection = container.lastElementChild;
+    newSection.classList.add('fade-in');
+    setTimeout(() => newSection.classList.remove('fade-in'), 400);
 
     // Update section numbers
     updateSectionNumbers();
@@ -962,10 +957,13 @@ function getMCQTemplate(subQuestions) {
     }
 
     if (confirm('Are you sure you want to remove this section?')) {
-      section.remove();
-      updateSectionNumbers();
-      saveCurrentState();
-      showToast('Section removed', 'success');
+      section.classList.add('fade-out');
+      setTimeout(() => {
+        section.remove();
+        updateSectionNumbers();
+        saveCurrentState();
+        showToast('Section removed', 'success');
+      }, 400);
     }
   }
 
@@ -976,7 +974,13 @@ function getMCQTemplate(subQuestions) {
     const prevSection = section.previousElementSibling;
     if (!prevSection) return;
 
+    section.classList.add('slide-move');
+    prevSection.classList.add('slide-move');
     section.parentNode.insertBefore(section, prevSection);
+    setTimeout(() => {
+      section.classList.remove('slide-move');
+      prevSection.classList.remove('slide-move');
+    }, 300);
     updateSectionNumbers();
     saveCurrentState();
   }
@@ -988,9 +992,36 @@ function getMCQTemplate(subQuestions) {
     const nextSection = section.nextElementSibling;
     if (!nextSection) return;
 
+    section.classList.add('slide-move');
+    nextSection.classList.add('slide-move');
     section.parentNode.insertBefore(nextSection, section);
+    setTimeout(() => {
+      section.classList.remove('slide-move');
+      nextSection.classList.remove('slide-move');
+    }, 300);
     updateSectionNumbers();
     saveCurrentState();
+  }
+
+  function addSectionAfter(id) {
+    const currentSection = document.querySelector(`[data-id="${id}"]`);
+    if (!currentSection) return;
+
+    const newSectionHTML = getQuestionTemplate('mcq', {
+      id: generateQuestionId(),
+      type: 'mcq',
+      qText: QUESTION_TYPE_LABELS['mcq'],
+      marks: '',
+      subQuestion: [{ text: '', options: ['', '', '', ''] }]
+    });
+
+    currentSection.insertAdjacentHTML('afterend', newSectionHTML);
+    const newSection = currentSection.nextElementSibling;
+    newSection.classList.add('fade-in');
+    setTimeout(() => newSection.classList.remove('fade-in'), 400);
+    updateSectionNumbers();
+    saveCurrentState();
+    showToast('New section added', 'success');
   }
 
   function updateSectionNumbers() {
@@ -1015,8 +1046,12 @@ function getMCQTemplate(subQuestions) {
 
   // Question type specific functions
   function addMCQQuestion(button) {
+    const currentQuestion = button.closest('.question-item');
+    currentQuestion.insertAdjacentHTML('afterend', getMCQTemplate([{ text: '', options: ['', '', '', ''] }]));
+    const newQuestion = currentQuestion.nextElementSibling;
+    newQuestion.classList.add('fade-in');
+    setTimeout(() => newQuestion.classList.remove('fade-in'), 400);
     const container = button.closest('.questions-container');
-    container.insertAdjacentHTML('beforeend', getMCQTemplate([{ text: '', options: ['', '', '', ''] }]));
     updateQuestionNumbersInSection(container);
     saveCurrentState();
   }
@@ -1031,14 +1066,21 @@ function getMCQTemplate(subQuestions) {
       return;
     }
 
-    questionItem.remove();
-    updateQuestionNumbersInSection(container);
-    saveCurrentState();
+    questionItem.classList.add('fade-out');
+    setTimeout(() => {
+      questionItem.remove();
+      updateQuestionNumbersInSection(container);
+      saveCurrentState();
+    }, 400);
   }
 
   function addQnAQuestion(button) {
+    const currentQuestion = button.closest('.question-item');
+    currentQuestion.insertAdjacentHTML('afterend', getQnATemplate(['']));
+    const newQuestion = currentQuestion.nextElementSibling;
+    newQuestion.classList.add('fade-in');
+    setTimeout(() => newQuestion.classList.remove('fade-in'), 400);
     const container = button.closest('.questions-container');
-    container.insertAdjacentHTML('beforeend', getQnATemplate(['']));
     updateQuestionNumbersInSection(container);
     saveCurrentState();
   }
@@ -1053,14 +1095,21 @@ function getMCQTemplate(subQuestions) {
       return;
     }
 
-    questionItem.remove();
-    updateQuestionNumbersInSection(container);
-    saveCurrentState();
+    questionItem.classList.add('fade-out');
+    setTimeout(() => {
+      questionItem.remove();
+      updateQuestionNumbersInSection(container);
+      saveCurrentState();
+    }, 400);
   }
 
   function addFillUpQuestion(button) {
+    const currentQuestion = button.closest('.question-item');
+    currentQuestion.insertAdjacentHTML('afterend', getFillUpTemplate(['']));
+    const newQuestion = currentQuestion.nextElementSibling;
+    newQuestion.classList.add('fade-in');
+    setTimeout(() => newQuestion.classList.remove('fade-in'), 400);
     const container = button.closest('.questions-container');
-    container.insertAdjacentHTML('beforeend', getFillUpTemplate(['']));
     updateQuestionNumbersInSection(container);
     saveCurrentState();
   }
@@ -1075,14 +1124,21 @@ function getMCQTemplate(subQuestions) {
       return;
     }
 
-    questionItem.remove();
-    updateQuestionNumbersInSection(container);
-    saveCurrentState();
+    questionItem.classList.add('fade-out');
+    setTimeout(() => {
+      questionItem.remove();
+      updateQuestionNumbersInSection(container);
+      saveCurrentState();
+    }, 400);
   }
 
   function addTFQuestion(button) {
+    const currentQuestion = button.closest('.question-item');
+    currentQuestion.insertAdjacentHTML('afterend', getTFTemplate(['']));
+    const newQuestion = currentQuestion.nextElementSibling;
+    newQuestion.classList.add('fade-in');
+    setTimeout(() => newQuestion.classList.remove('fade-in'), 400);
     const container = button.closest('.questions-container');
-    container.insertAdjacentHTML('beforeend', getTFTemplate(['']));
     updateQuestionNumbersInSection(container);
     saveCurrentState();
   }
@@ -1097,14 +1153,21 @@ function getMCQTemplate(subQuestions) {
       return;
     }
 
-    questionItem.remove();
-    updateQuestionNumbersInSection(container);
-    saveCurrentState();
+    questionItem.classList.add('fade-out');
+    setTimeout(() => {
+      questionItem.remove();
+      updateQuestionNumbersInSection(container);
+      saveCurrentState();
+    }, 400);
   }
 
   function addMatchQuestion(button) {
+    const currentQuestion = button.closest('.question-item');
+    currentQuestion.insertAdjacentHTML('afterend', getMatchTemplate([''], ['']));
+    const newQuestion = currentQuestion.nextElementSibling;
+    newQuestion.classList.add('fade-in');
+    setTimeout(() => newQuestion.classList.remove('fade-in'), 400);
     const container = button.closest('.questions-container');
-    container.insertAdjacentHTML('beforeend', getMatchTemplate([''], ['']));
     updateQuestionNumbersInSection(container);
     saveCurrentState();
   }
@@ -1119,14 +1182,21 @@ function getMCQTemplate(subQuestions) {
       return;
     }
 
-    questionItem.remove();
-    updateQuestionNumbersInSection(container);
-    saveCurrentState();
+    questionItem.classList.add('fade-out');
+    setTimeout(() => {
+      questionItem.remove();
+      updateQuestionNumbersInSection(container);
+      saveCurrentState();
+    }, 400);
   }
 
   function addSingleWordQuestion(button) {
+    const currentQuestion = button.closest('.question-item');
+    currentQuestion.insertAdjacentHTML('afterend', getSingleWordTemplate(['']));
+    const newQuestion = currentQuestion.nextElementSibling;
+    newQuestion.classList.add('fade-in');
+    setTimeout(() => newQuestion.classList.remove('fade-in'), 400);
     const container = button.closest('.questions-container');
-    container.insertAdjacentHTML('beforeend', getSingleWordTemplate(['']));
     updateQuestionNumbersInSection(container);
     saveCurrentState();
   }
@@ -1141,9 +1211,12 @@ function getMCQTemplate(subQuestions) {
       return;
     }
 
-    questionItem.remove();
-    updateQuestionNumbersInSection(container);
-    saveCurrentState();
+    questionItem.classList.add('fade-out');
+    setTimeout(() => {
+      questionItem.remove();
+      updateQuestionNumbersInSection(container);
+      saveCurrentState();
+    }, 400);
   }
 
   function updateQuestionNumbersInSection(container) {
@@ -1505,6 +1578,36 @@ function getMCQTemplate(subQuestions) {
   .questions-container::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
   }
+
+  /* Animation classes */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: fadeInSlide 0.4s ease-out forwards;
+  }
+
+  .fade-out {
+    animation: fadeOutSlide 0.4s ease-in forwards;
+  }
+
+  @keyframes fadeInSlide {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeOutSlide {
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  .slide-move {
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  }
+
 </style>
 
 {% endblock %}

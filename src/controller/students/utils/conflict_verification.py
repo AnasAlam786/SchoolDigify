@@ -18,7 +18,6 @@ def verify_conflicts(verified_data, mode='add', student_id=None):
         str: Error message if conflicts found, None otherwise
     """
     values = {item["field"]: item["value"] for item in verified_data}
-    print(values)
 
     school_id = session.get("school_id")
     session_id = session.get("session_id")
@@ -29,6 +28,8 @@ def verify_conflicts(verified_data, mode='add', student_id=None):
     error = StudentService.validate_admission_consistency(values)
     if error:
         return [{"message": error}]
+
+    print(mode, values.get("student_status"))
 
     # Validate class order (only for old students in add mode, or always in update)
     if mode == 'add':

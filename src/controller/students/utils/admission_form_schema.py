@@ -103,6 +103,7 @@ class AdmissionFormModel(CleanBaseModel):
     BLOOD_GROUP: Optional[BloodGroupEnum] = Field(None)
         
     # ------------------------- Academic Info -------------------------
+    # student_status: Optional[Literal["new", "old"]] = Field(None)
     admission_session_id: str = Field(...)
     Admission_Class: str = Field(...)
     CLASS: str = Field(...)

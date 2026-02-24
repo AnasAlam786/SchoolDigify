@@ -56,9 +56,9 @@ def verify_admission():
     except Exception:
         print("Error processing data")
         return jsonify({"message": "Invalid JSON payload.", "errors": []}), 400
-    
-    print(data)
 
+    
+    print(f"student_status raw: {repr(data.get('student_status'))}")
     # Validate with Pydantic
     try:
         model = AdmissionFormModel(**data)
@@ -72,6 +72,7 @@ def verify_admission():
 
     # Business logic checks
     student_status = data.get('student_status')
+    print("Student status:", student_status)
     if student_status == "new":
         if data.get("Admission_Class") != data.get("CLASS"):
             return jsonify({

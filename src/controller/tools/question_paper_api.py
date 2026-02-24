@@ -17,42 +17,29 @@ def question_paper_api():
     """Generate PDF content for question papers"""
     
     payload = request.json
-    value = payload.get('value')
 
-    if value == "a4PDF":
-        questions = payload.get('questions')
-        event = payload.get('eventName')
-        subject = payload.get('subject')
-        std = payload.get('std')
-        MM = payload.get('MM')
-        hrs = payload.get('hrs')
+    questions = payload.get('questions')
+    event = payload.get('eventName')
+    subject = payload.get('subject')
+    std = payload.get('std')
+    MM = payload.get('MM')
+    hrs = payload.get('hrs')
 
-        try:
-            school = session["school_name"]
-        except Exception as e:
-            print(e)
-            school = "School Name"
+    try:
+        school = session["school_name"]
+    except Exception as e:
+        print(e)
+        school = "School Name"
 
-        # Render the paper template
-        html = render_template('paper_elements.html', questions=questions, school=school, 
-                             event=event, subject=subject, std=std, MM=MM, hrs=hrs)
-        soup = BeautifulSoup(html, "lxml")
-        content = soup.find('div', id=value).decode_contents()
+    # Render the paper template
+    html = render_template('paper_elements.html', questions=questions, school=school, 
+                            event=event, subject=subject, std=std, MM=MM, hrs=hrs)
+    return jsonify({"html": str(html)})
 
-        return jsonify({"html": str(content)})
 
-    if isinstance(value, int):
-        html = render_template('paper_elements.html', index=value)
-        soup = BeautifulSoup(html, "lxml")
-        content = soup.find('div', id="Question").decode_contents()
-        
-        return jsonify({"html": str(content)})
 
-    html = render_template('paper_elements.html')
-    soup = BeautifulSoup(html, "lxml")
-    content = soup.find('div', id=value)
+
     
-    return jsonify({"html": str(content)})
 
 
 @question_paper_api_bp.route('/question-papers/api/<int:paper_id>/preview', methods=["GET"])

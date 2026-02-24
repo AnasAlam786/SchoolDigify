@@ -14,7 +14,7 @@
   </div>
 
   <!-- Main Container -->
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="relative max-w-7xl mx-auto py-8">
 
     <!-- Header Section -->
     <div class="mb-8">
@@ -232,15 +232,6 @@
               <i class="fas fa-save"></i>
               Save Paper
             </button>
-
-            <button onclick="previewPaper()"
-              class="group relative overflow-hidden bg-gray-700/50 hover:bg-gray-600 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 border border-gray-600 hover:border-primary flex-1 flex items-center justify-center gap-3">
-              <div
-                class="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500">
-              </div>
-              <i class="fas fa-eye"></i>
-              Preview
-            </button>
           </div>
         </div>
       </div>
@@ -261,6 +252,13 @@
   <div class="w-3 h-3 rounded-full bg-success animate-pulse"></div>
   <span class="text-sm">Auto-saving...</span>
 </div>
+
+<!-- Floating Action Button for Add Section -->
+<button onclick="showQuestionTypeModal()"
+        class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-primary to-secondary rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center text-white text-2xl group">
+    <i class="fas fa-plus"></i>
+    <span class="absolute right-full mr-3 bg-gray-800 text-white text-sm py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Add Section</span>
+</button>
 
 <!-- Loading Overlay -->
 <div id="loadingOverlay"
@@ -436,7 +434,6 @@
     return 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
-  // Question Templates
   function getQuestionTemplate(type, questionData = {}) {
     const id = questionData.id || generateQuestionId();
     const questionNo = sectionCounter++;
@@ -472,20 +469,24 @@
       <div class="question-section" data-id="${id}" data-type="${type}">
         <div class="bg-navbg/50 backdrop-blur-sm border border-gray-700 rounded-2xl overflow-hidden transition-all duration-300 hover:border-primary">
           <!-- Question Header -->
-          <div class="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-gray-700 px-6 py-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-lg">
+          <div class="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-gray-700 px-4 sm:px-6 py-3 sm:py-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <!-- Left: Question number and info -->
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-lg flex-shrink-0">
                   <span class="text-primary font-bold">${questionNo}</span>
                 </div>
-                <div>
-                  <h3 class="text-lg font-bold text-white">Section ${questionNo}: ${title}</h3>
-                  <p class="text-gray-400 text-sm">${QUESTION_TYPE_LABELS[type] || 'Question Section'}</p>
+                <div class="min-w-0"> <!-- allows truncation if needed -->
+                  <h3 class="text-base sm:text-lg font-bold text-white truncate">Section ${questionNo}: ${title}</h3>
+                  <p class="text-gray-400 text-xs sm:text-sm">${QUESTION_TYPE_LABELS[type] || 'Question Section'}</p>
                 </div>
               </div>
-              <div class="flex flex-wrap gap-2">
-                <div class="relative">
-                  <select class="question-type-select w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-sm"
+
+              <!-- Right: Controls (type selector + action buttons) -->
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Type selector - FIXED: solid dark background -->
+                <div class="relative flex-1 sm:flex-none min-w-[140px]">
+                  <select class="question-type-select w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition hover:bg-gray-700"
                           onchange="changeQuestionType('${id}', this.value)">
                     <option value="mcq" ${type === 'mcq' ? 'selected' : ''}>MCQ</option>
                     <option value="QnA" ${type === 'QnA' ? 'selected' : ''}>Q&A</option>
@@ -495,6 +496,7 @@
                     <option value="singleWord" ${type === 'singleWord' ? 'selected' : ''}>Single Word</option>
                   </select>
                 </div>
+                <!-- Action buttons -->
                 <div class="flex gap-1">
                   <button onclick="moveQuestionUp('${id}')" 
                           class="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition group" title="Move Up">
@@ -512,30 +514,30 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Question Body -->
-          <div class="p-6">
-            <!-- Section Title and Marks -->
-            <div class="flex gap-4 mb-6">
+          <div class="p-4 sm:p-6">
+            <!-- Section Title and Marks - stacked on mobile, side-by-side on tablet+ -->
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
               <div class="flex-1">
                 <label class="block text-sm font-semibold text-white mb-2">Section Title</label>
                 <input type="text" class="section-title w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
-                       value="${title}" placeholder="Enter section title" oninput="saveCurrentState()">
+                      value="${title}" placeholder="Enter section title" oninput="saveCurrentState()">
               </div>
-              <div class="w-32">
+              <div class="w-full sm:w-32">
                 <label class="block text-sm font-semibold text-white mb-2">Marks</label>
                 <input type="number" class="section-marks w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
-                       value="${marks}" placeholder="0" min="0" oninput="saveCurrentState()">
+                      value="${marks}" placeholder="0" min="0" oninput="saveCurrentState()">
               </div>
             </div>
-            
-            <!-- Questions Container -->
-            <div class="questions-container">
+
+            <!-- Questions Container (each sub-question will be spaced naturally) -->
+            <div class="questions-container space-y-4 border border-gray-600 rounded-xl">
               ${questionContent}
             </div>
-            
+
             <!-- Add Question Button -->
-            <div class="mt-4">
+            <div class="mt-6">
               <button onclick="addQuestionToSection('${id}')"
                       class="w-full py-3 bg-darkbg/50 border border-dashed border-gray-600 rounded-lg text-gray-400 hover:text-white hover:border-primary transition flex items-center justify-center gap-2">
                 <i class="fas fa-plus"></i>
@@ -547,52 +549,61 @@
       </div>
     `;
   }
+   
+  
+function getMCQTemplate(subQuestions) {
+  if (!Array.isArray(subQuestions) || subQuestions.length === 0) {
+    subQuestions = [{
+      text: '',
+      options: ['', '', '', '']
+    }];
+  }
 
-  function getMCQTemplate(subQuestions) {
-    if (subQuestions.length === 0) {
-      subQuestions = [{
-        text: '',
-        options: ['', '', '', '']
-      }];
-    }
-
-    return subQuestions.map((sq, index) => `
-      <div class="mb-6 question-item">
-        <div class="bg-darkbg/30 border border-gray-600 rounded-xl p-4 hover:border-primary transition">
-          <div class="flex items-start gap-4 mb-4">
-            <div class="w-8 h-8 flex items-center justify-center bg-primary/20 rounded-lg mt-2">
-              <span class="text-primary font-bold">${index + 1}</span>
+  return subQuestions.map((sq, index) => `
+    <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+      <div class="bg-darkbg/20 p-4 md:p-5 rounded-lg">
+        <!-- Header: Question number, title, and action buttons -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 flex items-center justify-center bg-primary/20 rounded-lg flex-shrink-0 border border-primary/30">
+              <span class="text-primary font-bold text-sm">${index + 1}</span>
             </div>
-            <div class="flex-1">
-              <label class="block text-sm font-semibold text-white mb-2">Question ${index + 1}</label>
-              <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition resize-none min-h-[100px]"
-                        placeholder="Enter MCQ question text..." oninput="autoResizeTextarea(this); saveCurrentState()">${sq.text || ''}</textarea>
-            </div>
-            <div class="flex flex-col gap-2">
-              <button onclick="addMCQQuestion(this)" class="p-2 bg-success/20 hover:bg-success/30 rounded-lg transition">
-                <i class="fas fa-plus text-success text-sm"></i>
-              </button>
-              <button onclick="removeMCQQuestion(this)" class="p-2 bg-danger/20 hover:bg-danger/30 rounded-lg transition">
-                <i class="fas fa-minus text-danger text-sm"></i>
-              </button>
-            </div>
+            <h4 class="text-white font-semibold">Question ${index + 1}</h4>
           </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="flex gap-2">
+            <button class="p-2 bg-success/20 hover:bg-success/30 border border-success/30 hover:border-success/50 rounded-lg transition" onclick="addMCQQuestion(this)" title="Add another question">
+              <i class="fas fa-plus text-success text-xs"></i>
+            </button>
+            <button class="p-2 bg-danger/20 hover:bg-danger/30 border border-danger/30 hover:border-danger/50 rounded-lg transition" onclick="removeMCQQuestion(this)" title="Remove question">
+              <i class="fas fa-minus text-danger text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Question Textarea -->
+        <div class="mb-4">
+          <label class="block text-xs font-semibold text-gray-300 mb-2">Question Text</label>
+          <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-700 hover:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition resize-none" placeholder="Enter your MCQ question..." oninput="autoResizeTextarea(this); saveCurrentState()" aria-label="Question ${index + 1}">${sq.text || ''}</textarea>
+        </div>
+
+        <!-- Options Grid -->
+        <div class="space-y-2">
+          <label class="block text-xs font-semibold text-gray-300">Options</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             ${['A', 'B', 'C', 'D'].map((letter, i) => `
-              <div class="flex items-center gap-3 p-3 bg-darkbg/50 rounded-lg">
-                <div class="w-8 h-8 flex items-center justify-center bg-primary/20 rounded">
-                  <span class="text-primary font-bold">${letter}</span>
+              <div class="flex items-center gap-3 p-3 bg-darkbg/30 rounded-lg border border-gray-700 hover:border-gray-600 transition">
+                <div class="w-8 h-8 flex items-center justify-center bg-primary/20 rounded border border-primary/30 flex-shrink-0">
+                  <span class="text-primary font-bold text-xs">${letter}</span>
                 </div>
-                <input type="text" class="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-2 py-1 rounded"
-                       placeholder="Option ${letter}" value="${sq.options ? (sq.options[i] || '') : ''}" oninput="saveCurrentState()">
+                <input type="text" class="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none" placeholder="Option ${letter}" value="${sq.options && sq.options[i] ? sq.options[i] : ''}" oninput="saveCurrentState()" aria-label="Question ${index + 1} option ${letter}" />
               </div>
             `).join('')}
           </div>
         </div>
       </div>
-    `).join('');
-  }
+    </div>
+  `).join('');
+}
 
   function getQnATemplate(subQuestions) {
     if (subQuestions.length === 0) {
@@ -600,26 +611,28 @@
     }
 
     return subQuestions.map((text, index) => `
-      <div class="mb-6 question-item">
-        <div class="bg-darkbg/30 border border-gray-600 rounded-xl p-4 hover:border-primary transition">
-          <div class="flex items-start gap-4">
-            <div class="w-8 h-8 flex items-center justify-center bg-secondary/20 rounded-lg mt-2">
-              <span class="text-secondary font-bold">${index + 1}</span>
+      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+        <div class="bg-darkbg/20 p-4 md:p-5">
+          <!-- Header: Question number, title, and action buttons -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-secondary/20 rounded-lg flex-shrink-0 border border-secondary/30">
+                <span class="text-secondary font-bold text-sm">${index + 1}</span>
+              </div>
+              <h4 class="text-white font-semibold">Question ${index + 1}</h4>
             </div>
-            <div class="flex-1">
-              <label class="block text-sm font-semibold text-white mb-2">Question ${index + 1}</label>
-              <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition resize-none min-h-[100px]"
-                        placeholder="Enter question and answer..." oninput="autoResizeTextarea(this); saveCurrentState()">${text || ''}</textarea>
-            </div>
-            <div class="flex flex-col gap-2">
-              <button onclick="addQnAQuestion(this)" class="p-2 bg-success/20 hover:bg-success/30 rounded-lg transition">
-                <i class="fas fa-plus text-success text-sm"></i>
+            <div class="flex gap-2">
+              <button class="p-2 bg-success/20 hover:bg-success/30 border border-success/30 hover:border-success/50 rounded-lg transition" onclick="addQnAQuestion(this)" title="Add another question">
+                <i class="fas fa-plus text-success text-xs"></i>
               </button>
-              <button onclick="removeQnAQuestion(this)" class="p-2 bg-danger/20 hover:bg-danger/30 rounded-lg transition">
-                <i class="fas fa-minus text-danger text-sm"></i>
+              <button class="p-2 bg-danger/20 hover:bg-danger/30 border border-danger/30 hover:border-danger/50 rounded-lg transition" onclick="removeQnAQuestion(this)" title="Remove question">
+                <i class="fas fa-minus text-danger text-xs"></i>
               </button>
             </div>
           </div>
+
+          <!-- Question Textarea -->
+          <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-700 hover:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition resize-none" placeholder="Enter your question and answer..." oninput="autoResizeTextarea(this); saveCurrentState()">${text || ''}</textarea>
         </div>
       </div>
     `).join('');
@@ -631,26 +644,28 @@
     }
 
     return subQuestions.map((text, index) => `
-      <div class="mb-6 question-item">
-        <div class="bg-darkbg/30 border border-gray-600 rounded-xl p-4 hover:border-primary transition">
-          <div class="flex items-start gap-4">
-            <div class="w-8 h-8 flex items-center justify-center bg-success/20 rounded-lg mt-2">
-              <span class="text-success font-bold">${index + 1}</span>
+      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+        <div class="bg-darkbg/20 p-4 md:p-5">
+          <!-- Header: Question number, title, and action buttons -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-success/20 rounded-lg flex-shrink-0 border border-success/30">
+                <span class="text-success font-bold text-sm">${index + 1}</span>
+              </div>
+              <h4 class="text-white font-semibold">Question ${index + 1}</h4>
             </div>
-            <div class="flex-1">
-              <label class="block text-sm font-semibold text-white mb-2">Fill in the blank ${index + 1}</label>
-              <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition resize-none min-h-[80px]"
-                        placeholder="Enter sentence with blank (use _____ for blank)..." oninput="autoResizeTextarea(this); saveCurrentState()">${text || ''}</textarea>
-            </div>
-            <div class="flex flex-col gap-2">
-              <button onclick="addFillUpQuestion(this)" class="p-2 bg-success/20 hover:bg-success/30 rounded-lg transition">
-                <i class="fas fa-plus text-success text-sm"></i>
+            <div class="flex gap-2">
+              <button class="p-2 bg-success/20 hover:bg-success/30 border border-success/30 hover:border-success/50 rounded-lg transition" onclick="addFillUpQuestion(this)" title="Add another question">
+                <i class="fas fa-plus text-success text-xs"></i>
               </button>
-              <button onclick="removeFillUpQuestion(this)" class="p-2 bg-danger/20 hover:bg-danger/30 rounded-lg transition">
-                <i class="fas fa-minus text-danger text-sm"></i>
+              <button class="p-2 bg-danger/20 hover:bg-danger/30 border border-danger/30 hover:border-danger/50 rounded-lg transition" onclick="removeFillUpQuestion(this)" title="Remove question">
+                <i class="fas fa-minus text-danger text-xs"></i>
               </button>
             </div>
           </div>
+
+          <!-- Question Textarea -->
+          <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-700 hover:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition resize-none" placeholder="Enter sentence with blank (use _____ for blank)..." oninput="autoResizeTextarea(this); saveCurrentState()">${text || ''}</textarea>
         </div>
       </div>
     `).join('');
@@ -662,26 +677,28 @@
     }
 
     return subQuestions.map((text, index) => `
-      <div class="mb-6 question-item">
-        <div class="bg-darkbg/30 border border-gray-600 rounded-xl p-4 hover:border-primary transition">
-          <div class="flex items-start gap-4">
-            <div class="w-8 h-8 flex items-center justify-center bg-warning/20 rounded-lg mt-2">
-              <span class="text-warning font-bold">${index + 1}</span>
+      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+        <div class="bg-darkbg/20 p-4 md:p-5">
+          <!-- Header: Question number, title, and action buttons -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-warning/20 rounded-lg flex-shrink-0 border border-warning/30">
+                <span class="text-warning font-bold text-sm">${index + 1}</span>
+              </div>
+              <h4 class="text-white font-semibold">Question ${index + 1}</h4>
             </div>
-            <div class="flex-1">
-              <label class="block text-sm font-semibold text-white mb-2">True/False ${index + 1}</label>
-              <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition resize-none min-h-[80px]"
-                        placeholder="Enter true/false statement..." oninput="autoResizeTextarea(this); saveCurrentState()">${text || ''}</textarea>
-            </div>
-            <div class="flex flex-col gap-2">
-              <button onclick="addTFQuestion(this)" class="p-2 bg-success/20 hover:bg-success/30 rounded-lg transition">
-                <i class="fas fa-plus text-success text-sm"></i>
+            <div class="flex gap-2">
+              <button class="p-2 bg-success/20 hover:bg-success/30 border border-success/30 hover:border-success/50 rounded-lg transition" onclick="addTFQuestion(this)" title="Add another question">
+                <i class="fas fa-plus text-success text-xs"></i>
               </button>
-              <button onclick="removeTFQuestion(this)" class="p-2 bg-danger/20 hover:bg-danger/30 rounded-lg transition">
-                <i class="fas fa-minus text-danger text-sm"></i>
+              <button class="p-2 bg-danger/20 hover:bg-danger/30 border border-danger/30 hover:border-danger/50 rounded-lg transition" onclick="removeTFQuestion(this)" title="Remove question">
+                <i class="fas fa-minus text-danger text-xs"></i>
               </button>
             </div>
           </div>
+
+          <!-- Question Textarea -->
+          <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-700 hover:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition resize-none" placeholder="Enter true/false statement..." oninput="autoResizeTextarea(this); saveCurrentState()">${text || ''}</textarea>
         </div>
       </div>
     `).join('');
@@ -694,35 +711,35 @@
     }
 
     return subQuestions.map((left, index) => `
-      <div class="mb-6 question-item">
-        <div class="bg-darkbg/30 border border-gray-600 rounded-xl p-4 hover:border-primary transition">
-          <div class="flex items-start gap-4 mb-4">
-            <div class="w-8 h-8 flex items-center justify-center bg-purple-500/20 rounded-lg mt-2">
-              <span class="text-purple-400 font-bold">${index + 1}</span>
+      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+        <div class="bg-darkbg/20 p-4 md:p-5">
+          <!-- Header: Question number, title, and action buttons -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-purple-500/20 rounded-lg flex-shrink-0 border border-purple-500/30">
+                <span class="text-purple-400 font-bold text-sm">${index + 1}</span>
+              </div>
+              <h4 class="text-white font-semibold">Pair ${index + 1}</h4>
             </div>
-            <div class="flex-1">
-              <label class="block text-sm font-semibold text-white mb-2">Matching Pair ${index + 1}</label>
-            </div>
-            <div class="flex flex-col gap-2">
-              <button onclick="addMatchQuestion(this)" class="p-2 bg-success/20 hover:bg-success/30 rounded-lg transition">
-                <i class="fas fa-plus text-success text-sm"></i>
+            <div class="flex gap-2">
+              <button class="p-2 bg-success/20 hover:bg-success/30 border border-success/30 hover:border-success/50 rounded-lg transition" onclick="addMatchQuestion(this)" title="Add another pair">
+                <i class="fas fa-plus text-success text-xs"></i>
               </button>
-              <button onclick="removeMatchQuestion(this)" class="p-2 bg-danger/20 hover:bg-danger/30 rounded-lg transition">
-                <i class="fas fa-minus text-danger text-sm"></i>
+              <button class="p-2 bg-danger/20 hover:bg-danger/30 border border-danger/30 hover:border-danger/50 rounded-lg transition" onclick="removeMatchQuestion(this)" title="Remove pair">
+                <i class="fas fa-minus text-danger text-xs"></i>
               </button>
             </div>
           </div>
-          
+
+          <!-- Matching Inputs -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm text-gray-400 mb-2">Column A (Left)</label>
-              <input type="text" class="match-left w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
-                     placeholder="Enter item from Column A" value="${left || ''}" oninput="saveCurrentState()">
+              <label class="block text-xs font-semibold text-gray-300 mb-2">Column A (Left)</label>
+              <input type="text" class="match-left w-full bg-darkbg/50 text-white border border-gray-700 hover:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition" placeholder="Enter item from Column A" value="${left || ''}" oninput="saveCurrentState()">
             </div>
             <div>
-              <label class="block text-sm text-gray-400 mb-2">Column B (Right)</label>
-              <input type="text" class="match-right w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
-                     placeholder="Enter matching item from Column B" value="${options[index] || ''}" oninput="saveCurrentState()">
+              <label class="block text-xs font-semibold text-gray-300 mb-2">Column B (Right)</label>
+              <input type="text" class="match-right w-full bg-darkbg/50 text-white border border-gray-700 hover:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition" placeholder="Enter matching item from Column B" value="${options[index] || ''}" oninput="saveCurrentState()">
             </div>
           </div>
         </div>
@@ -736,26 +753,28 @@
     }
 
     return subQuestions.map((text, index) => `
-      <div class="mb-6 question-item">
-        <div class="bg-darkbg/30 border border-gray-600 rounded-xl p-4 hover:border-primary transition">
-          <div class="flex items-start gap-4">
-            <div class="w-8 h-8 flex items-center justify-center bg-blue-500/20 rounded-lg mt-2">
-              <span class="text-blue-400 font-bold">${index + 1}</span>
+      <div class="mb-6 question-item border-b border-gray-700 last:border-b-0 pb-6">
+        <div class="bg-darkbg/20 p-4 md:p-5">
+          <!-- Header: Question number, title, and action buttons -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-blue-500/20 rounded-lg flex-shrink-0 border border-blue-500/30">
+                <span class="text-blue-400 font-bold text-sm">${index + 1}</span>
+              </div>
+              <h4 class="text-white font-semibold">Question ${index + 1}</h4>
             </div>
-            <div class="flex-1">
-              <label class="block text-sm font-semibold text-white mb-2">Single Word Question ${index + 1}</label>
-              <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition resize-none min-h-[80px]"
-                        placeholder="Enter the question (Answer should be a single word/term)..." oninput="autoResizeTextarea(this); saveCurrentState()">${text || ''}</textarea>
-            </div>
-            <div class="flex flex-col gap-2">
-              <button onclick="addSingleWordQuestion(this)" class="p-2 bg-success/20 hover:bg-success/30 rounded-lg transition">
-                <i class="fas fa-plus text-success text-sm"></i>
+            <div class="flex gap-2">
+              <button class="p-2 bg-success/20 hover:bg-success/30 border border-success/30 hover:border-success/50 rounded-lg transition" onclick="addSingleWordQuestion(this)" title="Add another question">
+                <i class="fas fa-plus text-success text-xs"></i>
               </button>
-              <button onclick="removeSingleWordQuestion(this)" class="p-2 bg-danger/20 hover:bg-danger/30 rounded-lg transition">
-                <i class="fas fa-minus text-danger text-sm"></i>
+              <button class="p-2 bg-danger/20 hover:bg-danger/30 border border-danger/30 hover:border-danger/50 rounded-lg transition" onclick="removeSingleWordQuestion(this)" title="Remove question">
+                <i class="fas fa-minus text-danger text-xs"></i>
               </button>
             </div>
           </div>
+
+          <!-- Question Textarea -->
+          <textarea class="question-text w-full bg-darkbg/50 text-white border border-gray-700 hover:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition resize-none" placeholder="Enter the question (Answer should be a single word/term)..." oninput="autoResizeTextarea(this); saveCurrentState()">${text || ''}</textarea>
         </div>
       </div>
     `).join('');
@@ -796,16 +815,23 @@
     // Get current title and marks
     const titleInput = section.querySelector('.section-title');
     const marksInput = section.querySelector('.section-marks');
-    const currentTitle = titleInput.value;
+    
+    // Update title to new type label
+    const newTitle = QUESTION_TYPE_LABELS[newType] || 'Question Section';
+    titleInput.value = newTitle;
 
-    // Update header text
+    // Update header text - find h3 inside the section
     const headerText = section.querySelector('h3');
     const sectionNo = section.querySelector('.w-10.h-10 span').textContent;
-    headerText.innerHTML = `Section ${sectionNo}: ${currentTitle}`;
+    if (headerText) {
+      headerText.innerHTML = `Section ${sectionNo}: ${newTitle}`;
+    }
 
-    // Update subtitle
-    const subtitle = section.querySelector('p.text-gray-400');
-    subtitle.textContent = QUESTION_TYPE_LABELS[newType] || 'Question Section';
+    // Update subtitle - find the p.text-gray-400 inside the header
+    const subtitle = section.querySelector('.bg-gradient-to-r.from-primary\\/10 p.text-gray-400');
+    if (subtitle) {
+      subtitle.textContent = newTitle;
+    }
 
     // Update select value
     const typeSelect = section.querySelector('.question-type-select');
@@ -840,7 +866,7 @@
     questionsContainer.innerHTML = newContent;
 
     saveCurrentState();
-    showToast(`Question type changed to ${QUESTION_TYPE_LABELS[newType]}`, 'success');
+    showToast(`Changed to ${newTitle}`, 'success');
   }
 
   function showQuestionTypeModal() {
@@ -1124,15 +1150,14 @@
     const questions = container.querySelectorAll('.question-item');
     questions.forEach((question, index) => {
       const numberElement = question.querySelector('.w-8.h-8 span');
-      const labelElement = question.querySelector('label');
+      const h4Element = question.querySelector('h4');
 
       if (numberElement) {
         numberElement.textContent = index + 1;
       }
 
-      if (labelElement) {
-        const type = labelElement.textContent.split(' ')[0];
-        labelElement.textContent = `${type} ${index + 1}`;
+      if (h4Element) {
+        h4Element.textContent = `Question ${index + 1}`;
       }
     });
   }
@@ -1277,7 +1302,6 @@
           std: state.meta.std,
           hrs: state.meta.hrs,
           MM: state.meta.MM,
-          value: "a4PDF",
           fontSize: state.meta.fontSize
         })
       });
@@ -1286,6 +1310,7 @@
 
       const data = await response.json();
       const html = data.html;
+
 
       const newWindow = window.open("", "_blank");
       newWindow.document.write(`
@@ -1310,7 +1335,7 @@
                     line-height: 1.2;
                 }
                 .content {
-                    font-size: ${fontSize}px;
+                    font-size: ${state.meta.fontSize}px;
                     margin-top:5px
                 }
                 .paperHeader {
@@ -1330,11 +1355,6 @@
         </head>
         <body>
           <div class="content">${html}</div>
-          <div class="no-print" style="text-align: center; margin-top: 20px; padding: 20px;">
-            <button onclick="window.print()" style="padding: 10px 20px; background: #4361ee; color: white; border: none; border-radius: 5px; cursor: pointer;">
-              Print PDF
-            </button>
-          </div>
           <script>
             window.onload = function() {
               // Auto-print after 1 second
@@ -1399,67 +1419,6 @@
     }
   }
 
-  // Preview Paper
-  async function previewPaper() {
-    saveCurrentState();
-
-    if (state.questions.length === 0) {
-      showToast('Please add at least one question', 'error');
-      return;
-    }
-
-    showLoading();
-
-    try {
-      const response = await fetch('/question_paper_api', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          questions: state.questions,
-          eventName: state.meta.event,
-          subject: state.meta.subject,
-          std: state.meta.std,
-          hrs: state.meta.hrs,
-          MM: state.meta.MM,
-          value: "preview",
-          fontSize: state.meta.fontSize
-        })
-      });
-
-      if (!response.ok) throw new Error('API request failed');
-
-      const data = await response.json();
-      const html = data.html;
-
-      const newWindow = window.open("", "_blank");
-      newWindow.document.write(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Preview - ${state.meta.event}</title>
-          <style>
-            body { margin: 20px; color: black; background: white; line-height: 1.6; font-family: Arial, sans-serif; }
-            .content { font-size: ${state.meta.fontSize}px; }
-            .question-block { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
-          </style>
-        </head>
-        <body>
-          <div class="content">${html}</div>
-        </body>
-        </html>
-      `);
-      newWindow.document.close();
-
-      hideLoading();
-      showToast('Preview opened in new window', 'success');
-    } catch (error) {
-      console.error('Error:', error);
-      hideLoading();
-      showToast('Error generating preview', 'error');
-    }
-  }
 
   // Clear Paper
   function clearCurrentPaper() {
@@ -1521,14 +1480,6 @@
 </script>
 
 <style>
-  .question-type-select {
-    min-width: 120px;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 0.5rem center;
-    background-repeat: no-repeat;
-    background-size: 1.5em 1.5em;
-    padding-right: 2.5rem;
-  }
 
   textarea {
     resize: vertical;

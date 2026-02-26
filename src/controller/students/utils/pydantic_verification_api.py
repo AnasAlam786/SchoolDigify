@@ -9,7 +9,7 @@ from src import db
 
 from src.controller.auth.login_required import login_required
 from src.controller.permissions.permission_required import permission_required
-import time
+from enum import Enum as PyEnum
 
 
 pydantic_verification_api_bp = Blueprint('pydantic_verification_bp', __name__)
@@ -57,22 +57,18 @@ def verify_admission():
         print("Error processing data")
         return jsonify({"message": "Invalid JSON payload.", "errors": []}), 400
 
-    
-    print(f"student_status raw: {repr(data.get('student_status'))}")
-    # Validate with Pydantic
     try:
         model = AdmissionFormModel(**data)
         verified_data = model.to_verified_data()
+        
     except ValidationError as e:
         errors = format_pydantic_errors(e)
         print(errors)
         return jsonify({"message": "Please fix the validation errors below.", "errors": errors}), 400
-
     
 
     # Business logic checks
     student_status = data.get('student_status')
-    print("Student status:", student_status)
     if student_status == "new":
         if data.get("Admission_Class") != data.get("CLASS"):
             return jsonify({

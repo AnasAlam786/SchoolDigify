@@ -4,6 +4,8 @@ from enum import Enum as PyEnum
 from .validate_aadhaar import verify_aadhaar
 from .str_to_date import str_to_date
 from src.model.enums import StudentsDBEnums
+from datetime import date
+
 
 # Build Python Enums from SQLAlchemy Enum values
 def _sanitize_enum_member_name(raw: str) -> str:
@@ -35,60 +37,25 @@ FatherOccupationEnum = _build_python_enum("FATHERS_OCCUPATION", StudentsDBEnums.
 MotherOccupationEnum = _build_python_enum("MOTHERS_OCCUPATION", StudentsDBEnums.MOTHERS_OCCUPATION)
 HomeDistanceEnum = _build_python_enum("Home_Distance", StudentsDBEnums.HOME_DISTANCE)
 
-class CleanBaseModel(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True, str_to_upper=False)
+class GetVerifiedData(BaseModel):
+    def to_verified_data(self):
+        data = self.model_dump()
 
-    @model_validator(mode="before")
-    @classmethod
-    def clean_data(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if not isinstance(values, dict):
-            return values
-        cleaned = {}
-        for key, value in values.items():
-            field_info = cls.model_fields.get(key)
-            if not field_info:
-                cleaned[key] = value
-                continue
-            annotation = field_info.annotation
-            origin = get_origin(annotation)
-            # Skip cleaning for Literal and Enum types
-            if origin is Literal or (isinstance(annotation, type) and issubclass(annotation, PyEnum)):
-                cleaned[key] = value
-                continue
-            # Handle Optional Enums
-            if origin in (Union, Optional) and any(isinstance(arg, type) and issubclass(arg, PyEnum) for arg in get_args(annotation)):
-                if isinstance(value, str) and value.strip() == "":
-                    cleaned[key] = None
-                else:
-                    cleaned[key] = value
-                continue
-            # Clean strings
-            if isinstance(value, str):
-                value = value.strip()
-                if value == "":
-                    value = None
-                elif not key.lower().endswith("email"):
-                    value = value.title()
-            cleaned[key] = value
-        return cleaned
-
-    def to_verified_data(self) -> list[dict[str, Any]]:
-        config_extra = self.__class__.model_config.get("json_schema_extra", {}) or {}
         result = []
-        for field_name, field_info in self.model_fields.items():
-            value = getattr(self, field_name)
+        for field_name, value in data.items():
             if isinstance(value, PyEnum):
                 value = value.value
-            label = config_extra.get(field_name, {}).get("data-short_label", field_name)
-            result.append({"field": field_name, "value": value, "label": label})
+            result.append({
+                "field": field_name,
+                "value": value,
+            })
         return result
 
 
 # ------------------------- Personal Info -------------------------
-class AdmissionFormModel(CleanBaseModel):
+class AdmissionFormModel(GetVerifiedData):
     
     STUDENTS_NAME: constr(pattern=r'^[^\W\d_]+(?: [^\W\d_]+)*$') = Field(...) # type: ignore
-    
     DOB: str = Field(...)
     GENDER: GenderEnum = Field(...)
     AADHAAR: Optional[constr(min_length=12, max_length=12)] = Field(default=None) # type: ignore
@@ -103,7 +70,7 @@ class AdmissionFormModel(CleanBaseModel):
     BLOOD_GROUP: Optional[BloodGroupEnum] = Field(None)
         
     # ------------------------- Academic Info -------------------------
-    # student_status: Optional[Literal["new", "old"]] = Field(None)
+    student_status: Optional[Literal["new", "old"]] = Field(None)
     admission_session_id: str = Field(...)
     Admission_Class: str = Field(...)
     CLASS: str = Field(...)
@@ -129,9 +96,9 @@ class AdmissionFormModel(CleanBaseModel):
 
 
     ADDRESS: str = Field(...) # type: ignore
-    PHONE: conint(ge=1000000000, le=9999999999) = Field(...) # type: ignore
-    ALT_MOBILE: Optional[conint(ge=1000000000, le=9999999999)] = Field(None) # type: ignore
-    PIN: conint(ge=100000, le=999999) = Field(...) # type: ignore
+    PHONE: constr(pattern=r"^\d{10}$") # type: ignore
+    ALT_MOBILE: Optional[constr(pattern=r"^\d{10}$")] = Field(None)# type: ignore
+    PIN: constr(pattern=r"^\d{6}$") = Field(...) # type: ignore
     Home_Distance: Optional[HomeDistanceEnum] = Field(default=None)
     EMAIL: Optional[EmailStr] = Field(None)
 
@@ -139,7 +106,6 @@ class AdmissionFormModel(CleanBaseModel):
     Previous_School_Marks: Optional[constr(max_length=3)] = Field(None) # type: ignore
     Previous_School_Attendance: Optional[constr(max_length=3)] = Field(None) # type: ignore
     Previous_School_Name: Optional[constr(min_length=2)] = Field(None) # type: ignore
-    Due_Amount: Optional[float] = Field(None)
 
     # --- RTE fields ---
     is_RTE: bool = Field(default=False)
@@ -150,16 +116,36 @@ class AdmissionFormModel(CleanBaseModel):
     bank_branch: Optional[str] = Field(None)
     account_holder: Optional[str] = Field(None)
 
+    @field_validator("ifsc", mode="after")
+    def normalize_ifsc(cls, v):
+        if v:
+            return v.upper()
+        return v
+
+    
+    
+    @field_validator("*", mode="before")
+    @classmethod
+    def empty_string_to_none(cls, v, info):
+        if not isinstance(v, str):
+            return v
+        
+        v = v.strip()
+    
+        if v == "":
+            if not cls.model_fields[info.field_name].is_required():
+                return None
+        return v
+
     @field_validator('DOB', 'ADMISSION_DATE', mode='before')
     @classmethod
     def date_normalization(cls, v):
         if not v:
             return None
         
-        date = str_to_date(v)
-        return date
+        parsed_date = str_to_date(v)
+        return parsed_date
     
-    # --- Field validators ---
     @field_validator('AADHAAR', 'FATHERS_AADHAR', 'MOTHERS_AADHAR', mode='before')
     @classmethod
     def clean_aadhaar(cls, v):

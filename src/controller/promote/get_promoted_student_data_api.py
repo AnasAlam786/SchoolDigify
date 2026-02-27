@@ -68,7 +68,7 @@ def get_promoted_student_data():
             # Previous session
             PreviousClass.CLASS.label("CLASS"),
             PreviousSession.ROLL.label("ROLL"),
-            PreviousClass.display_order.label("previous_display_order"),
+            PreviousClass.grade_level.label("previous_grade_level"),
 
         ).join(
             PromotedSession, PromotedSession.student_id == StudentsDB.id
@@ -92,20 +92,20 @@ def get_promoted_student_data():
         return jsonify({"message": "Student not found"}), 404
 
     # Get available classes (previous class and above) for update
-    previous_display_order = student_row.previous_display_order
+    previous_grade_level = student_row.previous_grade_level
     available_classes = (
-        db.session.query(ClassData.id, ClassData.CLASS, ClassData.display_order)
+        db.session.query(ClassData.id, ClassData.CLASS, ClassData.grade_level)
         .filter(
             ClassData.school_id == school_id,
-            ClassData.display_order >= previous_display_order
+            ClassData.grade_level >= previous_grade_level
         )
-        .order_by(ClassData.display_order.asc())
+        .order_by(ClassData.grade_level.asc())
         .all()
     )
     
     result = student_row._asdict()
     result["available_classes"] = [
-        {"id": c[0], "name": c[1], "display_order": c[2]}
+        {"id": c[0], "name": c[1], "grade_level": c[2]}
         for c in available_classes
     ]
 

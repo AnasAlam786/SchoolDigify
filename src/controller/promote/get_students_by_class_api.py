@@ -65,11 +65,11 @@ def get_students_by_class():
         promoted_subq.c.promoted_session_id,
         promoted_subq.c.promoted_status,
 
-        # nested subquery to find next class using display_order
+        # nested subquery to find next class using grade_level
         select(ClassData.CLASS)
             .where(
-                ClassData.display_order == (
-                    select(ClassData.display_order)
+                ClassData.grade_level == (
+                    select(ClassData.grade_level)
                     .where(ClassData.id == class_id)
                     .scalar_subquery()
                 ) + 1,

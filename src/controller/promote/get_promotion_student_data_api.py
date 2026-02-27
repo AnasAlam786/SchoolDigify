@@ -56,7 +56,7 @@ def get_student_promotion_data():
     # ----------------------------------------------------------------------
     current_info = (
         db.session.query(StudentSessions.class_id,
-                         ClassData.display_order,
+                         ClassData.grade_level,
                          ClassData.CLASS)
         .join(ClassData, ClassData.id == StudentSessions.class_id)
         .filter(StudentSessions.student_id == student_id,
@@ -67,16 +67,16 @@ def get_student_promotion_data():
     if not current_info:
         return jsonify({"message": "Student not found in previous session."}), 404
 
-    current_class_id, current_display_order, current_class_name = current_info
+    current_class_id, current_grade_level, current_class_name = current_info
 
     # ----------------------------------------------------------------------
     # 2. Fetch all possible classes (same or above)
     # ----------------------------------------------------------------------
     available_classes = (
-        db.session.query(ClassData.id, ClassData.CLASS, ClassData.display_order)
+        db.session.query(ClassData.id, ClassData.CLASS, ClassData.grade_level)
         .filter(ClassData.school_id == school_id,
-                ClassData.display_order >= current_display_order)
-        .order_by(ClassData.display_order.asc())
+                ClassData.grade_level >= current_grade_level)
+        .order_by(ClassData.grade_level.asc())
         .all()
     )
 
@@ -85,8 +85,8 @@ def get_student_promotion_data():
     # 3. Determine next class (simple scan)
     # ----------------------------------------------------------------------
     next_class = None
-    for c_id, c_name, d_order in available_classes:
-        if d_order > current_display_order:
+    for c_id, c_name, g_level in available_classes:
+        if g_level > current_grade_level:
             next_class = (c_id, c_name)
             break
 
@@ -148,7 +148,7 @@ def get_student_promotion_data():
     
     # Add available classes and roll information
     result["available_classes"] = [
-        {"id": c[0], "name": c[1], "display_order": c[2]}
+        {"id": c[0], "name": c[1], "grade_level": c[2]}
         for c in available_classes
     ]
 

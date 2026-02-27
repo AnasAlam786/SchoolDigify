@@ -1,19 +1,20 @@
-# src/controller/tools/question_paper_api.py
+# src/controller/tools/question_paper_PDF_api.py
 
 from flask import session, render_template, request, jsonify, Blueprint
 from bs4 import BeautifulSoup
+from src.controller.permissions.has_permission import has_permission
 from src.model.Papers import Papers
 
 from src.controller.permissions.permission_required import permission_required
 from src.controller.auth.login_required import login_required
 
-question_paper_api_bp = Blueprint('question_paper_api_bp', __name__)
+question_paper_PDF_api_bp = Blueprint('question_paper_PDF_api_bp', __name__)
 
 
-@question_paper_api_bp.route('/question_paper_api', methods=["POST"])
+@question_paper_PDF_api_bp.route('/question_paper_PDF/api', methods=["POST"])
 @login_required
 @permission_required('create_paper')
-def question_paper_api():
+def question_paper_PDF():
     """Generate PDF content for question papers"""
     
     payload = request.json
@@ -24,6 +25,7 @@ def question_paper_api():
     std = payload.get('std')
     MM = payload.get('MM')
     hrs = payload.get('hrs')
+    font_size = payload.get('fontSize')
 
     try:
         school = session["school_name"]
@@ -33,31 +35,35 @@ def question_paper_api():
 
     # Render the paper template
     html = render_template('paper_elements.html', questions=questions, school=school, 
-                            event=event, subject=subject, std=std, MM=MM, hrs=hrs)
+                            event=event, subject=subject, std=std, MM=MM, hrs=hrs, fontSize=font_size)
     return jsonify({"html": str(html)})
 
 
 
 
-    
-
-
-@question_paper_api_bp.route('/question-papers/api/<int:paper_id>/preview', methods=["GET"])
+@question_paper_PDF_api_bp.route('/question_paper_PDF/api/<int:paper_id>', methods=["GET"])
 @login_required
 @permission_required('create_paper')
-def preview_paper_pdf(paper_id):
+def question_paper_PDF_by_id(paper_id):
     """Generate PDF preview HTML for a question paper"""
     
     user_id = session.get('user_id')
     
-    paper = Papers.query.filter_by(id=paper_id, user_id=user_id).first()
+    paper = Papers.query.filter_by(id=paper_id).first()
     
     if not paper:
         return jsonify({'error': 'Paper not found'}), 404
-    
+
+    # owners can always preview; others only if they have view_all_papers
+    if paper.user_id != user_id and not has_permission('view_all_papers'):
+        return jsonify({'error': 'Paper not found'}), 404
+
     try:
         school = session.get("school_name", "School Name")
         questions = paper.paper_data.get('questions', [])
+        
+        # read font size from query string if provided
+        font_size = request.args.get('fontSize')
         
         html = render_template('paper_elements.html', 
                              questions=questions, 
@@ -66,12 +72,10 @@ def preview_paper_pdf(paper_id):
                              subject=paper.subject,
                              std=paper.class_name,
                              MM=paper.marks,
-                             hrs=paper.duration)
-        
-        soup = BeautifulSoup(html, "lxml")
-        content = soup.find('div', id="a4PDF").decode_contents()
-        
-        return jsonify({"html": str(content)})
+                             hrs=paper.duration,
+                             fontSize=font_size)
+                
+        return jsonify({"html": str(html)})
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500

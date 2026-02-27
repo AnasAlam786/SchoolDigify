@@ -2,6 +2,7 @@
 
 from flask import session, render_template, request, Blueprint, jsonify, redirect, url_for
 from src import db
+from src.controller.permissions.has_permission import has_permission
 from src.model.Papers import Papers
 from src.controller.permissions.permission_required import permission_required
 from src.controller.auth.login_required import login_required
@@ -180,15 +181,20 @@ def delete_paper(paper_id):
 
 @question_papers_editor_bp.route('/question-papers/api/<int:paper_id>/duplicate', methods=["POST"])
 @login_required
-@permission_required('create_paper')
+@permission_required('view_all_papers')
 def duplicate_paper(paper_id):
     """Create a duplicate of an existing question paper"""
     
     user_id = session.get('user_id')
     
-    original_paper = Papers.query.filter_by(id=paper_id, user_id=user_id).first()
+    # allow duplicating own papers or any paper if user has view_all_papers permission
+    original_paper = Papers.query.filter_by(id=paper_id).first()
     
     if not original_paper:
+        return jsonify({'error': 'Paper not found'}), 404
+
+    # permission check: if not owner, ensure user has view_all_papers
+    if original_paper.user_id != user_id and not has_permission('view_all_papers'):
         return jsonify({'error': 'Paper not found'}), 404
     
     try:

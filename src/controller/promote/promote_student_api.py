@@ -104,14 +104,14 @@ def promote_student():
     if not selected_class:
         return jsonify({"message": "Selected class does not exist or is not available."}), 400
     
-    # Get current class display_order
+    # Get current class grade_level
     current_class = ClassData.query.filter_by(id=previous_session_row.class_id).first()
     if not current_class:
         return jsonify({"message": "Current class information not found."}), 404
     
     # Validate that selected class is current class or above
-    if selected_class.display_order is not None and current_class.display_order is not None:
-        if selected_class.display_order < current_class.display_order:
+    if selected_class.grade_level is not None and current_class.grade_level is not None:
+        if selected_class.grade_level < current_class.grade_level:
             return jsonify({"message": "Cannot promote to a lower class."}), 400
     
     class_to_promote = promoted_class_id

@@ -9,7 +9,7 @@ class ClassData(db.Model):
     id = Column(BigInteger, primary_key=True)
     CLASS = Column(Text, nullable=False)
     Section = Column(Text, nullable=True)   # Added Section column as per DB
-    display_order = Column(SmallInteger, nullable=False)
+    display_order = Column(SmallInteger, nullable=True)
     grade_level = Column(SmallInteger, nullable=False)
 
     school_id = Column(Text, ForeignKey('Schools.id', onupdate="CASCADE"), nullable=False)

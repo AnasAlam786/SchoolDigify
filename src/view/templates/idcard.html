@@ -13,21 +13,23 @@
 <!-- Add this style for gradient animation -->
 <style>
     @keyframes gradient {
-        0% {
-            background-position: 0% 50%;
-        }
-
-        50% {
-            background-position: 100% 50%;
-        }
-
-        100% {
-            background-position: 0% 50%;
-        }
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
-
     .animate-gradient {
         animation: gradient 3s ease infinite;
+    }
+
+    /* Skeleton animation */
+    @keyframes shimmer {
+        0% { background-position: -468px 0; }
+        100% { background-position: 468px 0; }
+    }
+    .skeleton {
+        background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+        background-size: 468px 100%;
+        animation: shimmer 1.5s infinite;
     }
 </style>
 
@@ -70,7 +72,6 @@
                         <div class="relative group">
                             <input type="text" id="search" placeholder="Enter student name..."
                                 class="w-full px-4 py-3 bg-gray-900/70 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 group-hover:border-blue-500/30 shadow-inner shadow-black/20">
-                            <!-- Make overlay non-interactive so it doesn't block clicks -->
                             <div
                                 class="absolute inset-0 rounded-xl ring-2 ring-blue-500/0 group-focus-within:ring-blue-500/30 transition-all duration-300 pointer-events-none">
                             </div>
@@ -100,7 +101,6 @@
                             <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                                 <i class="fas fa-chevron-down text-gray-400" aria-hidden="true"></i>
                             </div>
-                            <!-- Make overlay non-interactive so it doesn't block clicks -->
                             <div
                                 class="absolute inset-0 rounded-xl ring-2 ring-blue-500/0 group-focus-within:ring-blue-500/30 transition-all duration-300 pointer-events-none">
                             </div>
@@ -121,16 +121,13 @@
                         <div class="space-y-3 pl-10">
                             <label class="flex items-center gap-3 cursor-pointer select-none">
                                 <input type="checkbox" id="show-images" class="sr-only peer" checked>
-
                                 <div class="w-5 h-5 rounded-md border-2 border-gray-600
-                flex items-center justify-center
-                peer-checked:bg-blue-500 peer-checked:border-blue-500
-                transition-all duration-200">
-
+                                    flex items-center justify-center
+                                    peer-checked:bg-blue-500 peer-checked:border-blue-500
+                                    transition-all duration-200">
                                     <span class="w-2.5 h-1.5 border-b-2 border-l-2 border-white
-                     rotate-[-45deg] mb-0.5 hidden peer-checked:block"></span>
+                                        rotate-[-45deg] mb-0.5 hidden peer-checked:block"></span>
                                 </div>
-
                                 <span class="text-sm text-gray-300 peer-hover:text-gray-200">
                                     Show only with images
                                 </span>
@@ -138,15 +135,13 @@
 
                             <label class="flex items-center group cursor-pointer">
                                 <input type="checkbox" id="select-all" class="sr-only peer">
-
                                 <div class="w-5 h-5 rounded-md bg-gray-700 border-2 border-gray-600
-                peer-checked:border-blue-500 peer-checked:bg-blue-500/20
-                transition-all duration-200 group-hover:border-blue-400
-                flex items-center justify-center">
+                                    peer-checked:border-blue-500 peer-checked:bg-blue-500/20
+                                    transition-all duration-200 group-hover:border-blue-400
+                                    flex items-center justify-center">
                                     <i class="fas fa-check text-white text-xs opacity-0
-                  peer-checked:opacity-100 transition-opacity duration-200"></i>
+                                        peer-checked:opacity-100 transition-opacity duration-200"></i>
                                 </div>
-
                                 <span class="ml-3 text-sm text-gray-300 group-hover:text-gray-200 transition-colors">
                                     Select all visible
                                 </span>
@@ -207,30 +202,89 @@
             </div>
         </div>
 
-        <!-- Cards Grid -->
-        <div id="cards-grid" class="flex flex-wrap justify-center gap-6" style="max-width: 1300px; margin: 0 auto;">
-            <!-- Cards will be dynamically generated here -->
+        <!-- Cards Container with Dynamic States -->
+        <div id="cards-container" class="relative" style="min-height: 400px;">
+            <!-- Initial State (no class selected) -->
+            <div id="initial-state" class="flex flex-col items-center justify-center py-16 px-4 text-center glass-card rounded-2xl border border-white/5 hidden">
+                <div class="w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center animate-soft-pulse">
+                    <i class="fas fa-hand-pointer text-4xl text-blue-300"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Ready to create ID cards?</h3>
+                <p class="text-gray-400 mb-2 max-w-md">Please select a <span class="text-blue-400 font-semibold">class</span> from the dropdown above to view students.</p>
+                <p class="text-gray-500 text-sm mt-4">We'll show the list of students once you've made your choice.</p>
+            </div>
+
+            <!-- Loading State (skeleton) -->
+            <div id="loading-state" class="hidden">
+                <div class="flex flex-wrap justify-center gap-6">
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="flex flex-col items-center justify-center py-16 px-4 text-center glass-card rounded-2xl border border-white/5 hidden">
+                <div class="w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-4xl text-red-300"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h3>
+                <p id="error-message" class="text-gray-400 mb-6 max-w-md">Failed to load students. Please try again.</p>
+                <button id="retry-button" class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-1">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Retry</span>
+                </button>
+            </div>
+
+            <!-- Empty State (class has no students at all) -->
+            <div id="empty-state" class="flex flex-col items-center justify-center py-16 px-4 text-center glass-card rounded-2xl border border-white/5 hidden">
+                <div class="w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center animate-gentle-bounce">
+                    <i class="fas fa-user-slash text-4xl text-blue-300"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">No students found</h3>
+                <p class="text-gray-400 mb-8 max-w-md">This class doesn't have any students yet. Add a new student to start creating ID cards.</p>
+                <a href="/admission" class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-1">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Add Student</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- No Results State (filters yield zero) -->
+            <div id="no-results-state" class="flex flex-col items-center justify-center py-16 px-4 text-center glass-card rounded-2xl border border-white/5 hidden">
+                <div class="w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
+                    <i class="fas fa-filter text-4xl text-blue-300"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">No matching students</h3>
+                <p class="text-gray-400 mb-2 max-w-md">No students match your current search or filter criteria.</p>
+                <p class="text-gray-500 text-sm mt-4">Try adjusting your search or disabling the "Show only with images" filter.</p>
+            </div>
+
+            <!-- Cards Grid (shown when students exist) -->
+            <div id="cards-grid" class="flex flex-wrap justify-center gap-6" style="max-width: 1300px; margin: 0 auto;"></div>
         </div>
     </main>
 </div>
 <script src="/static/pdf-components/icards/hanging_image_icard.js"></script>
 <script>
-    /* --- ID Card manager: improved init, checkbox reliability, consistent id types, and robust print wait --- */
+    /* --- ID Card manager: improved with loading, empty, error states and professional UX --- */
 
     (() => {
-        // State (single source)
+        // State
         let currentStudents = [];
         let selectedStudentIds = new Set();
         let currentClassId = null;
         let schoolData = {};
         let principalSign = '';
+        let sessionYear = '';
+        let uiState = 'initial'; // 'initial', 'loading', 'error', 'empty', 'students', 'no-results'
+        let errorMessage = '';
 
-        // DOM refs (populated in init)
-        let searchInput, classFilter, showImagesCheckbox, selectAllCheckbox, printButton, statusDiv, cardsGrid, visibleCount, totalCount, selectedCount, totalStudents;
+        // DOM refs
+        let searchInput, classFilter, showImagesCheckbox, selectAllCheckbox, printButton, statusDiv;
+        let cardsGrid, visibleCount, totalCount, selectedCount, totalStudents;
+        let initialStateDiv, loadingStateDiv, errorStateDiv, emptyStateDiv, noResultsStateDiv, cardsContainer;
+        let retryButton, errorMessageSpan;
 
         // ---------- Init ----------
         function init() {
-            // grab elements AFTER DOM is ready
             searchInput = document.getElementById('search');
             classFilter = document.getElementById('class-filter');
             showImagesCheckbox = document.getElementById('show-images');
@@ -243,11 +297,20 @@
             selectedCount = document.getElementById('selected-count');
             totalStudents = document.getElementById('total-students');
 
+            // State containers
+            cardsContainer = document.getElementById('cards-container');
+            initialStateDiv = document.getElementById('initial-state');
+            loadingStateDiv = document.getElementById('loading-state');
+            errorStateDiv = document.getElementById('error-state');
+            emptyStateDiv = document.getElementById('empty-state');
+            noResultsStateDiv = document.getElementById('no-results-state');
+            errorMessageSpan = document.getElementById('error-message');
+            retryButton = document.getElementById('retry-button');
+
             setupEventListeners();
-            updateUI();
+            setUIState('initial'); // Show initial message
         }
 
-        // ensure init runs even if script loads after DOM has already become interactive
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
@@ -257,28 +320,88 @@
         // ---------- Event listeners ----------
         function setupEventListeners() {
             classFilter.addEventListener('change', handleClassChange);
-            searchInput.addEventListener('input', filterAndRenderCards);
+            searchInput.addEventListener('input', debounce(filterAndRenderCards, 300));
             showImagesCheckbox.addEventListener('change', filterAndRenderCards);
             selectAllCheckbox.addEventListener('change', handleSelectAll);
             printButton.addEventListener('click', handlePrint);
             cardsGrid.addEventListener('click', handleCardClick);
+            if (retryButton) retryButton.addEventListener('click', retryLoad);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // ---------- UI State Management ----------
+        function setUIState(state, errorMsg = '') {
+            uiState = state;
+            // Hide all state containers
+            [initialStateDiv, loadingStateDiv, errorStateDiv, emptyStateDiv, noResultsStateDiv, cardsGrid].forEach(el => {
+                if (el) el.classList.add('hidden');
+            });
+
+            // Show the appropriate one
+            switch (state) {
+                case 'initial':
+                    initialStateDiv.classList.remove('hidden');
+                    break;
+                case 'loading':
+                    loadingStateDiv.classList.remove('hidden');
+                    renderSkeletons();
+                    break;
+                case 'error':
+                    errorMessageSpan.textContent = errorMsg || 'Failed to load students. Please try again.';
+                    errorStateDiv.classList.remove('hidden');
+                    break;
+                case 'empty':
+                    emptyStateDiv.classList.remove('hidden');
+                    break;
+                case 'no-results':
+                    noResultsStateDiv.classList.remove('hidden');
+                    break;
+                case 'students':
+                    cardsGrid.classList.remove('hidden');
+                    break;
+            }
+        }
+
+        function renderSkeletons() {
+            const skeletonContainer = loadingStateDiv.querySelector('.flex');
+            if (!skeletonContainer) return;
+            let html = '';
+            for (let i = 0; i < 6; i++) {
+                html += `
+                    <div class="relative bg-gray-800 rounded-xl overflow-hidden shadow-lg" style="width:239px;">
+                        <div class="skeleton w-full" style="height:280px;"></div>
+                        <div class="p-3 bg-gray-700 border-t border-gray-600">
+                            <div class="skeleton h-4 w-3/4 mb-2"></div>
+                            <div class="skeleton h-3 w-1/2"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            skeletonContainer.innerHTML = html;
         }
 
         // ---------- API ----------
         async function fetchStudents(classId) {
+            setUIState('loading');
             try {
                 const response = await fetch(`/idcard/api/students/${classId}`);
-                if (!response.ok) throw new Error('Failed to fetch students');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 return data;
             } catch (error) {
                 console.error('Error fetching students:', error);
-                showAlert(400, 'Failed to load students. Please try again.');
+                setUIState('error', error.message);
                 return null;
             }
         }
 
-        // ---------- Class change ----------
         async function handleClassChange() {
             const classId = classFilter.value;
             if (!classId) {
@@ -286,7 +409,7 @@
                 currentClassId = null;
                 schoolData = {};
                 selectedStudentIds.clear();
-                clearCards();
+                setUIState('initial');
                 updateUI();
                 return;
             }
@@ -294,21 +417,41 @@
             currentClassId = classId;
             const data = await fetchStudents(classId);
             if (data) {
-                // normalize ids to Number to avoid type mismatches
                 currentStudents = (data.students || []).map(s => ({ ...s, id: Number(s.id) }));
                 schoolData = data.school || {};
                 sessionYear = data.session_year || '';
                 principalSign = data.principal_sign || '';
                 selectedStudentIds.clear();
-                renderCards();
+
+                if (currentStudents.length === 0) {
+                    setUIState('empty');
+                } else {
+                    filterAndRenderCards(); // will set state based on filtered results
+                }
                 updateUI();
+            }
+        }
+
+        function retryLoad() {
+            if (currentClassId) {
+                handleClassChange();
+            } else {
+                setUIState('initial');
             }
         }
 
         // ---------- Rendering ----------
         function renderCards() {
-            clearCards();
+            cardsGrid.innerHTML = '';
             const filteredStudents = getFilteredStudents();
+
+            if (filteredStudents.length === 0) {
+                // No results after filtering, but there are students in class
+                setUIState('no-results');
+                return;
+            }
+
+            setUIState('students');
             const fragment = document.createDocumentFragment();
             filteredStudents.forEach(student => {
                 const cardWrapper = createCardElement(student);
@@ -320,7 +463,7 @@
         function createCardElement(student) {
             const wrapper = document.createElement('div');
             wrapper.className = 'relative bg-gray-800 rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer';
-            wrapper.dataset.studentId = String(student.id); // dataset property is string
+            wrapper.dataset.studentId = String(student.id);
             wrapper.style.width = '239px';
             wrapper.style.minWidth = '239px';
 
@@ -350,15 +493,15 @@
             const info = document.createElement('div');
             info.className = 'p-3 bg-gray-700 border-t border-gray-600';
             info.innerHTML = `
-            <div class="text-white font-semibold text-sm mb-1">${student.name}</div>
-            <div class="text-gray-400 text-xs">Class: ${student.class_roll}</div>
-        `;
+                <div class="text-white font-semibold text-sm mb-1">${student.name}</div>
+                <div class="text-gray-400 text-xs">Class: ${student.class_roll}</div>
+            `;
             wrapper.appendChild(info);
 
             return wrapper;
         }
 
-        // ---------- Selection logic ----------
+        // ---------- Selection ----------
         function handleCardClick(event) {
             const wrapper = event.target.closest('[data-student-id]');
             if (!wrapper) return;
@@ -394,6 +537,7 @@
                 filteredStudents.forEach(s => selectedStudentIds.add(Number(s.id)));
             }
 
+            // Re-render to update selection rings
             renderCards();
             updateUI();
         }
@@ -419,12 +563,17 @@
         }
 
         function filterAndRenderCards() {
-            renderCards();
+            if (currentStudents.length === 0) {
+                // If class has no students, empty state is already shown
+                return;
+            }
+            const filtered = getFilteredStudents();
+            if (filtered.length === 0) {
+                setUIState('no-results');
+            } else {
+                renderCards(); // this sets state to 'students' internally
+            }
             updateUI();
-        }
-
-        function clearCards() {
-            cardsGrid.innerHTML = '';
         }
 
         function updateUI() {
@@ -434,9 +583,15 @@
             selectedCount.textContent = selectedStudentIds.size;
             totalStudents.textContent = currentStudents.length || 0;
 
-            // sync hidden checkbox state
-            selectAllCheckbox.checked = filtered.length > 0 && filtered.every(s => selectedStudentIds.has(s.id));
-            selectAllCheckbox.indeterminate = filtered.some(s => selectedStudentIds.has(s.id)) && !selectAllCheckbox.checked;
+            // Sync select-all checkbox state
+            if (filtered.length > 0) {
+                const allSelected = filtered.every(s => selectedStudentIds.has(s.id));
+                selectAllCheckbox.checked = allSelected;
+                selectAllCheckbox.indeterminate = !allSelected && filtered.some(s => selectedStudentIds.has(s.id));
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
 
             // Update select-all visual icon
             const selectAllDiv = selectAllCheckbox.nextElementSibling;
@@ -473,7 +628,7 @@
             }
         }
 
-        // ---------- PRINT (wait for fonts & images in new window) ----------
+        // ---------- PRINT (unchanged from original, but uses current state) ----------
         async function handlePrint() {
             if (selectedStudentIds.size === 0) {
                 showAlert(400, 'Please select at least one ID card to print.');
@@ -493,14 +648,9 @@
                     return;
                 }
 
-                // Write document and inject small script that waits for images & fonts then prints.
                 printWindow.document.open();
                 printWindow.document.write(html);
                 printWindow.document.close();
-
-                // Safety: If load already happened, still run the waiting script.
-                // We inject a script into the printed page which waits for all images and fonts then calls print()
-                // This ensures that modal opens only after images/fonts are ready.
             } finally {
                 printButton.disabled = false;
                 statusDiv.classList.add('hidden');
@@ -511,7 +661,6 @@
             const cardsPerPage = 9;
             const cssText = await fetch("/static/pdf-components/icards/hanging_image_icard.css").then(r => r.text());
 
-            // Helper that creates per-card HTML by populating the template
             async function generateCardHTML(student) {
                 const rawHTML = await fetch("/static/pdf-components/icards/hanging_image_icard.html").then(r => r.text());
                 const wrapper = document.createElement('div');
@@ -547,27 +696,25 @@
                 return wrapper.innerHTML;
             }
 
-            // Script that waits for images & fonts then calls print()
             const waitPrintScript = `
             <script>
             (function() {
-            function waitForImagesAndFonts() {
-                const imgs = Array.from(document.images);
-                const imgPromises = imgs.map(img => img.complete ? Promise.resolve() : new Promise(r => { img.addEventListener('load', r); img.addEventListener('error', r); }));
-                const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-                return Promise.all([...imgPromises, fontsReady]);
-            }
+                function waitForImagesAndFonts() {
+                    const imgs = Array.from(document.images);
+                    const imgPromises = imgs.map(img => img.complete ? Promise.resolve() : new Promise(r => { img.addEventListener('load', r); img.addEventListener('error', r); }));
+                    const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+                    return Promise.all([...imgPromises, fontsReady]);
+                }
 
-            function kickPrint() {
-                // slight delay to allow browser to finish layout/render
-                setTimeout(() => { try { window.focus(); window.print(); } catch(e) { console.error(e); } }, 200);
-            }
+                function kickPrint() {
+                    setTimeout(() => { try { window.focus(); window.print(); } catch(e) { console.error(e); } }, 200);
+                }
 
-            if (document.readyState === 'complete') {
-                waitForImagesAndFonts().then(kickPrint);
-            } else {
-                window.addEventListener('load', () => waitForImagesAndFonts().then(kickPrint));
-            }
+                if (document.readyState === 'complete') {
+                    waitForImagesAndFonts().then(kickPrint);
+                } else {
+                    window.addEventListener('load', () => waitForImagesAndFonts().then(kickPrint));
+                }
             })();
             <\/script>
             `;
@@ -585,8 +732,8 @@
                 .print-page:last-child { page-break-after: auto; }
                 .print-card { display:flex; align-items:center; justify-content:center; break-inside:avoid; page-break-inside:avoid; }
                 @media print {
-                body { margin:0; padding:0; }
-                .print-card { position:relative; padding:1mm; box-sizing:border-box; border:0.3mm dotted #777; }
+                    body { margin:0; padding:0; }
+                    .print-card { position:relative; padding:1mm; box-sizing:border-box; border:0.3mm dotted #777; }
                 }
                 @page { size: A4; margin: 8mm; }
             </style></head><body>`;
@@ -600,7 +747,6 @@
                 html += `</div>`;
             }
 
-            // append script that will wait for images & fonts then print
             html += waitPrintScript;
             html += `</body></html>`;
             return html;

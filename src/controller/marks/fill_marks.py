@@ -37,7 +37,7 @@ def fill_marks():
 
         
     subjects = (
-        db.session.query(Subjects.subject, Subjects.display_order)
+        db.session.query(Subjects.id, Subjects.subject, Subjects.display_order)
         .filter(
             Subjects.school_id == school_id,
             Subjects.is_active == True,
@@ -47,11 +47,13 @@ def fill_marks():
         .all()
     )
 
+    # Build a list of unique subjects by name, but keep an associated id for frontend selection
     unique_subjects = []
-
-    for subject in subjects:
-        if subject.subject not in unique_subjects:
-            unique_subjects.append(subject.subject)
+    seen = set()
+    for s in subjects:
+        if s.subject not in seen:
+            seen.add(s.subject)
+            unique_subjects.append({"id": s.id, "subject": s.subject})
 
 
     exams = (
@@ -67,80 +69,93 @@ def fill_marks():
         
     data = None
 
-    if request.method == "POST":
-        payload = request.json
-
-        subject_name =  payload.get('subject')
-        class_id = payload.get('class')
-        exam_id = payload.get('exam')
-        current_session_id = session["session_id"]
-
-        exam = Exams.query.filter_by(id=exam_id, school_id=school_id).first()
-        if not exam:
-            return jsonify({"error": "Exam not found"}), 404
-        if not exam.is_enabled and not has_permission('override_marks_lock'):
-            return jsonify({"error": "This exam is disabled. You do not have permission to fill marks for disabled exams."}), 403
+    return render_template('fill_marks.html', data=data, classes=classes, exams = exams, subjects = unique_subjects)
 
 
-        marks_data = (
-            db.session.query(
-                StudentMarks.id.label('id'),
-                StudentMarks.score,          # Student's mark (can be None)
-                StudentsDB.STUDENTS_NAME,               # Name of the student
-                StudentsDB.GENDER,
-                StudentsDB.id.label('student_id'), 
-                StudentSessions.ROLL,                   # Roll number
-                ClassData.CLASS,                        # Class name or number
-                Exams.id.label('exam_id'),
-                Exams.exam_name,                        # e.g., "Mid Term"
-                Exams.weightage,                        # Max marks for the exam
+@fill_marks_bp.route('/get_marks', methods=["GET"])
+@login_required
+@permission_required('fill_marks')
+def get_marks():
+    class_id = request.args.get('class_id')
+    subject_id = request.args.get('subject_id')
+    exam_id = request.args.get('exam_id')
+    school_id = session["school_id"]
+    current_session_id = session["session_id"]
+    
+
+    if not subject_id or not class_id or not exam_id:
+        return jsonify({"error": "Missing required fields: subject, class, and exam are all required."}), 400
+        
+    exam = Exams.query.filter_by(id=exam_id, school_id=school_id).first()
+    if not exam:
+        return jsonify({"error": "Exam not found"}), 404
+    if not exam.is_enabled and not has_permission('override_marks_lock'):
+        return jsonify({"error": "This exam is disabled. You do not have permission to fill marks for disabled exams."}), 403
+
+    # validate subject id
+    try:
+        subject_id_int = int(subject_id)
+    except Exception:
+        return jsonify({"error": "Invalid subject id"}), 400
+    
+
+    marks_data = (
+        db.session.query(
+            StudentMarks.id.label('id'),
+            StudentMarks.score,          # Student's mark (can be None)
+            StudentsDB.STUDENTS_NAME,               # Name of the student
+            StudentsDB.GENDER,
+            StudentsDB.id.label('student_id'), 
+            StudentSessions.ROLL,                   # Roll number
+            ClassData.CLASS,                        # Class name or number
+            Exams.id.label('exam_id'),
+            Exams.exam_name,                        # e.g., "Mid Term"
+            Exams.weightage,                        # Max marks for the exam
                 Subjects.subject,                       # e.g., "Math", "English"
                 Subjects.evaluation_type,                # e.g., "numeric" or "grading"
                 Subjects.id.label('subject_id')
-            )
-
-            # Join student with their session info
-            .join(StudentSessions, StudentSessions.student_id == StudentsDB.id)
-
-            # Join session info with class info
-            .join(ClassData, StudentSessions.class_id == ClassData.id)
-
-            # Join exam details — fixed value (one exam at a time) it create the colum with same values in all the table like FA1
-            .join(Exams, Exams.id == exam_id)
-
-            # Join subject details — fixed value (one subject at a time) it create the colum with same values in all the table like English
-            .join(Subjects, (Subjects.subject == subject_name) & (Subjects.class_id == class_id))
-
-            # Outer join: get marks only if they exist
-            .outerjoin(
-                StudentMarks,
-                (StudentMarks.student_id == StudentsDB.id) &
-                (StudentMarks.exam_id == exam_id) &
-                (StudentMarks.subject_id == Subjects.id) &
-                (StudentMarks.session_id == current_session_id)   # 🔑 Important
-            )
-
-            # Filter by class, school, and session
-            .filter(
-                ClassData.id == class_id,
-                StudentsDB.school_id == school_id,
-                StudentSessions.session_id == current_session_id,
-            )
-
-            # Sort by roll number
-            .order_by(StudentSessions.ROLL)
-
-            .all()
         )
 
+        # Join student with their session info
+        .join(StudentSessions, StudentSessions.student_id == StudentsDB.id)
 
-        html = render_template('fill_marks.html', data=marks_data, EXAM=None, classes=None)
-        soup=BeautifulSoup(html,"lxml")
-        content=soup.body.find('div',{'id':'marksTable'}).decode_contents()
+        # Join session info with class info
+        .join(ClassData, StudentSessions.class_id == ClassData.id)
 
-        return jsonify({"html":str(content)})
-        
-    return render_template('fill_marks.html', data=data, classes=classes, exams = exams, subjects = unique_subjects)
+        # Join exam details — fixed value (one exam at a time) it create the colum with same values in all the table like FA1
+        .join(Exams, Exams.id == exam_id)
+
+        # Join subject details — fixed value (one subject at a time)
+        .join(Subjects, Subjects.id == subject_id_int)
+
+        # Outer join: get marks only if they exist
+        .outerjoin(
+            StudentMarks,
+            (StudentMarks.student_id == StudentsDB.id) &
+            (StudentMarks.exam_id == exam_id) &
+            (StudentMarks.subject_id == Subjects.id) &
+            (StudentMarks.session_id == current_session_id)   # 🔑 Important
+        )
+
+        # Filter by class, school, and session
+        .filter(
+            ClassData.id == class_id,
+            StudentsDB.school_id == school_id,
+            StudentSessions.session_id == current_session_id,
+        )
+
+        # Sort by roll number
+        .order_by(StudentSessions.ROLL)
+        .all()
+    )
+    
+
+
+    html = render_template('fill_marks.html', data=marks_data, EXAM=None, classes=None)
+    soup=BeautifulSoup(html,"lxml")
+    content=soup.body.find('div',{'id':'marksTable'}).decode_contents()
+
+    return jsonify({"html":str(content)})
 
 
 @fill_marks_bp.route('/get_all_exams', methods=['GET'])

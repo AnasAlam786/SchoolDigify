@@ -776,13 +776,30 @@
          */
         renderAbsentList(data) {
             const textarea = document.getElementById('absentStudentsTextArea');
+            const absent = data.absent_students || [];
+            const unmarked = data.unmarked_students || [];
+            const cls = data.class_name || '';
+            const date = data.date || '';
+            const total = data.total_students || 0;
 
-            // Format the list
             let formattedList = '';
-            if (data.absent_students && data.absent_students.length > 0) {
-                formattedList = this.formatTable(data.absent_students, data.class_name, data.date);
+
+            // case: nothing to report (all present)
+            if (absent.length === 0 && unmarked.length === 0) {
+                formattedList = this.formatPerfectAttendance(cls, date);
+            } else if (absent.length === 0 && unmarked.length > 0) {
+                // no absentees, but some students not marked yet
+                if (unmarked.length === total) {
+                    formattedList = this.formatNoAttendanceMarked(cls, date);
+                } else {
+                    formattedList = this.formatOnlyUnmarked(unmarked, cls, date);
+                }
+            } else if (absent.length > 0 && unmarked.length === 0) {
+                // normal absent list
+                formattedList = this.formatTable(absent, cls, date);
             } else {
-                formattedList = this.formatEmptyList(data.class_name, data.date);
+                // mix of absent and unmarked
+                formattedList = this.formatCombined(absent, unmarked, cls, date);
             }
 
             textarea.value = formattedList;
@@ -793,10 +810,7 @@
          * Simple table format with icons
          */
         formatTable(students, className, date) {
-            const totalAbsent = students.length;
-            const totalStudents = this.currentData?.total_students || 0;
-            const percentage = totalStudents > 0 ? ((totalAbsent / totalStudents) * 100).toFixed(1) : 0;
-
+            // keep original behaviour for absent-only lists
             let formatted = `📋 Absent Students List\n\n`;
             formatted += `🏫 Class: ${className}\n`;
             formatted += `📅 Date: ${date}\n`;
@@ -807,11 +821,8 @@
             formatted += `├────────┼─────────────────┤\n`;
 
             students.forEach((student) => {
-                // content areas: 6 for roll, 15 for name (because each column reserves 1 space on both sides)
                 const rollContent = student.ROLL?.toString().substring(0, 6).padEnd(6);
                 const nameContent = (student.STUDENTS_NAME || '').substring(0, 15).padEnd(15);
-
-                // build row: "│ " + roll(6) + " │ " + name(15) + " │"
                 formatted += `│ ${rollContent} │ ${nameContent} │\n`;
             });
 
@@ -825,20 +836,24 @@
          * Simple list format
          */
         formatList(students, className, date) {
-            const totalAbsent = students.length;
-            
-            let formatted = `🏫 List of Absent Students of ${className}\n`;
+            // students parameter may be absent or combined entries depending on caller
+            let formatted = `🏫 Attendance Report for ${className}\n`;
             formatted += `📅 Date: ${date}\n\n`;
-            
-            if (totalAbsent === 0) {
-                formatted += `✅ No absent students today\n`;
-                formatted += `✨ Perfect attendance\n`;
-            } else {                
-                students.forEach((student, index) => {
-                    formatted += `${student.STUDENTS_NAME} (Roll: ${student.ROLL})\n`;
+
+            if (!students || students.length === 0) {
+                formatted += `✅ All students present\n`;
+            } else {
+                // list out each entry (could be absent/unmarked)
+                students.forEach((student) => {
+                    let label = student._type || '';
+                    if (label === 'unmarked') {
+                        formatted += `⏱ [Unmarked] ${student.STUDENTS_NAME} (Roll: ${student.ROLL})\n`;
+                    } else {
+                        formatted += `${student.STUDENTS_NAME} (Roll: ${student.ROLL})\n`;
+                    }
                 });
             }
-            
+
             return formatted;
         },
 
@@ -848,10 +863,13 @@
         formatCompact(students, className, date) {
             let formatted = `📅 ${className} - ${date}\n\n`;
             
-            if (students.length === 0) {
+            if (!students || students.length === 0) {
                 formatted += `✅ All students present`;
             } else {
-                formatted += students.map(s => `• ${s.STUDENTS_NAME} #${s.ROLL}`).join('\n');
+                formatted += students.map(s => {
+                    if (s._type === 'unmarked') return `• ⏱ ${s.STUDENTS_NAME} #${s.ROLL}`;
+                    return `• ${s.STUDENTS_NAME} #${s.ROLL}`;
+                }).join('\n');
             }
             
             return formatted;
@@ -866,6 +884,43 @@
                 `📅 ${date}\n\n` +
                 `✅ All students are present today.\n` +
                 `📊 100% attendance achieved.`;
+        },
+        formatPerfectAttendance(className, date) {
+            return this.formatEmptyList(className, date);
+        },
+        formatNoAttendanceMarked(className, date) {
+            return `⚠️ No attendance has been recorded yet for this date.\n\n` +
+                `🏫 ${className}\n` +
+                `📅 ${date}\n\n` +
+                `➤ Please mark attendance for students before viewing the absent list.`;
+        },
+        formatOnlyUnmarked(unmarked, className, date) {
+            let formatted = `⏱ Students With Unmarked Attendance\n\n`;
+            formatted += `🏫 ${className}\n`;
+            formatted += `📅 ${date}\n\n`;
+            unmarked.forEach((s) => {
+                formatted += `• ${s.STUDENTS_NAME} (Roll: ${s.ROLL})\n`;
+            });
+            return formatted;
+        },
+        formatCombined(absent, unmarked, className, date) {
+            let formatted = `📋 Absent & Unmarked Students\n\n`;
+            formatted += `🏫 ${className}\n`;
+            formatted += `📅 ${date}\n\n`;
+            if (absent.length > 0) {
+                formatted += `❌ Absent (${absent.length})\n`;
+                absent.forEach((s) => {
+                    formatted += `• ${s.STUDENTS_NAME} (Roll: ${s.ROLL})\n`;
+                });
+                formatted += `\n`;
+            }
+            if (unmarked.length > 0) {
+                formatted += `⏱ Unmarked (${unmarked.length})\n`;
+                unmarked.forEach((s) => {
+                    formatted += `• ${s.STUDENTS_NAME} (Roll: ${s.ROLL})\n`;
+                });
+            }
+            return formatted;
         },
 
         /**
@@ -927,8 +982,10 @@
          * Toggle between formats
          */
         toggleFormat() {
-            if (!this.currentData?.absent_students) return;
-            
+            if (!this.currentData) return;
+            const absent = this.currentData.absent_students || [];
+            const unmarked = this.currentData.unmarked_students || [];
+
             const formatBtn = document.getElementById('formatListBtn');
             const formats = ['table', 'list', 'compact'];
             const formatNames = {
@@ -945,29 +1002,28 @@
             formatBtn.dataset.format = nextFormat;
             formatBtn.innerHTML = `<i class="fas fa-${nextFormat === 'table' ? 'table' : 'list'} mr-1"></i>${formatNames[nextFormat]}`;
             
+            // build combined array for list/compact views
+            let combined = [];
+            // mark types so formatting functions can differentiate
+            absent.forEach(s => combined.push({...s, _type: 'absent'}));
+            unmarked.forEach(s => combined.push({...s, _type: 'unmarked'}));
+
             // Apply the selected format
             let formattedText = '';
             switch(nextFormat) {
                 case 'list':
-                    formattedText = this.formatList(
-                        this.currentData.absent_students,
-                        this.currentData.class_name,
-                        this.currentData.date
-                    );
+                    formattedText = this.formatList(combined, this.currentData.class_name, this.currentData.date);
                     break;
                 case 'compact':
-                    formattedText = this.formatCompact(
-                        this.currentData.absent_students,
-                        this.currentData.class_name,
-                        this.currentData.date
-                    );
+                    formattedText = this.formatCompact(combined, this.currentData.class_name, this.currentData.date);
                     break;
                 default: // table
-                    formattedText = this.formatTable(
-                        this.currentData.absent_students,
-                        this.currentData.class_name,
-                        this.currentData.date
-                    );
+                    // table view only supports absentees; if there are unmarked also, use combined view
+                    if (unmarked.length > 0) {
+                        formattedText = this.formatCombined(absent, unmarked, this.currentData.class_name, this.currentData.date);
+                    } else {
+                        formattedText = this.formatTable(absent, this.currentData.class_name, this.currentData.date);
+                    }
             }
             
             document.getElementById('absentStudentsTextArea').value = formattedText;

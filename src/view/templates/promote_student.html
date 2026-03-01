@@ -1,28 +1,56 @@
-{% extends "base.html" %} {% block title %}Promote Students & TC{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% block title %}Promote Students & TC{% endblock %}
+{% block content %}
 
 <style>
+    /* Hide scrollbar for modals */
+    .hide-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Skeleton animation */
+    .shimmer {
+        background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* Card grid - exactly as before */
     .promotion-cards {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(0, 420px));
         gap: 16px;
-        /* space between cards */
         justify-content: center;
-        /* leftover space only on sides */
-        align-items: start;
         width: 100%;
         box-sizing: border-box;
     }
-
-    /* On very small screens (phones), force 1 card per row */
     @media (max-width: 480px) {
-        .spromotion-cards {
+        .promotion-cards {
             grid-template-columns: 1fr;
-            /* single column full width */
         }
     }
 
-    /* Card styling */
+    /* Card hover effect */
+    .student-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+        border: 1px solid #333;
+    }
+    .student-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        border-color: #4e54c8;
+    }
+
+    /* Student image */
     .student-image {
         border: 3px solid #8f94fb;
         object-position: top;
@@ -32,422 +60,370 @@ content %}
         height: 160px;
     }
 
-    .card-hover {
-        transition: all 0.3s ease;
-        background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border: 1px solid #333;
-    }
-
-    .card-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-        border-color: #4e54c8;
-    }
-
+    /* Modal animations */
     .modal {
-        transition: opacity 0.3s ease, transform 0.3s ease;
+        transition: opacity 0.2s ease, transform 0.2s ease;
     }
-
     .modal-hidden {
         opacity: 0;
         pointer-events: none;
-        transform: scale(0.9);
+        transform: scale(0.95);
     }
-
     .modal-visible {
         opacity: 1;
         pointer-events: auto;
         transform: scale(1);
     }
 
-
-    /* ✅ Hide scrollbar but allow scroll for modal*/
-    .hide-scrollbar {
-        scrollbar-width: none;
-        /* Firefox */
-        -ms-overflow-style: none;
-        /* IE & Edge */
+    /* Custom scrollbar for modern browsers */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
     }
-
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-        /* Chrome, Safari */
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #1e1e1e;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #4a4a4a;
+        border-radius: 20px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #5a5a5a;
     }
 </style>
 
-<div class="container" id="student-container">
+<!-- Toast notification container -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
+<div class="container mx-auto px-4 py-6 md:py-8" id="student-container">
     <!-- Page Header -->
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-green-400 ">Student Promotion Portal</h1>
-            <p class="text-gray-400 mt-1 md:mt-2 text-sm md:text-base">
-                Manage student promotions to the next academic session with an intuitive interface
+            <h1 class="text-2xl md:text-3xl font-bold text-green-400">Student Promotion Portal</h1>
+            <p class="text-gray-400 mt-1 text-sm md:text-base max-w-2xl">
+                Manage promotions, issue TCs, and track student progress across academic sessions.
             </p>
         </div>
     </div>
 
     <!-- Search and Filter Section -->
-    <div class="flex flex-col gap-3 mb-6 md:mb-10">
-        <!-- Search Box -->
-        <div class="p-3 rounded-lg md:rounded-xl bg-[#1e1e1e]">
-            <div class="flex items-center">
-                <i class="fas fa-search text-gray-500 mr-3"></i>
-                <input type="text" id="search-input" oninput="applyFilters()"
-                    placeholder="Search by name or roll number..."
-                    class="w-full bg-transparent border-0 text-white placeholder-gray-500 focus:outline-none text-sm md:text-base">
-            </div>
-        </div>
-
-        <!-- Dropdown -->
+    <div class="space-y-4 mb-8">
+        <!-- Search Box with clear button -->
         <div class="relative">
-            <div class="flex items-center p-3 rounded-lg md:rounded-xl bg-[#1e1e1e]">
-                <!-- Left Icon -->
-                <i class="fas fa-layer-group text-gray-500 mr-3"></i>
-
-                <!-- Select -->
-                <select id="classView"
-                    class="w-full appearance-none cursor-pointer text-gray-400 text-sm md:text-base bg-transparent focus:outline-none pr-8">
-                    <option class="bg-[#1e1e1e] text-white" selected hidden value="">Select Class</option>
-                    {% if classes %}
-                    {% for class in classes %}
-                    <option class="bg-[#1e1e1e] text-white" value="{{ class.id }}">{{ class.CLASS }}</option>
-                    {% endfor %}
-                    {% endif %}
-                </select>
-            </div>
-
-            <!-- Right Chevron -->
-            <i
-                class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+            <input type="text" id="search-input" placeholder="Search by name or roll number..." 
+                class="w-full bg-[#1e1e1e] border border-gray-800 rounded-xl py-3.5 pl-12 pr-12 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all duration-200">
+            <button id="clearSearch" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors hidden">
+                <i class="fas fa-times-circle"></i>
+            </button>
         </div>
 
-            <!-- State badges -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 mt-3">
-        <button data-filter-button="ALL"
-            class="bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 shadow hover:bg-gray-600 transition-colors">
-            <span class="font-semibold">All</span>
-            <span class="bg-gray-900 px-3 py-1 rounded-full text-sm" id="badge-all-count">-</span>
-        </button>
-        <button data-filter-button="PROMOTED"
-            class="bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 shadow hover:bg-gray-600 transition-colors">
-            <span class="font-semibold">Promoted</span>
-            <span class="bg-green-900 px-3 py-1 rounded-full text-sm" id="badge-promoted-count">0</span>
-        </button>
-        <button data-filter-button="TC_ISSUED"
-            class="bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 shadow hover:bg-gray-600 transition-colors">
-            <span class="font-semibold">TC Issued</span>
-            <span class="bg-amber-900 px-3 py-1 rounded-full text-sm" id="badge-tc-count">0</span>
-        </button>
-        <button data-filter-button="NOT_PROMOTED_NOT_TC"
-            class="bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 shadow hover:bg-gray-600 transition-colors">
-            <span class="font-semibold">No Action</span>
-            <span class="bg-slate-900 px-3 py-1 rounded-full text-sm" id="badge-none-count">0</span>
-        </button>
+        <!-- Class selector -->
+        <div class="relative">
+            <i class="fas fa-layer-group absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 z-10"></i>
+            <select id="classView" class="w-full bg-[#1e1e1e] border border-gray-800 rounded-xl py-3.5 pl-12 pr-10 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all duration-200 cursor-pointer">
+                <option value="" selected disabled>Select a class</option>
+                {% if classes %}
+                    {% for class in classes %}
+                        <option value="{{ class.id }}">{{ class.CLASS }}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+        </div>
+
+        <!-- State filter badges -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+            <button data-filter-button="ALL" class="filter-btn bg-gray-800 hover:bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 transition-all duration-200 border border-transparent hover:border-gray-600">
+                <span class="font-medium">All</span>
+                <span class="bg-gray-900 px-3 py-1 rounded-full text-sm tabular-nums" id="badge-all-count">-</span>
+            </button>
+            <button data-filter-button="PROMOTED" class="filter-btn bg-gray-800 hover:bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 transition-all duration-200 border border-transparent hover:border-emerald-600">
+                <span class="font-medium">Promoted</span>
+                <span class="bg-green-900/50 px-3 py-1 rounded-full text-sm tabular-nums text-green-300" id="badge-promoted-count">0</span>
+            </button>
+            <button data-filter-button="TC_ISSUED" class="filter-btn bg-gray-800 hover:bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 transition-all duration-200 border border-transparent hover:border-amber-600">
+                <span class="font-medium">TC Issued</span>
+                <span class="bg-amber-900/50 px-3 py-1 rounded-full text-sm tabular-nums text-amber-300" id="badge-tc-count">0</span>
+            </button>
+            <button data-filter-button="NOT_PROMOTED_NOT_TC" class="filter-btn bg-gray-800 hover:bg-gray-700 text-white rounded-xl px-4 py-3 flex items-center justify-between gap-2 transition-all duration-200 border border-transparent hover:border-gray-600">
+                <span class="font-medium">No Action</span>
+                <span class="bg-slate-900/50 px-3 py-1 rounded-full text-sm tabular-nums text-slate-300" id="badge-none-count">0</span>
+            </button>
+        </div>
     </div>
 
-    </div>
+    <!-- Dynamic content area -->
+    <div id="contentArea">
+        <!-- Initial state (no class selected) -->
+        <div id="initialState" class="flex flex-col items-center justify-center py-16 px-4 text-center">
+            <div class="w-32 h-32 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                <i class="fas fa-graduation-cap text-5xl text-green-400/60"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">Welcome to Promotion Portal</h3>
+            <p class="text-gray-400 max-w-md mb-8">Select a class from the dropdown above to view and manage students.</p>
+            <a href="/admission" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-medium rounded-xl shadow-lg transition-all duration-200">
+                <i class="fas fa-plus-circle mr-2"></i> Add New Student
+            </a>
+        </div>
 
-    <div class="promotion-cards" id="StudentData"></div>
+        <!-- Loading skeleton -->
+        <div id="loadingState" class="hidden">
+            <div class="promotion-cards">
+                <!-- 6 skeleton cards -->
+                {% for i in range(6) %}
+                <div class="bg-[#1e1e1e] rounded-2xl overflow-hidden border border-gray-800">
+                    <div class="h-2 w-full bg-gradient-to-r from-transparent via-gray-700 to-transparent shimmer"></div>
+                    <div class="p-6">
+                        <div class="flex gap-4">
+                            <div class="w-24 h-32 rounded-lg shimmer flex-shrink-0"></div>
+                            <div class="flex-1 space-y-3">
+                                <div class="h-5 w-3/4 shimmer rounded"></div>
+                                <div class="h-4 w-1/2 shimmer rounded"></div>
+                                <div class="h-4 w-full shimmer rounded"></div>
+                                <div class="h-4 w-2/3 shimmer rounded"></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 mt-4">
+                            <div class="h-10 w-full shimmer rounded-lg"></div>
+                            <div class="h-10 w-full shimmer rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Error state -->
+        <div id="errorState" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center">
+            <div class="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-exclamation-triangle text-4xl text-red-400"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h3>
+            <p id="errorMessage" class="text-gray-400 max-w-md mb-6">Unable to load students. Please try again.</p>
+            <button id="retryButton" class="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
+                <i class="fas fa-sync-alt mr-2"></i> Retry
+            </button>
+        </div>
+
+        <!-- Empty state (no students) -->
+        <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center">
+            <div class="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-users-slash text-4xl text-gray-500"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">No students found</h3>
+            <p class="text-gray-400 max-w-md mb-8" id="emptyStateMessage">This class doesn't have any students yet.</p>
+            <a href="/admission" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-medium rounded-xl shadow-lg transition-all duration-200">
+                <i class="fas fa-plus-circle mr-2"></i> Add Student
+            </a>
+        </div>
+
+        <!-- Student cards container -->
+        <div id="studentCardsContainer" class="hidden">
+            <div class="promotion-cards" id="StudentData"></div>
+        </div>
+    </div>
 </div>
 
-<!-- No Results Section (Initially Hidden) -->
-<div id="noResults" class="no-results hidden mt-16 text-center">
-    <div class="bg-gray-800 rounded-2xl p-10 border border-gray-700 max-w-2xl mx-auto">
-        <i class="fas fa-search text-5xl text-gray-500 mb-4"></i>
-        <h3 class="text-2xl font-bold text-gray-300 mb-2">No Students Found</h3>
-        <p class="text-gray-500">Try adjusting your search or filter criteria to find what you're looking for.</p>
-    </div>
-</div>
-
-<!-- Student Promotion Modal -->
-<div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-hidden"
-    id="studentPromotionModal">
-    <div class="bg-gray-800 rounded-lg w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col" id="modalContent">
-
+<!-- Student Promotion Modal (updated styling) -->
+<div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-all z-50 flex items-center justify-center p-4 modal-hidden" id="studentPromotionModal">
+    <div class="bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col border border-gray-700" id="modalContent">
         <!-- Modal Header -->
-        <div class="relative bg-blue-600 p-4 rounded-t-lg flex items-center justify-center">
-            <i class="fas fa-school text-white text-xl mr-2"></i>
+        <div class="relative bg-gradient-to-r from-blue-600 to-blue-500 p-5 rounded-t-2xl flex items-center">
+            <i class="fas fa-school text-white text-xl mr-3"></i>
             <h5 class="text-white text-xl font-bold" id="modalTitle">Promote Student</h5>
-
-            <!-- Close button -->
-            <button type="button"
-                class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-200 text-xl"
-                id="closeModal">
+            <button type="button" class="absolute right-5 top-1/2 -translate-y-1/2 text-white/80 hover:text-white text-xl" id="closeModal">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <!-- Modal Body (scrollable, scrollbar hidden) -->
-        <div class="flex-1 overflow-y-auto px-6 py-5 hide-scrollbar">
-            <form id="promotionForm" class="px-6">
+        <!-- Modal Body (scrollable, custom scrollbar) -->
+        <div class="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+            <form id="promotionForm">
                 <!-- Student Image and Name -->
-                <div class="flex flex-col items-center mb-3">
-                    <img id="studentImage" src="" alt="Student Image" class="student-image w-32 h-32 rounded-full mb-2" loading="lazy">
-
+                <div class="flex flex-col items-center mb-4">
+                    <img id="studentImage" src="" alt="Student" class="student-image rounded-full mb-3" loading="lazy">
                     <h3 id="studentName" data-id="" class="text-2xl font-bold text-white text-center"></h3>
                     <p id="father" class="text-gray-400 text-center"></p>
                 </div>
 
-                <!-- Details Table -->
-                <div class="bg-gray-700 rounded-xl p-4 mb-5">
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center border-b border-gray-600 pb-2">
-                            <span class="text-gray-300 font-medium">Old Class</span>
-                            <span id="oldClass" class="text-white font-semibold"></span>
-                        </div>
+                <!-- Details Card -->
+                <div class="bg-gray-700/50 rounded-xl p-4 mb-5 border border-gray-600">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-300 font-medium">Current Class</span>
+                        <span id="oldClass" class="text-white font-semibold"></span>
                     </div>
                 </div>
 
-                <!-- Input Fields -->
+                <!-- Form Fields -->
                 <div class="space-y-4">
                     <div>
-                        <label for="promotedClass" class="block text-gray-300 mb-2 font-medium">Promote To Class <span
-                                class="text-red-400">*</span></label>
-                        <select id="promotedClass" name="promotedClass" required
-                            class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200 appearance-none cursor-pointer">
-
+                        <label class="block text-gray-300 mb-2 font-medium">Promote To Class <span class="text-red-400">*</span></label>
+                        <select id="promotedClass" name="promotedClass" required class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer">
+                            <option value="">Select class</option>
                         </select>
-                        <p id="promotedClassError" class="error-message hidden mt-1" style="color: red;"></p>
+                        <p id="promotedClassError" class="error-message hidden mt-1 text-sm text-red-400"></p>
                     </div>
 
                     <div>
-                        <label for="newRoll" class="block text-gray-300 mb-2 font-medium">New Roll Number <span
-                                class="text-red-400">*</span></label>
-                         <input type="number" inputmode="numeric" id="newRoll" name="newRoll" required
--                            class="w-full bg-gray-700  rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200"
--                            placeholder="Enter new roll number">
-                        <p id="newRollError" class="error-message hidden" style="color: red;"></p>
+                        <label class="block text-gray-300 mb-2 font-medium">New Roll Number <span class="text-red-400">*</span></label>
+                        <input type="number" id="newRoll" name="newRoll" required class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Enter roll number">
+                        <p id="newRollError" class="error-message hidden mt-1 text-sm text-red-400"></p>
                         <p id="availableRolls" class="text-sm text-gray-400 mt-1">Available rolls: Loading...</p>
                     </div>
 
                     <div>
-                        <label for="promotion_date" class="block text-gray-300 mb-2 font-medium">Promotion Date <span
-                                class="text-red-400">*</span></label>
-                        <input type="date" id="promotion_date" name="promotion_date" required
-                            class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200">
-                        <p id="dateError" class="error-message hidden" style="color: red;"></p>
+                        <label class="block text-gray-300 mb-2 font-medium">Promotion Date <span class="text-red-400">*</span></label>
+                        <input type="date" id="promotion_date" name="promotion_date" required class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <p id="dateError" class="error-message hidden mt-1 text-sm text-red-400"></p>
                     </div>
 
                     <div class="hidden pt-2" id="depromoteCheckboxContainer">
-                        <div class="flex items-start">
-                            <input
-                                class="form-check-input mt-1 mr-3 w-5 h-5 text-red-500 bg-gray-700 border-gray-600 rounded focus:ring-red-500"
-                                type="checkbox" id="depromoteCheckbox">
-                            <div>
-                                <label class="text-red-300 font-medium" for="depromoteCheckbox">
-                                    Depromote Student, can be risky.
-                                </label>
-                                <p class="text-red-400 text-sm mt-1">
-                                    <strong>This action cannot be undone.</strong>
-                                </p>
-                            </div>
-                        </div>
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="depromoteCheckbox" class="mt-1 w-5 h-5 text-red-500 bg-gray-700 border-gray-600 rounded focus:ring-red-500">
+                            <span class="text-red-300 text-sm">Depromote student – this action cannot be undone.</span>
+                        </label>
                     </div>
                 </div>
             </form>
         </div>
+
         <!-- Modal Footer -->
-        <div class="bg-gray-700 rounded-b-lg border-t border-gray-600 px-6 py-3 flex flex-wrap gap-3 justify-between">
-
-            <!-- Close button on the left -->
-            <div>
-                <button type="button"
-                    class="px-3 py-2.5 bg-gray-600 hover:bg-gray-500 text-white rounded-xl font-medium transition-colors duration-200"
-                    onclick="closeModal()">
-                    <i class="fas fa-times mr-2"></i>
-                    Close
+        <div class="bg-gray-750 rounded-b-2xl border-t border-gray-700 px-6 py-4 flex flex-wrap gap-3 justify-between">
+            <button type="button" class="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-colors" onclick="closeModal()">
+                <i class="fas fa-times mr-2"></i> Close
+            </button>
+            <div class="flex gap-2" id="modal-footer">
+                <button type="button" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-medium transition-colors inline-flex items-center hidden" id="promoteButton">
+                    <span id="promoteSpinner" class="spinner-border hidden h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <i class="fas fa-check-circle mr-2"></i> Promote
+                </button>
+                <button type="button" class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium transition-colors inline-flex items-center hidden" id="depromoteButton">
+                    <span id="depromoteSpinner" class="spinner-border hidden h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <i class="fas fa-times-circle mr-2"></i> Depromote
+                </button>
+                <button type="button" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-colors inline-flex items-center hidden" id="updateButton">
+                    <span id="updateSpinner" class="spinner-border hidden h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <i class="fas fa-sync-alt mr-2"></i> Update
+                </button>
+                <button type="button" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-medium transition-colors inline-flex items-center hidden" id="messageButton">
+                    <i class="fab fa-whatsapp mr-2"></i> Send
                 </button>
             </div>
-
-            <!-- Action buttons on the right -->
-            <div class="flex flex-wrap gap-3" id="modal-footer">
-
-                <button type="button"
-                    class="px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-medium transition-colors duration-200 flex items-center"
-                    id="promoteButton">
-                    <span id="promoteSpinner"
-                        class="spinner-border hidden h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
-                    <i class="fas fa-check-circle mr-2"></i>
-                    Promote
-                </button>
-
-                <button type="button"
-                    class="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium transition-colors duration-200 hidden"
-                    id="depromoteButton">
-                    <span id="depromoteSpinner"
-                        class="spinner-border hidden h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
-                    <i class="fas fa-times-circle mr-2"></i>
-                    Depromote
-                </button>
-
-                <button type="button"
-                    class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-colors duration-200 hidden"
-                    id="updateButton">
-                    <span id="updateSpinner"
-                        class="spinner-border hidden h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
-                    <i class="fas fa-sync-alt mr-2"></i>
-                    Update
-                </button>
-
-                <button type="button"
-                    class="px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-medium transition-colors duration-200 hidden"
-                    id="messageButton">
-                    <i class="fas fa-whatsapp mr-2"></i>
-                    Send Message
-                </button>
-            </div>
-
         </div>
-
     </div>
 </div>
 
-<!-- Student TC generation Modal -->
-<div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-hidden"
-    id="studenttcModal">
-    <div class="bg-gray-800 rounded-lg w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col" id="tc-modalContent">
-
+<!-- Student TC Generation Modal -->
+<div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-all z-50 flex items-center justify-center p-4 modal-hidden" id="studenttcModal">
+    <div class="bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col border border-gray-700" id="tc-modalContent">
         <!-- Modal Header -->
-        <div class="relative bg-blue-600 p-4 rounded-t-lg flex items-center justify-center">
-            <i class="fas fa-school text-white text-xl mr-2"></i>
-            <h5 class="text-white text-xl font-bold" id="tc-modalTitle"></h5>
-            <button type="button"
-                class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-200 text-xl"
-                id="tc-closeModal" onclick="closeTCModal()">
+        <div class="relative bg-gradient-to-r from-blue-600 to-blue-500 p-5 rounded-t-2xl flex items-center">
+            <i class="fas fa-file-alt text-white text-xl mr-3"></i>
+            <h5 class="text-white text-xl font-bold" id="tc-modalTitle">Generate TC</h5>
+            <button type="button" class="absolute right-5 top-1/2 -translate-y-1/2 text-white/80 hover:text-white text-xl" onclick="closeTCModal()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <!-- Modal Body (scrollable, scrollbar hidden) -->
-        <div class="flex-1 overflow-y-auto px-6 py-5 hide-scrollbar">
-            <form id="promotionForm" class="px-6">
+        <!-- Modal Body -->
+        <div class="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+            <form id="tcForm">
                 <!-- Student Image and Name -->
-                <div class="flex flex-col items-center mb-3">
-                    <img id="studentImageTC" src="" alt="Student Image"
-                        class="student-image w-32 h-32 rounded-full mb-2" loading="lazy">
-
+                <div class="flex flex-col items-center mb-4">
+                    <img id="studentImageTC" src="" alt="Student" class="student-image rounded-full mb-3" loading="lazy">
                     <h3 id="studentNameTC" data-student-session-id="" class="text-2xl font-bold text-white text-center"></h3>
                     <p id="fatherNameTC" class="text-gray-400 text-center"></p>
                 </div>
 
-                <!-- Details Table -->
-                <div class="bg-gray-700 rounded-xl p-4 mb-5">
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center border-b border-gray-600 pb-2">
-                            <span class="text-gray-300 font-medium">Old Class</span>
-                            <span id="oldClassTC" class="text-white font-semibold"></span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-300 font-medium">New Class</span>
-                            <span id="newClassTC" class="text-accent-green font-semibold"></span>
-                        </div>
+                <!-- Details Card -->
+                <div class="bg-gray-700/50 rounded-xl p-4 mb-5 border border-gray-600">
+                    <div class="flex justify-between items-center border-b border-gray-600 pb-2 mb-2">
+                        <span class="text-gray-300">Current Class</span>
+                        <span id="oldClassTC" class="text-white font-semibold"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-300">Promoted To</span>
+                        <span id="newClassTC" class="text-green-400 font-semibold"></span>
                     </div>
                 </div>
 
-                <!-- Input Fields -->
+                <!-- Form Fields -->
                 <div class="space-y-4">
                     <div>
-                        <label for="leavingReason" class="block text-gray-300 mb-2 font-medium">Leaving Reason <span
-                                class="text-red-400">*</span></label>
-                        <input type="text" id="leavingReason" name="leavingReason" required
-                            class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200"
-                            placeholder="Enter leaving reason" list="leavingReasonList">
+                        <label class="block text-gray-300 mb-2 font-medium">Leaving Reason <span class="text-red-400">*</span></label>
+                        <input type="text" id="leavingReason" list="leavingReasonList" required class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Select or type reason">
                         <datalist id="leavingReasonList">
-                            <option value="Completed the studies"></option>
-                            <option value="Parent's Wish"></option>
-                            <option value="Transfer to another school"></option>
-                            <option value="Due to Relocation"></option>
-                            <option value="Due to Financial reasons"></option>
+                            <option value="Completed the studies">
+                            <option value="Parent's Wish">
+                            <option value="Transfer to another school">
+                            <option value="Due to Relocation">
+                            <option value="Due to Financial reasons">
                         </datalist>
-                        <p id="leavingReasonError" class="error-message hidden" style="color: red;"></p>
+                        <p id="leavingReasonError" class="error-message hidden mt-1 text-sm text-red-400"></p>
                     </div>
 
                     <div>
-                        <label for="generalConduct" class="block text-gray-300 mb-2 font-medium">General Conduct <span
-                                class="text-red-400">*</span></label>
-                        <input type="text" id="generalConduct" name="generalConduct" required
-                            class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200"
-                            placeholder="Enter general conduct" list="generalConductList">
+                        <label class="block text-gray-300 mb-2 font-medium">General Conduct <span class="text-red-400">*</span></label>
+                        <input type="text" id="generalConduct" list="generalConductList" required class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
                         <datalist id="generalConductList">
-                            <option value="Very Good"></option>
-                            <option value="Excellent"></option>
-                            <option value="Good"></option>
-                            <option value="Satisfactory"></option>
-                            <option value="Needs Improvement"></option>
+                            <option value="Very Good">
+                            <option value="Excellent">
+                            <option value="Good">
+                            <option value="Satisfactory">
+                            <option value="Needs Improvement">
                         </datalist>
-                        <p id="generalConductError" class="error-message hidden" style="color: red;"></p>
+                        <p id="generalConductError" class="error-message hidden mt-1 text-sm text-red-400"></p>
                     </div>
 
                     <div>
-                        <label for="leavingDate" class="block text-gray-300 mb-2 font-medium">Leaving Date <span
-                                class="text-red-400">*</span></label>
-                        <input type="date" id="leavingDate" name="leavingDate" required
-                            class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200">
-                        <p id="dateError" class="error-message hidden" style="color: red;"></p>
+                        <label class="block text-gray-300 mb-2 font-medium">Leaving Date <span class="text-red-400">*</span></label>
+                        <input type="date" id="leavingDate" required class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <p id="tcDateError" class="error-message hidden mt-1 text-sm text-red-400"></p>
                     </div>
 
-
                     <div>
-                        <label for="otherRemark" class="block text-gray-300 mb-2 font-medium">Any Remarks?</label>
-                        <input type="text" id="otherRemark" name="otherRemark"
-                            class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-accent-green transition-colors duration-200"
-                            placeholder="Enter any remark (if any)">
-                        <p id="otherRemarkError" class="error-message hidden" style="color: red;"></p>
+                        <label class="block text-gray-300 mb-2 font-medium">Any Remarks? (optional)</label>
+                        <input type="text" id="otherRemark" class="w-full bg-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Additional remarks">
                     </div>
                 </div>
             </form>
         </div>
+
         <!-- Modal Footer -->
-        <div class="bg-gray-700 rounded-b-lg border-t border-gray-600 px-6 py-3 flex flex-wrap gap-3 justify-between">
-
-            <!-- Close button on the left -->
-            <div>
-                <button type="button"
-                    class="px-3 py-2.5 bg-gray-600 hover:bg-gray-500 text-white rounded-xl font-medium transition-colors duration-200"
-                    onclick="closeTCModal()">
-                    <i class="fas fa-times mr-2"></i>
-                    Close
+        <div class="bg-gray-750 rounded-b-2xl border-t border-gray-700 px-6 py-4 flex flex-wrap gap-3 justify-between">
+            <button type="button" class="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-colors" onclick="closeTCModal()">
+                <i class="fas fa-times mr-2"></i> Close
+            </button>
+            <div class="flex gap-2" id="tc-modal-footer">
+                <button type="button" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-medium transition-colors hidden" id="tc-messageButton">
+                    <i class="fab fa-whatsapp mr-2"></i> Send
                 </button>
-            </div>
-
-            <!-- Action buttons on the right -->
-            <div class="flex flex-wrap gap-3" id="tc-modal-footer">
-                <button type="button"
-                    class="px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-medium transition-colors duration-200 hidden"
-                    id="tc-messageButton">
-                    <i class="fas fa-whatsapp mr-2"></i>
-                    Send Message
-                </button>
-
-                <button type="button"
-                    class="px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-medium transition-colors duration-200"
-                    id="tc-generateButton">
-                    <i class="fas fa-arrow-right mr-2"></i>
-                    Generate TC
+                <button type="button" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-medium transition-colors" id="tc-generateButton">
+                    <i class="fas fa-file-pdf mr-2"></i> Generate TC
                 </button>
             </div>
         </div>
-
     </div>
 </div>
 
-
-
 <script src="{{ url_for('static', filename='watsappMessage.js') }}"></script>
 <script>
+    // ==================== GLOBALS & HELPERS ====================
     const stateLabels = {
         "PROMOTED": "Promoted",
         "TC_ISSUED": "TC Issued",
         "NOT_PROMOTED_NOT_TC": "No Action"
     };
-
     const placeholderBoy = "{{ url_for('static', filename='no-student-boy-image.png') }}";
     const placeholderGirl = "{{ url_for('static', filename='no-student-girl-image.png') }}";
 
     let students = [];
     let activeFilter = "ALL";
+    let loading = false;
+    let error = null;
+    let currentClassId = null;
+    let searchTerm = '';
+    let searchTimeout;
 
     const stateColors = {
         PROMOTED: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50",
@@ -455,65 +431,105 @@ content %}
         NOT_PROMOTED_NOT_TC: "bg-slate-500/20 text-slate-200 border border-slate-500/50"
     };
 
+    // Toast notification system
+    function showToast(message, type = 'info', duration = 4000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+        toast.className = `${bgColor} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-x-full opacity-0`;
+        toast.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            <span class="flex-1">${message}</span>
+            <button class="text-white/80 hover:text-white" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.remove('translate-x-full', 'opacity-0');
+        }, 10);
+        setTimeout(() => {
+            toast.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+
+    // Override showAlert if it exists; else define it
+    window.showAlert = function(status, message) {
+        if (status >= 200 && status < 300) {
+            showToast(message, 'success');
+        } else {
+            showToast(message, 'error');
+        }
+    };
+
+    // Update filter badge counts
     function updateStateBadgeCounts() {
         const promoted = students.filter(s => s.state === "PROMOTED").length;
         const tc = students.filter(s => s.state === "TC_ISSUED").length;
         const none = students.filter(s => s.state === "NOT_PROMOTED_NOT_TC").length;
         const all = students.length;
 
-        const promotedBadge = document.getElementById("badge-promoted-count");
-        const tcBadge = document.getElementById("badge-tc-count");
-        const noneBadge = document.getElementById("badge-none-count");
-        const allBadge = document.getElementById("badge-all-count");
-
-        if (promotedBadge) promotedBadge.textContent = promoted;
-        if (tcBadge) tcBadge.textContent = tc;
-        if (noneBadge) noneBadge.textContent = none;
-        if (allBadge) allBadge.textContent = all;
+        document.getElementById("badge-promoted-count").textContent = promoted;
+        document.getElementById("badge-tc-count").textContent = tc;
+        document.getElementById("badge-none-count").textContent = none;
+        document.getElementById("badge-all-count").textContent = all;
     }
 
+    // Apply filter and update UI
     function applyStateFilter(state) {
         activeFilter = state;
         renderStudentCards();
         document.querySelectorAll("[data-filter-button]").forEach(btn => {
-            btn.classList.toggle("bg-blue-600", btn.dataset.filterButton === state);
-            btn.classList.toggle("text-white", btn.dataset.filterButton === state);
-            btn.classList.toggle("bg-gray-700", btn.dataset.filterButton !== state);
+            const isActive = btn.dataset.filterButton === state;
+            btn.classList.toggle("bg-blue-600", isActive);
+            btn.classList.toggle("hover:bg-blue-500", isActive);
+            btn.classList.toggle("border-blue-500", isActive);
+            btn.classList.toggle("bg-gray-800", !isActive);
+            btn.classList.toggle("hover:bg-gray-700", !isActive);
         });
     }
 
-    function updateStudentsList(list) {
-        students = Array.isArray(list) ? list : [];
-        updateStateBadgeCounts();
+    // Debounced search
+    function handleSearchInput(e) {
+        searchTerm = e.target.value.trim().toLowerCase();
+        document.getElementById('clearSearch').classList.toggle('hidden', !searchTerm);
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            renderStudentCards();
+        }, 300);
+    }
+
+    function clearSearch() {
+        document.getElementById('search-input').value = '';
+        searchTerm = '';
+        document.getElementById('clearSearch').classList.add('hidden');
         renderStudentCards();
     }
 
+    // Build student card HTML
     function buildStudentStateBadge(state) {
         const label = stateLabels[state] || "No Action";
         const color = stateColors[state] || stateColors.NOT_PROMOTED_NOT_TC;
-        return `<span class="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-2 ${color}">
-                    <span class="h-2 w-2 rounded-full bg-current"></span>${label}
-                </span>`;
+        return `<span class="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-2 ${color}"><span class="h-2 w-2 rounded-full bg-current"></span>${label}</span>`;
     }
 
     function buildStudentActionButtons(student) {
-        const baseBtn = "flex-1 py-2 rounded-lg font-medium transition-colors flex items-center justify-center text-white";
+        const baseBtn = "flex-1 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-center text-white text-sm";
         if (student.state === "PROMOTED") {
             return `
-                <button class="${baseBtn} bg-blue-700 hover:bg-blue-600" onclick="openUpdatePromotionModal('${student.promoted_session_id}')">
+                <button class="${baseBtn} bg-blue-700 hover:bg-blue-600 shadow" onclick="openUpdatePromotionModal('${student.promoted_session_id}')">
                     <i class="fas fa-sync-alt mr-2"></i> Update
                 </button>
-                <button class="${baseBtn} bg-red-700 hover:bg-red-600" onclick="openDepromotionModal('${student.promoted_session_id}')">
-                    <i class="fas fa-undo mr-2"></i> De-Promote
+                <button class="${baseBtn} bg-red-700 hover:bg-red-600 shadow" onclick="openDepromotionModal('${student.promoted_session_id}')">
+                    <i class="fas fa-undo mr-2"></i> Depromote
                 </button>
             `;
         }
         if (student.state === "TC_ISSUED") {
             return `
-                <button class="${baseBtn} bg-green-700 hover:bg-green-600" onclick="reprintIssuedTC('${student.student_session_id}')">
+                <button class="${baseBtn} bg-green-700 hover:bg-green-600 shadow" onclick="reprintIssuedTC('${student.student_session_id}')">
                     <i class="fas fa-file-alt mr-2"></i> Get TC
                 </button>
-                <button class="${baseBtn} bg-yellow-700 hover:bg-yellow-600" onclick="submitTCRevert('${student.student_session_id}')">
+                <button class="${baseBtn} bg-yellow-700 hover:bg-yellow-600 shadow" onclick="submitTCRevert('${student.student_session_id}')">
                     <i class="fas fa-redo mr-2"></i> Redo
                 </button>
             `;
@@ -521,10 +537,10 @@ content %}
         const disabled = !student.next_class ? 'disabled style="opacity:0.6;cursor:not-allowed;"' : "";
         const promoteLabel = student.next_class ? "Promote" : "No Classes";
         return `
-            <button class="${baseBtn} bg-green-700 hover:bg-green-600" onclick="openPromotionModalForStudent('${student.id}')" ${disabled}>
+            <button class="${baseBtn} bg-green-700 hover:bg-green-600 shadow" onclick="openPromotionModalForStudent('${student.id}')" ${disabled}>
                 <i class="fas fa-graduation-cap mr-2"></i>${promoteLabel}
             </button>
-            <button class="${baseBtn} bg-amber-700 hover:bg-amber-600" onclick="openTCCreationModal('${student.id}')">
+            <button class="${baseBtn} bg-amber-700 hover:bg-amber-600 shadow" onclick="openTCCreationModal('${student.id}')">
                 <i class="fas fa-file-alt mr-2"></i> Create TC
             </button>
         `;
@@ -533,99 +549,165 @@ content %}
     function buildStudentCard(student) {
         const stateBadge = buildStudentStateBadge(student.state);
         const promotedInfo = student.state === "PROMOTED" ? `
-            <div class="flex justify-between text-green-300">
-                <span>Class (Now):</span><span class="font-medium">${student.next_class}</span>
-            </div>
-            <div class="flex justify-between text-green-300">
-                <span>Roll (Now):</span><span class="font-medium">${student.next_roll || "-"}</span>
-            </div>` : "";
+            <div class="flex justify-between text-sm"><span class="text-gray-400">New Class:</span><span class="font-medium text-green-400">${student.next_class}</span></div>
+            <div class="flex justify-between text-sm"><span class="text-gray-400">New Roll:</span><span class="font-medium text-green-400">${student.next_roll || "-"}</span></div>` : "";
         const tcInfo = student.state === "TC_ISSUED" ? `
-            <div class="flex justify-between text-amber-300">
-                <span>TC No:</span><span class="font-medium">${student.tc_number || "-"}</span>
-            </div>
-            <div class="flex justify-between text-amber-300">
-                <span>TC Date:</span><span class="font-medium">${student.tc_date || "-"}</span>
-            </div>` : "";
+            <div class="flex justify-between text-sm"><span class="text-gray-400">TC No.:</span><span class="font-medium text-amber-400">${student.tc_number || "-"}</span></div>
+            <div class="flex justify-between text-sm"><span class="text-gray-400">TC Date:</span><span class="font-medium text-amber-400">${student.tc_date || "-"}</span></div>` : "";
 
         const imageSrc = student.IMAGE
             ? `https://lh3.googleusercontent.com/d/${student.IMAGE}=s200`
             : (student.GENDER === 'Male' ? placeholderBoy : placeholderGirl);
 
         return `
-            <div class="student-card rounded-2xl overflow-hidden shadow-lg card-hover" data-name="${student.STUDENTS_NAME}"
-                data-roll="${student.previous_roll || ''}">
-
-                <!-- Top Bar -->
-                <div class="flex items-center justify-end px-4 py-2 bg-transparent relative">
+            <div class="student-card rounded-2xl overflow-hidden shadow-lg" data-name="${student.STUDENTS_NAME}" data-roll="${student.previous_roll || ''}">
+                <div class="flex items-center justify-end px-4 py-2 bg-transparent relative border-b border-gray-700">
                     ${stateBadge}
-                    <div class="absolute left-4 right-4 bottom-0 h-px bg-gray-600/50"></div>
                 </div>
-
-                <div class="p-6 space-y-4">
-                    <div class="flex items-start gap-3">
-                        <img src="${imageSrc}"
-                            alt="Student Image" class="student-image mt-2" loading="lazy">
-                        <div class="flex-1 min-w-0 space-y-2">
-                            <h3 class="font-bold text-green-400 text-lg text-dark-400">${student.STUDENTS_NAME}</h3>
-
-                            <p class="text-sm text-gray-400">
-                                <span class="font-medium">C/O:</span> ${student.FATHERS_NAME || "-"}
-                            </p>
-
-                            <div class="mt-3 space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Old Class:</span>
-                                    <span class="font-medium text-white">${student.previous_class}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Old Roll No:</span>
-                                    <span class="font-medium text-white">${student.previous_roll || "-"}</span>
-                                </div>
+                <div class="p-5">
+                    <div class="flex gap-4">
+                        <img src="${imageSrc}" alt="Student" class="student-image" loading="lazy">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-bold text-green-400 text-lg truncate">${student.STUDENTS_NAME}</h3>
+                            <p class="text-sm text-gray-400 mt-1 truncate">C/O: ${student.FATHERS_NAME || "-"}</p>
+                            <div class="mt-3 space-y-1 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-400">Class:</span><span class="font-medium text-white">${student.previous_class}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-400">Roll:</span><span class="font-medium text-white">${student.previous_roll || "-"}</span></div>
                                 ${promotedInfo}
                                 ${tcInfo}
                             </div>
                         </div>
                     </div>
-
-                    <div class="mt-2 flex gap-3">
+                    <div class="mt-4 flex gap-2">
                         ${buildStudentActionButtons(student)}
                     </div>
                 </div>
             </div>`;
-        }
+    }
 
     function renderStudentCards() {
         const container = document.getElementById("StudentData");
         if (!container) return;
-        const term = document.getElementById("search-input").value.trim().toLowerCase();
-        const filtered = students.filter((s) => {
+
+        const filtered = students.filter(s => {
             const matchesFilter = activeFilter === "ALL" || s.state === activeFilter;
-            const matchesSearch =
-                s.STUDENTS_NAME.toLowerCase().includes(term) ||
-                (s.previous_roll && String(s.previous_roll).toLowerCase().includes(term));
+            const matchesSearch = searchTerm === '' ||
+                s.STUDENTS_NAME.toLowerCase().includes(searchTerm) ||
+                (s.previous_roll && String(s.previous_roll).toLowerCase().includes(searchTerm));
             return matchesFilter && matchesSearch;
         });
 
-        container.innerHTML = filtered.map(buildStudentCard).join("");
-        document.getElementById("noResults").classList.toggle("hidden", filtered.length !== 0);
+        if (filtered.length === 0) {
+            document.getElementById('studentCardsContainer').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('emptyStateMessage').innerText = searchTerm
+                ? `No students match "${searchTerm}"`
+                : 'No students found in this class.';
+        } else {
+            container.innerHTML = filtered.map(buildStudentCard).join("");
+            document.getElementById('studentCardsContainer').classList.remove('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+        }
+        updateStateBadgeCounts();
     }
 
+    // Fetch students by class
     async function fetchStudentsByClass(classId) {
-        document.getElementById("search-input").value = "";
-        const res = await fetch('/api/promote/students-by-class', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ class_id: classId })
-        });
-        const data = await res.json();
-        console.log(data)
-        if (res.ok) {
-            updateStudentsList(data.students || []);
-        } else {
-            showAlert(res.status, data.message || "Unable to load students");
+        loading = true;
+        error = null;
+        currentClassId = classId;
+        updateUI();
+
+        try {
+            const res = await fetch('/api/promote/students-by-class', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ class_id: classId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                students = data.students || [];
+                error = null;
+            } else {
+                students = [];
+                error = { message: data.message || 'Unable to load students', status: res.status };
+            }
+        } catch (err) {
+            console.error(err);
+            students = [];
+            error = { message: 'Network error. Please check your connection.', status: 0 };
+        } finally {
+            loading = false;
+            updateUI();
         }
     }
 
+    // Update UI based on loading/error/students state
+    function updateUI() {
+        const initialStateDiv = document.getElementById('initialState');
+        const loadingDiv = document.getElementById('loadingState');
+        const errorDiv = document.getElementById('errorState');
+        const emptyDiv = document.getElementById('emptyState');
+        const cardsContainer = document.getElementById('studentCardsContainer');
+
+        // Hide all
+        [initialStateDiv, loadingDiv, errorDiv, emptyDiv, cardsContainer].forEach(el => el.classList.add('hidden'));
+
+        if (!currentClassId) {
+            initialStateDiv.classList.remove('hidden');
+            return;
+        }
+
+        if (loading) {
+            loadingDiv.classList.remove('hidden');
+            return;
+        }
+
+        if (error) {
+            document.getElementById('errorMessage').innerText = error.message;
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        if (students.length === 0) {
+            document.getElementById('emptyStateMessage').innerText = 'No students found in this class.';
+            emptyDiv.classList.remove('hidden');
+        } else {
+            cardsContainer.classList.remove('hidden');
+            renderStudentCards();
+        }
+    }
+
+    // Retry fetching
+    document.getElementById('retryButton')?.addEventListener('click', () => {
+        if (currentClassId) fetchStudentsByClass(currentClassId);
+    });
+
+    // Event listeners
+    document.getElementById('search-input').addEventListener('input', handleSearchInput);
+    document.getElementById('clearSearch').addEventListener('click', clearSearch);
+
+    document.getElementById("classView").addEventListener("change", (e) => {
+        const classId = e.target.value;
+        if (classId) {
+            document.getElementById('search-input').value = '';
+            searchTerm = '';
+            fetchStudentsByClass(classId);
+        } else {
+            currentClassId = null;
+            updateUI();
+        }
+    });
+
+    document.querySelectorAll("[data-filter-button]").forEach(btn => {
+        btn.addEventListener("click", () => applyStateFilter(btn.dataset.filterButton));
+    });
+
+    // Set default filter visual
+    applyStateFilter("ALL");
+    updateStateBadgeCounts();
+
+    // ==================== MODAL FUNCTIONS (from original) ====================
     function setFooterButtons({ promote = false, update = false, depromote = false, message = false, depromoteCheckbox = false }) {
         const footer = document.getElementById("modal-footer");
         footer.querySelector('#promoteButton').classList.toggle("hidden", !promote);
@@ -701,6 +783,7 @@ content %}
             }
 
             // Add event listener for class change
+            classSelect.removeEventListener('change', updateRollForClass);
             classSelect.addEventListener('change', updateRollForClass);
 
             // Update roll for initially selected class
@@ -753,6 +836,7 @@ content %}
             }
 
             // Add event listener for class change
+            classSelect.removeEventListener('change', updateRollForClass);
             classSelect.addEventListener('change', updateRollForClass);
 
             // Set current roll as selected (will be updated if class changes)
@@ -929,8 +1013,8 @@ content %}
         const form = document.getElementById("promotionForm");
         const formData = new FormData(form);
 
-        const btn = document.getElementById("promoteButton");
-        const spinner = document.getElementById("promoteSpinner");
+        const btn = document.getElementById("updateButton");
+        const spinner = document.getElementById("updateSpinner");
 
         const promoted_class_id = document.getElementById("promotedClass").value;
         if (!promoted_class_id) {
@@ -1169,26 +1253,5 @@ content %}
             closeModal();
         }
     });
-
-    function applyFilters() {
-        renderStudentCards();
-    }
-
-    document.getElementById("classView").addEventListener("change", () => {
-        document.getElementById("search-input").value = "";
-        const classId = document.getElementById("classView").value;
-        if (classId) {
-            fetchStudentsByClass(classId);
-        }
-    });
-
-    document.querySelectorAll("[data-filter-button]").forEach(btn => {
-        btn.addEventListener("click", () => applyStateFilter(btn.dataset.filterButton));
-    });
-
-    // Set default filter visual state
-    applyStateFilter("ALL");
-    updateStateBadgeCounts();
 </script>
-
 {% endblock %}

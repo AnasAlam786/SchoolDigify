@@ -48,15 +48,25 @@ def get_marks_api():
         "StudentSessions": ["ROLL", "class_id"]
     }
 
-    student_marks_data = result_data(school_id, current_session_id, class_id, 
-                                     extra_fields=extra_fields)
+    try:
+        student_marks_data = result_data(school_id, current_session_id, class_id, 
+                                     extra_fields=extra_fields)        
+    except Exception as e:
+        return jsonify({"message": f"Error fetching marks data: {str(e)}"}), 500
     
     # end_time = time.time()  # end timer
     # print(f"login_required decorator took {end_time - start_time:.6f} seconds to run")
 
 
     if not student_marks_data:
-        return jsonify({"message": "No Data Found"}), 400
+        # no students found for this class – render UI with a special flag
+        print("No student marks data found for the given class.")
+        html = render_template('show_marks.html', student_marks=[], class_empty=True)
+        soup = BeautifulSoup(html, "lxml")
+        content = soup.body.find('div', {'id': 'results'}).decode_contents()
+        return jsonify({"html": str(content)})
+    
+    print(f"Fetched {len(student_marks_data)} records of student marks data.")
     
     student_marks = process_marks(student_marks_data, add_grades_flag=False, add_grand_total_flag=True)
 

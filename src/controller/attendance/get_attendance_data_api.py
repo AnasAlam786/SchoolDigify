@@ -198,6 +198,33 @@ def get_absent_students():
 
         absent_students = [dict(row._mapping) for row in attendance_query]
 
+        # also fetch unmarked students (no attendance record for that date)
+        unmarked_query = (
+            db.session.query(
+                StudentsDB.STUDENTS_NAME,
+                StudentSessions.ROLL,
+            )
+            .join(StudentSessions, StudentSessions.student_id == StudentsDB.id)
+            .outerjoin(Attendance, and_(
+                Attendance.student_session_id == StudentSessions.id,
+                Attendance.date == date_obj
+            ))
+            .filter(
+                StudentSessions.class_id == class_id,
+                StudentSessions.session_id == current_session,
+                Attendance.id.is_(None)
+            )
+            .order_by(StudentSessions.ROLL.asc())
+            .all()
+        )
+        unmarked_students = [dict(row._mapping) for row in unmarked_query]
+
+        # total students count for class
+        total_students = StudentSessions.query.filter_by(
+            class_id=class_id,
+            session_id=current_session
+        ).count()
+
         # Format date for display
         formatted_date = date_obj.strftime('%A, %d %B %Y')
 
@@ -205,7 +232,9 @@ def get_absent_students():
             'success': True,
             'class_name': class_name,
             'date': formatted_date,
-            'absent_students': absent_students
+            'total_students': total_students,
+            'absent_students': absent_students,
+            'unmarked_students': unmarked_students
         })
 
     except Exception as e:

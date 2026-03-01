@@ -510,28 +510,68 @@
         {% endfor %}
       </div>
     {% else %}
-      <!-- Empty State with Selection Prompt -->
-      <div id="results" class="text-center py-12 md:py-16 lg:py-20">
-        <div class="inline-block p-8 bg-gray-800/30 rounded-3xl border border-gray-700/30 mb-8 backdrop-blur-sm">
-          <i class="fas fa-file-alt text-5xl md:text-6xl text-gray-600"></i>
-        </div>
-        <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">No Marksheets Loaded</h3>
-        <p class="text-gray-400 text-lg max-w-md mx-auto mb-8">
-          Select a class from the dropdown above to view student marksheets
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button onclick="document.getElementById('classView').focus()" 
-                  class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200">
-            <i class="fas fa-graduation-cap"></i>
-            Select Class
-          </button>
-          <button onclick="document.getElementById('search-input').focus()" 
-                  class="px-6 py-3 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 border border-gray-700/50">
-            <i class="fas fa-search"></i>
-            Search Students
-          </button>
+      {% if class_empty %}
+      <!-- Class has no students message -->
+      <div id="results" class="text-center py-16 px-4">
+        <div class="max-w-md mx-auto">
+          <div class="mb-8 relative">
+            <div class="w-24 h-24 mx-auto bg-gradient-to-br from-amber-500/20 to-orange-600/20 rounded-2xl flex items-center justify-center shadow-2xl border border-amber-500/30 backdrop-blur-sm">
+              <i class="fas fa-users-slash text-4xl text-amber-400"></i>
+            </div>
+            <!-- Decorative dots (optional) -->
+            <div class="absolute -z-10 inset-0 flex justify-center">
+              <div class="w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
+            </div>
+          </div>
+          <h3 class="text-3xl md:text-4xl font-bold text-white mb-3">No Students In This Class</h3>
+          <p class="text-gray-400 text-lg md:text-xl mb-8 max-w-sm mx-auto">
+            It looks like there are no student records for the selected class. You can add new students or retry loading the class.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/admission" 
+               class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 shadow-lg hover:shadow-xl">
+              <i class="fas fa-user-plus"></i>
+              Add Student
+            </a>
+            <button onclick="loadMarksheets(currentClassId)" 
+                    class="px-6 py-3 bg-gray-800/60 hover:bg-gray-700/60 text-white rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 border border-gray-700/50 backdrop-blur-sm">
+              <i class="fas fa-redo"></i>
+              Retry Loading
+            </button>
+          </div>
         </div>
       </div>
+      {% else %}
+      <!-- Empty State with Selection Prompt -->
+      <div id="results" class="text-center py-16 px-4">
+        <div class="max-w-md mx-auto">
+          <div class="mb-8 relative">
+            <div class="w-24 h-24 mx-auto bg-gradient-to-br from-blue-500/20 to-indigo-600/20 rounded-2xl flex items-center justify-center shadow-2xl border border-blue-500/30 backdrop-blur-sm">
+              <i class="fas fa-file-alt text-4xl text-blue-400"></i>
+            </div>
+            <div class="absolute -z-10 inset-0 flex justify-center">
+              <div class="w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
+            </div>
+          </div>
+          <h3 class="text-3xl md:text-4xl font-bold text-white mb-3">No Marksheets Loaded</h3>
+          <p class="text-gray-400 text-lg md:text-xl mb-8 max-w-sm mx-auto">
+            Select a class from the dropdown above to view student marksheets
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button onclick="document.getElementById('classView').focus()" 
+                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 shadow-lg hover:shadow-xl">
+              <i class="fas fa-graduation-cap"></i>
+              Select Class
+            </button>
+            <button onclick="document.getElementById('search-input').focus()" 
+                    class="px-6 py-3 bg-gray-800/60 hover:bg-gray-700/60 text-white rounded-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 border border-gray-700/50 backdrop-blur-sm">
+              <i class="fas fa-search"></i>
+              Search Students
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endif %}
     {% endif %}
   </div>
   <!-- END: Results Container -->
@@ -646,12 +686,14 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ class_id: classId })
       });
+
+      const data = await response.json();  
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(data.message || 'Failed to load marksheets. Please try again.');
       }
       
-      const data = await response.json();      
+          
       resultsContainer.innerHTML = data.html;
       
       // Re-initialize checkboxes
@@ -666,7 +708,7 @@
       }, 100);
     } catch (error) {
       console.error('Failed to load marksheets:', error);
-      showError('Failed to load marksheets. Please try again.');
+      showError(error);
       
       // Show error state
       resultsContainer.innerHTML = `

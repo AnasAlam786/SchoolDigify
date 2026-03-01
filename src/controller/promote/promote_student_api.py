@@ -72,7 +72,7 @@ def promote_student():
     if promoted_roll not in final_rolls:
         allowed_rolls = ", ".join(map(str, final_rolls))
         return jsonify({
-            "message": f"Invalid roll number. You can only assign one of these rolls: {allowed_rolls}."
+            "message": f"Roll no already assigned. You can only assign one of these rolls: {allowed_rolls}."
         }), 400
 
 

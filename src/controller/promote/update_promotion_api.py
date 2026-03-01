@@ -78,7 +78,7 @@ def update_promotion():
         if promoted_roll not in available_rolls:
             allowed_rolls = ", ".join(map(str, available_rolls))
             return jsonify({
-                "message": f"Invalid roll number. You can only assign one of these rolls: {allowed_rolls}."
+                "message": f"Roll number already assigned. You can only assign one of these rolls: {allowed_rolls}."
             }), 400
 
     # ---------------------
